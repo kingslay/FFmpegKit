@@ -1,0 +1,5 @@
+module CSDL2 [system][extern_c] {
+    umbrella header "shims.h"
+    link "SDL2"
+    export *
+}
