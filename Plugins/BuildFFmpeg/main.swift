@@ -123,7 +123,7 @@ extension Build {
 }
 
 private enum Library: String, CaseIterable {
-    case libfreetype, libfribidi, libass, openssl, libsrt, libsmbclient, libgnutls, libgmp, FFmpeg, nettle, harfbuzz, png, libdav1d, mpv
+    case libfreetype, libfribidi, libass, openssl, libsrt, libsmbclient, libgnutls, libgmp, FFmpeg, nettle, harfbuzz, png, libdav1d, libtls, mpv
     var version: String {
         switch self {
         case .FFmpeg:
@@ -155,6 +155,8 @@ private enum Library: String, CaseIterable {
             return "1.1.0"
         case .libgmp:
             return "v6.2.1"
+        case .libtls:
+            return "OPENBSD_7_3"
         }
     }
 
@@ -174,6 +176,8 @@ private enum Library: String, CaseIterable {
             return "https://github.com/alisw/GMP"
         case .libdav1d:
             return "https://github.com/videolan/dav1d"
+        case .libtls:
+            return "https://github.com/libressl/portable"
         default:
             var value = rawValue
             if self != .libass, value.hasPrefix("lib") {
@@ -222,6 +226,8 @@ private enum Library: String, CaseIterable {
             return BuildNettle()
         case .libgmp:
             return BuildGmp()
+        case .libtls:
+            return BuildLibreSSL()
         }
     }
 }
@@ -701,9 +707,27 @@ private class BuildOpenSSL: BaseBuild {
     }
 
     override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
-        ["--prefix=\(thinDir(platform: platform, arch: arch).path)",
-         arch == .x86_64 ? "darwin64-x86_64" : arch == .arm64e ? "iphoneos-cross" : "darwin64-arm64",
-         "no-async", "no-shared", "no-dso", "no-engine", "no-tests"]
+        var array = ["--prefix=\(thinDir(platform: platform, arch: arch).path)",
+                     arch == .x86_64 ? "darwin64-x86_64" : arch == .arm64e ? "iphoneos-cross" : "darwin64-arm64",
+                     "no-async", "no-shared", "no-dso", "no-engine", "no-tests"]
+        if [PlatformType.tvos, .tvsimulator, .watchos, .watchsimulator].contains(platform) {
+            array.append("-DHAVE_FORK=0")
+        }
+        return array
+    }
+}
+
+private class BuildLibreSSL: BaseBuild {
+    init() {
+        super.init(library: .libtls)
+    }
+
+    override func environment(platform: PlatformType, arch: ArchType) -> [String: String] {
+        var env = super.environment(platform: platform, arch: arch)
+        if [PlatformType.tvos, .tvsimulator, .watchos, .watchsimulator].contains(platform) {
+            env["CFLAGS"]? += " -DOPENSSL_NO_SPEED=1"
+        }
+        return env
     }
 }
 
@@ -1209,9 +1233,6 @@ private enum PlatformType: String, CaseIterable {
 //        }
         if self == .maccatalyst {
             cflags += " -iframework \(isysroot)/System/iOSSupport/System/Library/Frameworks"
-        }
-        if [PlatformType.tvos, .tvsimulator, .watchos, .watchsimulator].contains(self) {
-            cflags += " -DHAVE_FORK=0"
         }
         return cflags
     }

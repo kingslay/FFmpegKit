@@ -8,7 +8,7 @@ let package = Package(
     products: [
         .library(
             name: "FFmpegKit",
-            type: .static,
+//            type: .static,
             targets: ["FFmpegKit"]
         ),
         .library(name: "Libavcodec", targets: ["Libavcodec"]),
