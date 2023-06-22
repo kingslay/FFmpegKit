@@ -106,7 +106,7 @@ extension Build {
             -h            display this help and exit
             enable-debug,    build ffmpeg with debug information
             disable-ffmpeg        no build ffmpeg [no]
-            platforms=watchos,watchsimulator  deployment platform: ios, isimulator, tvos, tvsimulator, macos, maccatalyst, watchos, watchsimulator
+            platforms=xros,xrsimulator  deployment platform: ios,isimulator,tvos,tvsimulator,macos,maccatalyst,xros,xrsimulator,watchos,watchsimulator,
             --xx      add ffmpeg Configuers
             --disable-sandbox spm disable sanbox
 
@@ -1117,7 +1117,7 @@ private class BuildMPV: BaseBuild {
 }
 
 private enum PlatformType: String, CaseIterable {
-    case ios, isimulator, tvos, tvsimulator, macos, maccatalyst, watchos, watchsimulator
+    case ios, isimulator, tvos, tvsimulator, macos, maccatalyst, watchos, watchsimulator, xros, xrsimulator
     var minVersion: String {
         switch self {
         case .ios, .isimulator:
@@ -1130,16 +1130,18 @@ private enum PlatformType: String, CaseIterable {
             return "13.0"
         case .watchos, .watchsimulator:
             return "6.0"
+        case .xros, .xrsimulator:
+            return "1.0"
         }
     }
 
     func architectures() -> [ArchType] {
         switch self {
-        case .ios:
+        case .ios, .xros:
             return [.arm64, .arm64e]
         case .tvos, .watchos:
             return [.arm64]
-        case .isimulator, .tvsimulator, .watchsimulator:
+        case .isimulator, .tvsimulator, .watchsimulator, .xrsimulator:
             return [.arm64, .x86_64]
         case .macos:
             #if arch(x86_64)
@@ -1156,7 +1158,7 @@ private enum PlatformType: String, CaseIterable {
         switch self {
         case .macos:
             return "\(arch.targetCpu())-apple-darwin"
-        case .ios, .tvos, .watchos:
+        case .ios, .tvos, .watchos, .xros:
             return "\(arch.targetCpu())-\(rawValue)-darwin"
         case .isimulator, .maccatalyst:
             return PlatformType.ios.host(arch: arch)
@@ -1164,12 +1166,14 @@ private enum PlatformType: String, CaseIterable {
             return PlatformType.tvos.host(arch: arch)
         case .watchsimulator:
             return PlatformType.watchos.host(arch: arch)
+        case .xrsimulator:
+            return PlatformType.xros.host(arch: arch)
         }
     }
 
     private func deploymentTarget(arch: ArchType) -> String {
         switch self {
-        case .ios, .tvos, .watchos, .macos:
+        case .ios, .tvos, .watchos, .macos, .xros:
             return "\(arch.targetCpu())-apple-\(rawValue)\(minVersion)"
         case .maccatalyst:
             return "\(arch.targetCpu())-apple-ios-macabi"
@@ -1179,6 +1183,8 @@ private enum PlatformType: String, CaseIterable {
             return PlatformType.tvos.deploymentTarget(arch: arch) + "-simulator"
         case .watchsimulator:
             return PlatformType.watchos.deploymentTarget(arch: arch) + "-simulator"
+        case .xrsimulator:
+            return PlatformType.xros.deploymentTarget(arch: arch) + "-simulator"
         }
     }
 
@@ -1186,15 +1192,15 @@ private enum PlatformType: String, CaseIterable {
         switch self {
         case .ios, .tvos, .watchos:
             return " -m\(rawValue)-version-min=\(minVersion)"
+        case .macos:
+            return " -mmacosx-version-min=\(minVersion)"
         case .isimulator:
             return " -mios-simulator-version-min=\(minVersion)"
         case .tvsimulator:
             return " -mtvos-simulator-version-min=\(minVersion)"
         case .watchsimulator:
             return " -mwatchos-simulator-version-min=\(minVersion)"
-        case .macos:
-            return " -mmacosx-version-min=\(minVersion)"
-        case .maccatalyst:
+        case .maccatalyst, .xros, .xrsimulator:
             return ""
         }
     }
@@ -1213,6 +1219,10 @@ private enum PlatformType: String, CaseIterable {
             return "WatchOS"
         case .watchsimulator:
             return "WatchSimulator"
+        case .xros:
+            return "XROS"
+        case .xrsimulator:
+            return "XRSimulator"
         case .macos, .maccatalyst:
             return "MacOSX"
         }
@@ -1226,7 +1236,8 @@ private enum PlatformType: String, CaseIterable {
 
     func cFlags(arch: ArchType) -> String {
         let isysroot = isysroot()
-        var cflags = "-arch \(arch.rawValue) -isysroot \(isysroot) -target \(deploymentTarget(arch: arch))" + osVersionMin()
+        var cflags = "-arch \(arch.rawValue) -isysroot \(isysroot) -target \(deploymentTarget(arch: arch))"
+            + osVersionMin()
 //        if self == .macos || self == .maccatalyst {
         // 不能同时有强符合和弱符号出现
         cflags += " -fno-common"
