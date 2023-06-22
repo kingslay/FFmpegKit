@@ -331,9 +331,11 @@ private class BaseBuild {
         }
         for framework in frameworks {
             var arguments = ["-create-xcframework"]
-            for platform in BaseBuild.platforms {
-                arguments.append("-framework")
-                try arguments.append(createFramework(framework: framework, platform: platform))
+            for platform in PlatformType.allCases {
+                if let frameworkPath = try createFramework(framework: framework, platform: platform) {
+                    arguments.append("-framework")
+                    arguments.append(frameworkPath)
+                }
             }
             arguments.append("-output")
             let XCFrameworkFile = URL.currentDirectory + ["../Sources", framework + ".xcframework"]
@@ -345,13 +347,23 @@ private class BaseBuild {
         }
     }
 
-    private func createFramework(framework: String, platform: PlatformType) throws -> String {
+    private func createFramework(framework: String, platform: PlatformType) throws -> String? {
         let frameworkDir = URL.currentDirectory + [library.rawValue, platform.rawValue, "\(framework).framework"]
+        if !BaseBuild.platforms.contains(platform) {
+            if FileManager.default.fileExists(atPath: frameworkDir.path) {
+                return frameworkDir.path
+            } else {
+                return nil
+            }
+        }
         try? FileManager.default.removeItem(at: frameworkDir)
         try FileManager.default.createDirectory(at: frameworkDir, withIntermediateDirectories: true, attributes: nil)
         var arguments = ["-create"]
         for arch in architectures(platform) {
             let prefix = thinDir(platform: platform, arch: arch)
+            if !FileManager.default.fileExists(atPath: prefix.path) {
+                return nil
+            }
             arguments.append((prefix + ["lib", "\(framework).a"]).path)
             var headerURL: URL = prefix + "include" + framework
             if !FileManager.default.fileExists(atPath: headerURL.path) {

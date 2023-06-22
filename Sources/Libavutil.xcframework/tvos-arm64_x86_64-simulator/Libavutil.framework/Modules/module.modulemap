@@ -8,6 +8,7 @@ framework module Libavutil [system] {
     exclude header "hwcontext_dxva2.h"
     exclude header "hwcontext_d3d11va.h"
     exclude header "hwcontext_cuda.h"
+    exclude header "hwcontext_videotoolbox.h"
     exclude header "getenv_utf8.h"
     exclude header "intmath.h"
     exclude header "libm.h"

@@ -6,5 +6,6 @@ framework module Libavcodec [system] {
     exclude header "dxva2.h"
     exclude header "d3d11va.h"
     exclude header "mathops.h"
+    exclude header "videotoolbox.h"
     export *
 }
