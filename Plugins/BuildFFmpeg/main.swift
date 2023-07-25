@@ -31,7 +31,7 @@ extension Build {
     static var ffmpegConfiguers = [String]()
     static func performCommand(arguments: [String]) throws {
         print(arguments)
-        if arguments.contains("-h") {
+        if arguments.contains("h") {
             printHelp()
             return
         }
@@ -103,7 +103,7 @@ extension Build {
         Usage: swift package BuildFFmpeg [OPTION]...
         Demo: swift package BuildFFmpeg --disable-sandbox enable-libdav1d enable-openssl enable-libsrt
         Options:
-            -h            display this help and exit
+            h            display this help and exit
             enable-debug,    build ffmpeg with debug information
             disable-ffmpeg        no build ffmpeg [no]
             platforms=xros,xrsimulator  deployment platform: ios,isimulator,tvos,tvsimulator,macos,maccatalyst,xros,xrsimulator,watchos,watchsimulator,
@@ -139,7 +139,7 @@ private enum Library: String, CaseIterable {
         case .png:
             return "v1.6.39"
         case .mpv:
-            return "v0.35.0"
+            return "v0.36.0"
         case .openssl:
             // 用openssl-3.1.0 在真机启动会_armv8_sve_probe, 3.1.1在真机启动会crash
             return "openssl-3.0.7"
@@ -269,9 +269,21 @@ private class BaseBuild {
     func build(platform: PlatformType, arch: ArchType, buildURL: URL) throws {
         try? _ = Utility.launch(path: "/usr/bin/make", arguments: ["distclean"], currentDirectoryURL: buildURL)
         let environ = environment(platform: platform, arch: arch)
-        try configure(buildURL: buildURL, environ: environ, platform: platform, arch: arch)
-        try Utility.launch(path: "/usr/bin/make", arguments: ["-j5"], currentDirectoryURL: buildURL, environment: environ)
-        try Utility.launch(path: "/usr/bin/make", arguments: ["-j5", "install"], currentDirectoryURL: buildURL, environment: environ)
+        let mesonBuild = directoryURL + "meson.build"
+        if FileManager.default.fileExists(atPath: mesonBuild.path) {
+            if Utility.shell("which meson") == nil {
+                Utility.shell("brew install meson")
+            }
+            let meson = Utility.shell("which meson", isOutput: true)!
+            let crossFile = createMesonCrossFile(platform: platform, arch: arch)
+            try Utility.launch(path: meson, arguments: ["setup", buildURL.path, "--cross-file=\(crossFile.path)"] + arguments(platform: platform, arch: arch), currentDirectoryURL: directoryURL, environment: environ)
+            try Utility.launch(path: meson, arguments: ["compile", "--verbose"], currentDirectoryURL: buildURL, environment: environ)
+            try Utility.launch(path: meson, arguments: ["install"], currentDirectoryURL: buildURL, environment: environ)
+        } else {
+            try configure(buildURL: buildURL, environ: environ, platform: platform, arch: arch)
+            try Utility.launch(path: "/usr/bin/make", arguments: ["-j5"], currentDirectoryURL: buildURL, environment: environ)
+            try Utility.launch(path: "/usr/bin/make", arguments: ["-j5", "install"], currentDirectoryURL: buildURL, environment: environ)
+        }
     }
 
     func configure(buildURL: URL, environ: [String: String], platform: PlatformType, arch: ArchType) throws {
@@ -444,6 +456,37 @@ private class BaseBuild {
         </plist>
         """
         FileManager.default.createFile(atPath: path, contents: content.data(using: .utf8), attributes: nil)
+    }
+
+    private func createMesonCrossFile(platform: PlatformType, arch: ArchType) -> URL {
+        let url = scratch(platform: platform, arch: arch)
+        let crossFile = url + "crossFile.meson"
+        let prefix = thinDir(platform: platform, arch: arch)
+        let content = """
+        [binaries]
+        c = '/usr/bin/clang'
+        cpp = '/usr/bin/clang++'
+        objc = '/usr/bin/clang'
+        ar = '\(platform.xcrunFind(tool: "ar"))'
+        strip = '\(platform.xcrunFind(tool: "strip"))'
+        pkgconfig = 'pkg-config'
+
+        [properties]
+        sys_root = '\(platform.isysroot())'
+        has_function_printf = true
+
+        [host_machine]
+        system = 'darwin'
+        cpu_family = '\(arch.cpuFamily())'
+        cpu = '\(arch.targetCpu())'
+        endian = 'little'
+
+        [built-in options]
+        default_library = 'static'
+        prefix = '\(prefix.path)'
+        """
+        FileManager.default.createFile(atPath: crossFile.path, contents: content.data(using: .utf8), attributes: nil)
+        return crossFile
     }
 }
 
@@ -1031,101 +1074,31 @@ private class BuildASS: BaseBuild {
 private class BuildDav1d: BaseBuild {
     init() {
         super.init(library: .libdav1d)
-        if Utility.shell("which meson") == nil {
-            Utility.shell("brew install meson")
-        }
     }
 
-    override func build(platform: PlatformType, arch: ArchType, buildURL: URL) throws {
-        let crossFile = createMasonCrossFile(platform: platform, arch: arch)
-        let meson = Utility.shell("which meson", isOutput: true)!
-        let ninja = Utility.shell("which ninja", isOutput: true)!
-        let environ = environment(platform: platform, arch: arch)
-        try Utility.launch(path: meson, arguments: ["setup", buildURL.path, "--cross-file=\(crossFile.path)", "-Db_lto=false", "-Db_ndebug=false", "-Denable_asm=false", "-Denable_tools=false", "-Denable_examples=false", "-Denable_tests=false"], currentDirectoryURL: directoryURL, environment: environ)
-        try Utility.launch(path: ninja, arguments: ["-j5"], currentDirectoryURL: buildURL, environment: environ)
-        try Utility.launch(path: ninja, arguments: ["install"], currentDirectoryURL: buildURL, environment: environ)
-    }
-
-    private func createMasonCrossFile(platform: PlatformType, arch: ArchType) -> URL {
-        let url = scratch(platform: platform, arch: arch)
-        let crossFile = url + "crossFile.meson"
-        let content = """
-        [binaries]
-        c = '/usr/bin/clang'
-        cpp = '/usr/bin/clang++'
-        ar = '\(platform.xcrunFind(tool: "ar"))'
-        strip = '\(platform.xcrunFind(tool: "strip"))'
-        pkgconfig = 'pkg-config'
-
-        [properties]
-        sys_root = '\(platform.isysroot())'
-        has_function_printf = true
-
-        [host_machine]
-        system = 'darwin'
-        cpu_family = '\(arch.cpuFamily())'
-        cpu = '\(arch.targetCpu())'
-        endian = 'little'
-
-        [built-in options]
-        default_library = 'static'
-        prefix = '\(thinDir(platform: platform, arch: arch).path)'
-        """
-        FileManager.default.createFile(atPath: crossFile.path, contents: content.data(using: .utf8), attributes: nil)
-        return crossFile
+    override func arguments(platform _: PlatformType, arch _: ArchType) -> [String] {
+        ["-Denable_asm=true", "-Denable_tools=false", "-Denable_examples=false", "-Denable_tests=false"]
     }
 }
 
 private class BuildMPV: BaseBuild {
     init() {
         super.init(library: .mpv)
-        let path = directoryURL + "wscript_build.py"
-        if let data = FileManager.default.contents(atPath: path.path), var str = String(data: data, encoding: .utf8) {
-            str = str.replacingOccurrences(of:
-                """
-                "osdep/subprocess-posix.c",            "posix"
-                """, with:
-                """
-                "osdep/subprocess-posix.c",            "posix && !tvos"
-                """)
-            try! str.write(toFile: path.path, atomically: true, encoding: .utf8)
-        }
     }
 
-    override func build(platform: PlatformType, arch: ArchType, buildURL _: URL) throws {
-        let environ = environment(platform: platform, arch: arch)
-        try Utility.launch(executableURL: directoryURL + "bootstrap.py", arguments: [], currentDirectoryURL: directoryURL)
-        try Utility.launch(path: "/usr/bin/python3", arguments: ["./waf", "distclean"], currentDirectoryURL: directoryURL, environment: environ)
-        try Utility.launch(path: "/usr/bin/python3", arguments: ["./waf", "configure"] + arguments(platform: platform, arch: arch), currentDirectoryURL: directoryURL, environment: environ)
-        try Utility.launch(path: "/usr/bin/python3", arguments: ["./waf", "build"], currentDirectoryURL: directoryURL, environment: environ)
-        try Utility.launch(path: "/usr/bin/python3", arguments: ["./waf", "install"], currentDirectoryURL: directoryURL, environment: environ)
-    }
-
-    override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
-        [
-            "--prefix=\(thinDir(platform: platform, arch: arch).path)",
-            "--disable-cplayer",
-            "--disable-lcms2",
-            "--disable-lua",
-            "--disable-rubberband",
-            "--disable-zimg",
-            "--disable-javascript",
-            "--disable-jpeg",
-            "--disable-swift",
-            "--disable-vapoursynth",
-            "--enable-lgpl",
-            "--enable-libmpv-static",
-            platform == .macos ? "--enable-videotoolbox-gl" : (platform == .maccatalyst ? "--enable-gl" : "--enable-ios-gl"),
+    override func arguments(platform: PlatformType, arch _: ArchType) -> [String] {
+        var array = [
+            "-Dcplayer=false",
+            "-Dlibmpv=true",
+            "-Dbuildtype=release",
         ]
+        if platform == .macos {
+            array.append("-Dvideotoolbox-gl=enabled")
+        } else {
+            array.append("-Dios-gl=enabled")
+        }
+        return array
     }
-
-//    override func architectures(_ platform: PlatformType) -> [ArchType] {
-//        if platform == .macos {
-//            return [.x86_64]
-//        } else {
-//            return super.architectures(platform)
-//        }
-//    }
 }
 
 private enum PlatformType: String, CaseIterable {
