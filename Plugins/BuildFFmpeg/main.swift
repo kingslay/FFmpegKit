@@ -277,6 +277,7 @@ private class BaseBuild {
             let meson = Utility.shell("which meson", isOutput: true)!
             let crossFile = createMesonCrossFile(platform: platform, arch: arch)
             try Utility.launch(path: meson, arguments: ["setup", buildURL.path, "--cross-file=\(crossFile.path)"] + arguments(platform: platform, arch: arch), currentDirectoryURL: directoryURL, environment: environ)
+            try Utility.launch(path: meson, arguments: ["compile", "--clean"], currentDirectoryURL: buildURL, environment: environ)
             try Utility.launch(path: meson, arguments: ["compile", "--verbose"], currentDirectoryURL: buildURL, environment: environ)
             try Utility.launch(path: meson, arguments: ["install"], currentDirectoryURL: buildURL, environment: environ)
         } else {
@@ -286,7 +287,7 @@ private class BaseBuild {
         }
     }
 
-    func configure(buildURL: URL, environ: [String: String], platform: PlatformType, arch: ArchType) throws {
+    private func configure(buildURL: URL, environ: [String: String], platform: PlatformType, arch: ArchType) throws {
         let autogen = directoryURL + "autogen.sh"
         if FileManager.default.fileExists(atPath: autogen.path) {
             var environ = environ
@@ -302,7 +303,26 @@ private class BaseBuild {
         if !FileManager.default.fileExists(atPath: configure.path), FileManager.default.fileExists(atPath: bootstrap.path) {
             try Utility.launch(executableURL: bootstrap, arguments: [], currentDirectoryURL: directoryURL, environment: environ)
         }
-        try Utility.launch(executableURL: configure, arguments: arguments(platform: platform, arch: arch), currentDirectoryURL: buildURL, environment: environ)
+        let makeLists = directoryURL + "CMakeLists.txt"
+        if FileManager.default.fileExists(atPath: makeLists.path) {
+            if Utility.shell("which cmake") == nil {
+                Utility.shell("brew install cmake")
+            }
+            let cmake = Utility.shell("which cmake", isOutput: true)!
+            let thinDirPath = thinDir(platform: platform, arch: arch).path
+            var arguments = [
+                makeLists.path,
+                "-DCMAKE_VERBOSE_MAKEFILE=0",
+                "-DCMAKE_BUILD_TYPE=Release",
+                "-DCMAKE_OSX_SYSROOT=\(platform.sdk().lowercased())",
+                "-DCMAKE_OSX_ARCHITECTURES=\(arch.rawValue)",
+                "-DCMAKE_INSTALL_PREFIX=\(thinDirPath)",
+            ]
+            arguments.append(contentsOf: self.arguments(platform: platform, arch: arch))
+            try Utility.launch(path: cmake, arguments: arguments, currentDirectoryURL: buildURL, environment: environ)
+        } else {
+            try Utility.launch(executableURL: configure, arguments: arguments(platform: platform, arch: arch), currentDirectoryURL: buildURL, environment: environ)
+        }
     }
 
     func environment(platform: PlatformType, arch: ArchType) -> [String: String] {
@@ -316,7 +336,7 @@ private class BaseBuild {
             // "CPPFLAGS": platform.cFlags(arch: arch),
             "CFLAGS": platform.cFlags(arch: arch),
             "CXXFLAGS": platform.cFlags(arch: arch),
-            "LDFLAGS": platform.ldFlags(arch: arch),
+            "LDFLAGS": platform.ldFlags(arch: arch).joined(separator: " "),
             "PKG_CONFIG_PATH": platform.pkgConfigPath(arch: arch),
         ]
     }
@@ -472,7 +492,6 @@ private class BaseBuild {
         pkgconfig = 'pkg-config'
 
         [properties]
-        sys_root = '\(platform.isysroot())'
         has_function_printf = true
 
         [host_machine]
@@ -483,6 +502,7 @@ private class BaseBuild {
 
         [built-in options]
         default_library = 'static'
+        buildtype = 'release'
         prefix = '\(prefix.path)'
         """
         FileManager.default.createFile(atPath: crossFile.path, contents: content.data(using: .utf8), attributes: nil)
@@ -675,7 +695,7 @@ private class BuildFFMPEG: BaseBuild {
         "--disable-xlib", "--disable-swscale-alpha", "--disable-symver", "--disable-small",
         "--enable-cross-compile", "--enable-gpl", "--enable-libxml2", "--enable-nonfree",
         "--enable-runtime-cpudetect", "--enable-thumb", "--enable-version3", "--pkg-config-flags=--static",
-        "--enable-static", "--disable-shared",
+        "--enable-static", "--disable-shared", "--enable-pic",
         // Documentation options:
         "--disable-doc", "--disable-htmlpages", "--disable-manpages", "--disable-podpages", "--disable-txtpages",
         // Component options:
@@ -919,22 +939,11 @@ private class BuildGnutls: BaseBuild {
 
 private class BuildSRT: BaseBuild {
     init() {
-        if Utility.shell("which cmake") == nil {
-            Utility.shell("brew install cmake")
-        }
         super.init(library: .libsrt)
     }
 
-    override func configure(buildURL: URL, environ: [String: String], platform: PlatformType, arch: ArchType) throws {
-        let thinDirPath = thinDir(platform: platform, arch: arch).path
-
-        let arguments = [
-            (directoryURL + "CMakeLists.txt").path,
-            "-DCMAKE_VERBOSE_MAKEFILE=0",
-            "-DCMAKE_BUILD_TYPE=Release",
-            "-DCMAKE_OSX_SYSROOT=\(platform.sdk().lowercased())",
-            "-DCMAKE_OSX_ARCHITECTURES=\(arch.rawValue)",
-            "-DCMAKE_INSTALL_PREFIX=\(thinDirPath)",
+    override func arguments(platform: PlatformType, arch _: ArchType) -> [String] {
+        [
             "-Wno-dev",
             "-DUSE_ENCLIB=openssl",
             "-DENABLE_STDCXX_SYNC=1",
@@ -947,8 +956,6 @@ private class BuildSRT: BaseBuild {
             "-DENABLE_SHARED=0",
             platform == .maccatalyst ? "-DENABLE_MONOTONIC_CLOCK=0" : "-DENABLE_MONOTONIC_CLOCK=1",
         ]
-        let cmake = Utility.shell("which cmake", isOutput: true)!
-        try Utility.launch(path: cmake, arguments: arguments, currentDirectoryURL: buildURL, environment: environ)
     }
 }
 
@@ -957,27 +964,12 @@ private class BuildFribidi: BaseBuild {
         super.init(library: .libfribidi)
     }
 
-    override func configure(buildURL: URL, environ: [String: String], platform: PlatformType, arch: ArchType) throws {
-        try super.configure(buildURL: buildURL, environ: environ, platform: platform, arch: arch)
-        let makefile = buildURL + "Makefile"
-        // DISABLE BUILDING OF doc FOLDER (doc depends on c2man which is not available on all platforms)
-        if let data = FileManager.default.contents(atPath: makefile.path), var str = String(data: data, encoding: .utf8) {
-            str = str.replacingOccurrences(of: " doc ", with: " ")
-            try str.write(toFile: makefile.path, atomically: true, encoding: .utf8)
-        }
-    }
-
-    override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
-        super.arguments(platform: platform, arch: arch) +
-            [
-                "--disable-deprecated",
-                "--disable-debug",
-                "--with-pic",
-                "--enable-static",
-                "--disable-shared",
-                "--disable-fast-install",
-                "--disable-dependency-tracking",
-            ]
+    override func arguments(platform _: PlatformType, arch _: ArchType) -> [String] {
+        [
+            "-Ddeprecated=false",
+            "-Ddocs=false",
+            "-Dtests=false",
+        ]
     }
 }
 
@@ -1086,17 +1078,20 @@ private class BuildMPV: BaseBuild {
         super.init(library: .mpv)
     }
 
-    override func arguments(platform: PlatformType, arch _: ArchType) -> [String] {
+    override func arguments(platform _: PlatformType, arch _: ArchType) -> [String] {
         var array = [
             "-Dcplayer=false",
             "-Dlibmpv=true",
-            "-Dbuildtype=release",
+            "-Dlua=disabled",
+            "-Djavascript=disabled",
+            "-Dswift-build=disabled",
+            "-Dcocoa=disabled",
         ]
-        if platform == .macos {
-            array.append("-Dvideotoolbox-gl=enabled")
-        } else {
-            array.append("-Dios-gl=enabled")
-        }
+//        if platform == .macos {
+//            array.append("-Dvideotoolbox-gl=enabled")
+//        } else {
+//            array.append("-Dios-gl=enabled")
+//        }
         return array
     }
 }
@@ -1213,10 +1208,9 @@ private enum PlatformType: String, CaseIterable {
         }
     }
 
-    func ldFlags(arch: ArchType) -> String {
-        let isysroot = isysroot()
+    func ldFlags(arch: ArchType) -> [String] {
         // ldFlags的关键参数要跟cFlags保持一致，不然会在ld的时候不通过。
-        return "-arch \(arch.rawValue) -isysroot \(isysroot) -target \(deploymentTarget(arch: arch))"
+        ["-arch", arch.rawValue, "-isysroot", isysroot(), "-target", deploymentTarget(arch: arch)]
     }
 
     func cFlags(arch: ArchType) -> String {
