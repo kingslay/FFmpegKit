@@ -115,9 +115,10 @@ extension Build {
             enable-openssl      build with openssl [no]
             enable-libsrt       depend enable-openssl
             enable-libass       depend enable-libfreetype enable-libfribidi enable-harfbuzz
-            enable-libgnutls       depend enable-nettle enable-libgmp
-            enable-libsmbclient     depend enable-libgmp enable-nettle enable-libgnutls
-            enable-mpv      depend enable-libfreetype enable-libfribidi enable-harfbuzz enable-libass
+            enable-nettle       depend enable-libgmp
+            enable-libgnutls    depend enable-libgmp enable-nettle
+            enable-libsmbclient depend enable-libgmp enable-nettle enable-libgnutls
+            enable-mpv          depend enable-libfreetype enable-libfribidi enable-harfbuzz enable-libass
         """)
     }
 }
@@ -146,11 +147,11 @@ private enum Library: String, CaseIterable {
         case .libsrt:
             return "v1.5.1"
         case .libsmbclient:
-            return "samba-4.17.5"
+            return "samba-4.18.5"
         case .libgnutls:
             return "3.7.8"
         case .nettle:
-            return "nettle_3.8.1_release_20220727"
+            return "nettle_3.9.1_release_20230601"
         case .libdav1d:
             return "1.1.0"
         case .libgmp:
@@ -171,7 +172,7 @@ private enum Library: String, CaseIterable {
         case .libsmbclient:
             return "https://github.com/samba-team/samba"
         case .nettle:
-            return "https://github.com/gnutls/nettle"
+            return "https://git.lysator.liu.se/nettle/nettle.git"
         case .libgmp:
             return "https://github.com/alisw/GMP"
         case .libdav1d:
@@ -295,13 +296,14 @@ private class BaseBuild {
             try Utility.launch(executableURL: autogen, arguments: [], currentDirectoryURL: directoryURL, environment: environ)
         }
         let configure = directoryURL + "configure"
-        var bootstrap = directoryURL + "bootstrap"
-        if !FileManager.default.fileExists(atPath: configure.path), FileManager.default.fileExists(atPath: bootstrap.path) {
-            try Utility.launch(executableURL: bootstrap, arguments: [], currentDirectoryURL: directoryURL, environment: environ)
-        }
-        bootstrap = directoryURL + ".bootstrap"
-        if !FileManager.default.fileExists(atPath: configure.path), FileManager.default.fileExists(atPath: bootstrap.path) {
-            try Utility.launch(executableURL: bootstrap, arguments: [], currentDirectoryURL: directoryURL, environment: environ)
+        if !FileManager.default.fileExists(atPath: configure.path) {
+            var bootstrap = directoryURL + "bootstrap"
+            if !FileManager.default.fileExists(atPath: bootstrap.path) {
+                bootstrap = directoryURL + ".bootstrap"
+            }
+            if FileManager.default.fileExists(atPath: bootstrap.path) {
+                try Utility.launch(executableURL: bootstrap, arguments: [], currentDirectoryURL: directoryURL, environment: environ)
+            }
         }
         let makeLists = directoryURL + "CMakeLists.txt"
         if FileManager.default.fileExists(atPath: makeLists.path) {
@@ -348,7 +350,7 @@ private class BaseBuild {
         ]
     }
 
-    func createXCFramework() throws {
+    private func createXCFramework() throws {
         var frameworks: [String] = []
         if let platform = BaseBuild.platforms.first {
             if let arch = architectures(platform).first {
@@ -427,11 +429,11 @@ private class BaseBuild {
         return frameworkDir.path
     }
 
-    func thinDir(platform: PlatformType, arch: ArchType) -> URL {
+    fileprivate func thinDir(platform: PlatformType, arch: ArchType) -> URL {
         URL.currentDirectory + [library.rawValue, platform.rawValue, "thin", arch.rawValue]
     }
 
-    func scratch(platform: PlatformType, arch: ArchType) -> URL {
+    private func scratch(platform: PlatformType, arch: ArchType) -> URL {
         URL.currentDirectory + [library.rawValue, platform.rawValue, "scratch", arch.rawValue]
     }
 
@@ -811,40 +813,50 @@ private class BuildSmbclient: BaseBuild {
         super.init(library: .libsmbclient)
     }
 
-    override func scratch(platform _: PlatformType, arch _: ArchType) -> URL {
-        directoryURL
-    }
-
     override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
         super.arguments(platform: platform, arch: arch) +
             [
-                "--bundled-libraries=NONE,ldb,tdb,tevent",
+                //                "--bundled-libraries=NONE,ldb,tdb,tevent",
                 "--disable-cephfs",
                 "--disable-cups",
                 "--disable-iprint",
                 "--disable-glusterfs",
-                "--disable-python",
                 "--without-acl-support",
-                "--without-ad-dc",
+                "--disable-python",
                 "--without-ads",
                 "--without-ldap",
-                "--without-libarchive",
-                "--without-json",
                 "--without-pam",
                 "--without-regedit",
                 "--without-syslog",
                 "--without-utmp",
                 "--without-winbind",
-                "--without-acl-support",
+//                "--with-system-mitkrb5",
+//                "--cross-compile",
+//                "--cross-answers=cross-answers.txt",
+//                "--cross-execute=./buildtools/example/run_on_target.py",
+                "--with-static-modules=ALL",
                 "--with-shared-modules=!vfs_snapper",
-                "--with-system-mitkrb5",
+                "--builtin-libraries=smbclient",
+//                "--targets=smbclient",
+                "--hostcc=\(platform.host(arch: arch))",
+                "--without-ad-dc",
+                "--without-json",
+                "--without-libarchive",
+                "--without-acl-support",
             ]
+    }
+
+    override func build(platform: PlatformType, arch: ArchType, buildURL _: URL) throws {
+        try super.build(platform: platform, arch: arch, buildURL: directoryURL)
     }
 }
 
 private class BuildGmp: BaseBuild {
     init() {
         super.init(library: .libgmp)
+        if Utility.shell("which makeinfo") == nil {
+            Utility.shell("brew install texinfo")
+        }
     }
 
     override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
@@ -869,7 +881,7 @@ private class BuildNettle: BaseBuild {
     }
 
     override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
-        let gmpPath = URL.currentDirectory + ["gmp", platform.rawValue, "thin", arch.rawValue]
+        let gmpPath = URL.currentDirectory + [Library.libgmp.rawValue, platform.rawValue, "thin", arch.rawValue]
         return super.arguments(platform: platform, arch: arch) +
             [
                 "--with-include-path=\(gmpPath.path)/include",
@@ -882,7 +894,6 @@ private class BuildNettle: BaseBuild {
                 "--enable-pic",
                 "--enable-static",
                 "--disable-shared",
-                "--disable-dependency-tracking",
                 arch == .arm64 || arch == .arm64e ? "--enable-arm-neon" : "--enable-x86-aesni",
             ]
     }
@@ -899,15 +910,27 @@ private class BuildGnutls: BaseBuild {
         if Utility.shell("which wget") == nil {
             Utility.shell("brew install wget")
         }
-        Utility.shell("brew install bison")
+        if Utility.shell("which bison") == nil {
+            Utility.shell("brew install bison")
+        }
         super.init(library: .libgnutls)
+        let path = directoryURL + "lib/accelerated/aarch64/Makefile.in"
+        if let data = FileManager.default.contents(atPath: path.path), var str = String(data: data, encoding: .utf8) {
+            str = str.replacingOccurrences(of: "AM_CCASFLAGS =", with: "#AM_CCASFLAGS=")
+            try! str.write(toFile: path.path, atomically: true, encoding: .utf8)
+        }
     }
 
     override func environment(platform: PlatformType, arch: ArchType) -> [String: String] {
         var environ = super.environment(platform: platform, arch: arch)
-        let gmpPath = URL.currentDirectory + ["gmp", platform.rawValue, "thin", arch.rawValue]
+        let gmpPath = URL.currentDirectory + [Library.libgmp.rawValue, platform.rawValue, "thin", arch.rawValue]
+        let nettlePath = URL.currentDirectory + [Library.nettle.rawValue, platform.rawValue, "thin", arch.rawValue]
         environ["GMP_CFLAGS"] = "-I\(gmpPath.path)/include"
         environ["GMP_LIBS"] = "-L\(gmpPath.path)/lib -lgmp"
+        environ["HOGWEED_CFLAGS"] = "-I\(nettlePath.path)/include"
+        environ["HOGWEED_LIBS"] = "-L\(nettlePath.path)/lib -lhogweed -L\(gmpPath.path)/lib -lgmp"
+        environ["NETTLE_CFLAGS"] = "-I\(nettlePath.path)/include"
+        environ["NETTLE_LIBS"] = "-L\(nettlePath.path)/lib -lnettle -L\(gmpPath.path)/lib -lgmp"
         return environ
     }
 
@@ -988,7 +1011,6 @@ private class BuildHarfbuzz: BaseBuild {
                 "--enable-static",
                 "--disable-shared",
                 "--disable-fast-install",
-                "--disable-dependency-tracking",
             ]
     }
 }
@@ -1058,7 +1080,6 @@ private class BuildASS: BaseBuild {
                 "--enable-static",
                 "--disable-shared",
                 "--disable-fast-install",
-                "--disable-dependency-tracking",
             ]
     }
 }
