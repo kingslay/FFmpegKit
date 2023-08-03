@@ -115,16 +115,17 @@ extension Build {
             enable-openssl      build with openssl [no]
             enable-libsrt       depend enable-openssl
             enable-libass       depend enable-libfreetype enable-libfribidi enable-harfbuzz
-            enable-nettle       depend enable-libgmp
-            enable-libgnutls    depend enable-libgmp enable-nettle
-            enable-libsmbclient depend enable-libgmp enable-nettle enable-libgnutls
+            enable-nettle       depend enable-gmp
+            enable-gnutls       depend enable-gmp enable-nettle
+            enable-libsmbclient depend enable-gmp enable-nettle enable-gnutls
+            enable-harfbuzz     depend enable-libfreetype
             enable-mpv          depend enable-libfreetype enable-libfribidi enable-harfbuzz enable-libass
         """)
     }
 }
 
 private enum Library: String, CaseIterable {
-    case libfreetype, libfribidi, libass, openssl, libsrt, libsmbclient, libgnutls, libgmp, FFmpeg, nettle, harfbuzz, png, libdav1d, libtls, mpv
+    case libfreetype, libfribidi, libass, openssl, libsrt, libsmbclient, gnutls, gmp, FFmpeg, nettle, harfbuzz, png, libdav1d, libtls, mpv
     var version: String {
         switch self {
         case .FFmpeg:
@@ -148,13 +149,13 @@ private enum Library: String, CaseIterable {
             return "v1.5.1"
         case .libsmbclient:
             return "samba-4.18.5"
-        case .libgnutls:
-            return "3.7.8"
+        case .gnutls:
+            return "3.7.9"
         case .nettle:
             return "nettle_3.9.1_release_20230601"
         case .libdav1d:
             return "1.1.0"
-        case .libgmp:
+        case .gmp:
             return "v6.2.1"
         case .libtls:
             return "OPENBSD_7_3"
@@ -173,7 +174,7 @@ private enum Library: String, CaseIterable {
             return "https://github.com/samba-team/samba"
         case .nettle:
             return "https://git.lysator.liu.se/nettle/nettle.git"
-        case .libgmp:
+        case .gmp:
             return "https://github.com/alisw/GMP"
         case .libdav1d:
             return "https://github.com/videolan/dav1d"
@@ -219,13 +220,13 @@ private enum Library: String, CaseIterable {
             return BuildSRT()
         case .libsmbclient:
             return BuildSmbclient()
-        case .libgnutls:
+        case .gnutls:
             return BuildGnutls()
         case .libdav1d:
             return BuildDav1d()
         case .nettle:
             return BuildNettle()
-        case .libgmp:
+        case .gmp:
             return BuildGmp()
         case .libtls:
             return BuildLibreSSL()
@@ -288,23 +289,7 @@ private class BaseBuild {
         }
     }
 
-    private func configure(buildURL: URL, environ: [String: String], platform: PlatformType, arch: ArchType) throws {
-        let autogen = directoryURL + "autogen.sh"
-        if FileManager.default.fileExists(atPath: autogen.path) {
-            var environ = environ
-            environ["NOCONFIGURE"] = "1"
-            try Utility.launch(executableURL: autogen, arguments: [], currentDirectoryURL: directoryURL, environment: environ)
-        }
-        let configure = directoryURL + "configure"
-        if !FileManager.default.fileExists(atPath: configure.path) {
-            var bootstrap = directoryURL + "bootstrap"
-            if !FileManager.default.fileExists(atPath: bootstrap.path) {
-                bootstrap = directoryURL + ".bootstrap"
-            }
-            if FileManager.default.fileExists(atPath: bootstrap.path) {
-                try Utility.launch(executableURL: bootstrap, arguments: [], currentDirectoryURL: directoryURL, environment: environ)
-            }
-        }
+    func configure(buildURL: URL, environ: [String: String], platform: PlatformType, arch: ArchType) throws {
         let makeLists = directoryURL + "CMakeLists.txt"
         if FileManager.default.fileExists(atPath: makeLists.path) {
             if Utility.shell("which cmake") == nil {
@@ -323,6 +308,22 @@ private class BaseBuild {
             arguments.append(contentsOf: self.arguments(platform: platform, arch: arch))
             try Utility.launch(path: cmake, arguments: arguments, currentDirectoryURL: buildURL, environment: environ)
         } else {
+            let autogen = directoryURL + "autogen.sh"
+            if FileManager.default.fileExists(atPath: autogen.path) {
+                var environ = environ
+                environ["NOCONFIGURE"] = "1"
+                try Utility.launch(executableURL: autogen, arguments: [], currentDirectoryURL: directoryURL, environment: environ)
+            }
+            let configure = directoryURL + "configure"
+            if !FileManager.default.fileExists(atPath: configure.path) {
+                var bootstrap = directoryURL + "bootstrap"
+                if !FileManager.default.fileExists(atPath: bootstrap.path) {
+                    bootstrap = directoryURL + ".bootstrap"
+                }
+                if FileManager.default.fileExists(atPath: bootstrap.path) {
+                    try Utility.launch(executableURL: bootstrap, arguments: [], currentDirectoryURL: directoryURL, environment: environ)
+                }
+            }
             try Utility.launch(executableURL: configure, arguments: arguments(platform: platform, arch: arch), currentDirectoryURL: buildURL, environment: environ)
         }
     }
@@ -853,7 +854,7 @@ private class BuildSmbclient: BaseBuild {
 
 private class BuildGmp: BaseBuild {
     init() {
-        super.init(library: .libgmp)
+        super.init(library: .gmp)
         if Utility.shell("which makeinfo") == nil {
             Utility.shell("brew install texinfo")
         }
@@ -881,11 +882,8 @@ private class BuildNettle: BaseBuild {
     }
 
     override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
-        let gmpPath = URL.currentDirectory + [Library.libgmp.rawValue, platform.rawValue, "thin", arch.rawValue]
-        return super.arguments(platform: platform, arch: arch) +
+        super.arguments(platform: platform, arch: arch) +
             [
-                "--with-include-path=\(gmpPath.path)/include",
-                "--with-lib-path=\(gmpPath.path)/lib",
                 "--disable-mini-gmp",
                 "--disable-assembler",
                 "--disable-openssl",
@@ -913,25 +911,16 @@ private class BuildGnutls: BaseBuild {
         if Utility.shell("which bison") == nil {
             Utility.shell("brew install bison")
         }
-        super.init(library: .libgnutls)
+        super.init(library: .gnutls)
+    }
+
+    override func configure(buildURL: URL, environ: [String: String], platform: PlatformType, arch: ArchType) throws {
+        try super.configure(buildURL: buildURL, environ: environ, platform: platform, arch: arch)
         let path = directoryURL + "lib/accelerated/aarch64/Makefile.in"
         if let data = FileManager.default.contents(atPath: path.path), var str = String(data: data, encoding: .utf8) {
             str = str.replacingOccurrences(of: "AM_CCASFLAGS =", with: "#AM_CCASFLAGS=")
             try! str.write(toFile: path.path, atomically: true, encoding: .utf8)
         }
-    }
-
-    override func environment(platform: PlatformType, arch: ArchType) -> [String: String] {
-        var environ = super.environment(platform: platform, arch: arch)
-        let gmpPath = URL.currentDirectory + [Library.libgmp.rawValue, platform.rawValue, "thin", arch.rawValue]
-        let nettlePath = URL.currentDirectory + [Library.nettle.rawValue, platform.rawValue, "thin", arch.rawValue]
-        environ["GMP_CFLAGS"] = "-I\(gmpPath.path)/include"
-        environ["GMP_LIBS"] = "-L\(gmpPath.path)/lib -lgmp"
-        environ["HOGWEED_CFLAGS"] = "-I\(nettlePath.path)/include"
-        environ["HOGWEED_LIBS"] = "-L\(nettlePath.path)/lib -lhogweed -L\(gmpPath.path)/lib -lgmp"
-        environ["NETTLE_CFLAGS"] = "-I\(nettlePath.path)/include"
-        environ["NETTLE_LIBS"] = "-L\(nettlePath.path)/lib -lnettle -L\(gmpPath.path)/lib -lgmp"
-        return environ
     }
 
     override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
@@ -941,6 +930,7 @@ private class BuildGnutls: BaseBuild {
                 "--with-included-unistring",
                 "--without-idn",
                 "--without-p11-kit",
+                "--without-zstd",
                 "--enable-hardware-acceleration",
                 "--disable-openssl-compatibility",
                 "--disable-code-coverage",
@@ -1001,17 +991,11 @@ private class BuildHarfbuzz: BaseBuild {
         super.init(library: .harfbuzz)
     }
 
-    override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
-        super.arguments(platform: platform, arch: arch) +
-            [
-                "--with-glib=no",
-                "--with-freetype=no",
-                "--with-directwrite=no",
-                "--with-pic",
-                "--enable-static",
-                "--disable-shared",
-                "--disable-fast-install",
-            ]
+    override func arguments(platform _: PlatformType, arch _: ArchType) -> [String] {
+        [
+            "-Dglib=disabled",
+            "-Ddocs=disabled",
+        ]
     }
 }
 
@@ -1020,23 +1004,8 @@ private class BuildFreetype: BaseBuild {
         super.init(library: .libfreetype)
     }
 
-    override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
-        super.arguments(platform: platform, arch: arch) +
-            [
-                "--with-zlib",
-                "--without-harfbuzz",
-                "--without-bzip2",
-                "--without-fsref",
-                "--without-quickdraw-toolbox",
-                "--without-quickdraw-carbon",
-                "--without-ats",
-                "--disable-mmap",
-                "--with-png=no",
-                "--with-pic",
-                "--enable-static",
-                "--disable-shared",
-                "--disable-fast-install",
-            ]
+    override func arguments(platform _: PlatformType, arch _: ArchType) -> [String] {
+        ["-Dharfbuzz=disabled"]
     }
 }
 
@@ -1080,6 +1049,7 @@ private class BuildASS: BaseBuild {
                 "--enable-static",
                 "--disable-shared",
                 "--disable-fast-install",
+                "--disable-dependency-tracking",
             ]
     }
 }
@@ -1231,7 +1201,12 @@ private enum PlatformType: String, CaseIterable {
 
     func ldFlags(arch: ArchType) -> [String] {
         // ldFlags的关键参数要跟cFlags保持一致，不然会在ld的时候不通过。
-        ["-arch", arch.rawValue, "-isysroot", isysroot(), "-target", deploymentTarget(arch: arch)]
+        var flags = ["-arch", arch.rawValue, "-isysroot", isysroot(), "-target", deploymentTarget(arch: arch)]
+        let gmpPath = URL.currentDirectory + [Library.gmp.rawValue, rawValue, "thin", arch.rawValue]
+        if FileManager.default.fileExists(atPath: gmpPath.path) {
+            flags.append("-L\(gmpPath.path)/lib")
+        }
+        return flags
     }
 
     func cFlags(arch: ArchType) -> String {
@@ -1244,6 +1219,10 @@ private enum PlatformType: String, CaseIterable {
 //        }
         if self == .maccatalyst {
             cflags += " -iframework \(isysroot)/System/iOSSupport/System/Library/Frameworks"
+        }
+        let gmpPath = URL.currentDirectory + [Library.gmp.rawValue, rawValue, "thin", arch.rawValue]
+        if FileManager.default.fileExists(atPath: gmpPath.path) {
+            cflags += " -I\(gmpPath.path)/include"
         }
         return cflags
     }
