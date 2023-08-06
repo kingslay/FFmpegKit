@@ -45,7 +45,7 @@ extension Build {
         if Utility.shell("which pkg-config") == nil {
             Utility.shell("brew install pkg-config")
         }
-        let path = URL.currentDirectory + "Script"
+        let path = URL.currentDirectory + ".Script"
         if !FileManager.default.fileExists(atPath: path.path) {
             try FileManager.default.createDirectory(at: path, withIntermediateDirectories: true)
         }
@@ -114,7 +114,8 @@ extension Build {
             enable-libdav1d     build with dav1d [no]
             enable-openssl      build with openssl [no]
             enable-libsrt       depend enable-openssl
-            enable-libass       depend enable-libfreetype enable-libfribidi enable-harfbuzz
+            enable-libfreetype  depend enable-png
+            enable-libass       depend enable-png enable-libfreetype enable-libfribidi enable-harfbuzz
             enable-nettle       depend enable-gmp
             enable-gnutls       depend enable-gmp enable-nettle
             enable-libsmbclient depend enable-gmp enable-nettle enable-gnutls
@@ -1014,18 +1015,8 @@ private class BuildPng: BaseBuild {
         super.init(library: .png)
     }
 
-    override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
-        let asmOptions = arch == .x86_64 ? "--enable-intel-sse=yes" : "--enable-arm-neon=yes"
-        return super.arguments(platform: platform, arch: arch) +
-            [
-                asmOptions,
-                "--disable-unversioned-libpng-pc",
-                "--disable-unversioned-libpng-config",
-                "--with-pic",
-                "--enable-static",
-                "--disable-shared",
-                "--disable-fast-install",
-            ]
+    override func arguments(platform _: PlatformType, arch _: ArchType) -> [String] {
+        ["-DPNG_HARDWARE_OPTIMIZATIONS=yes"]
     }
 }
 

@@ -38,6 +38,11 @@ let package = Package(
                 "Libssl", "Libcrypto",
                 "Libdav1d",
                 "Libsrt",
+//                "Libpng",
+//                "Libfreetype",
+//                "Libfribidi",
+//                "Libharfbuzz",
+//                "Libass",
             ],
             linkerSettings: [
                 .linkedFramework("AudioToolbox"),
@@ -147,5 +152,25 @@ let package = Package(
             name: "Libsrt",
             path: "Sources/Libsrt.xcframework"
         ),
+//        .binaryTarget(
+//            name: "Libass",
+//            path: "Sources/Libass.xcframework"
+//        ),
+//        .binaryTarget(
+//            name: "Libpng",
+//            path: "Sources/Libpng.xcframework"
+//        ),
+//        .binaryTarget(
+//            name: "Libfreetype",
+//            path: "Sources/Libfreetype.xcframework"
+//        ),
+//        .binaryTarget(
+//            name: "Libfribidi",
+//            path: "Sources/Libfribidi.xcframework"
+//        ),
+//        .binaryTarget(
+//            name: "Libharfbuzz",
+//            path: "Sources/Libharfbuzz.xcframework"
+//        ),
     ]
 )
