@@ -138,7 +138,7 @@ private enum Library: String, CaseIterable {
         case .harfbuzz:
             return "5.3.1"
         case .libass:
-            return "master"
+            return "0.17.1-branch"
         case .png:
             return "v1.6.39"
         case .mpv:
@@ -1307,12 +1307,15 @@ enum Utility {
         environment["PATH"] = "/usr/local/bin:/opt/homebrew/bin:/usr/local/opt/bison/bin:/usr/bin:/bin:/usr/sbin:/sbin"
         task.environment = environment
         var standardOutput: FileHandle?
+        var log = executableURL.path + " " + arguments.joined(separator: " ") + " environment: " + environment.description
         if isOutput {
             let pipe = Pipe()
             task.standardOutput = pipe
             standardOutput = pipe.fileHandleForReading
         } else if var logURL = currentDirectoryURL {
             logURL = logURL.appendingPathExtension("log")
+            log += " logFile: \(logURL)"
+
             if !FileManager.default.fileExists(atPath: logURL.path) {
                 FileManager.default.createFile(atPath: logURL.path, contents: nil)
             }
@@ -1322,12 +1325,8 @@ enum Utility {
             }
             task.standardOutput = standardOutput
         }
-        task.arguments = arguments
-        var log = executableURL.path + " " + arguments.joined(separator: " ") + " environment: " + environment.description
-        if let currentDirectoryURL {
-            log += " url: \(currentDirectoryURL)"
-        }
         print(log)
+        task.arguments = arguments
         task.currentDirectoryURL = currentDirectoryURL
         task.executableURL = executableURL
         try task.run()
