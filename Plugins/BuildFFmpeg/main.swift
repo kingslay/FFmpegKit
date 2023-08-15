@@ -103,12 +103,12 @@ extension Build {
         Usage: swift package BuildFFmpeg [OPTION]...
         Demo: swift package BuildFFmpeg --disable-sandbox enable-libdav1d enable-openssl enable-libsrt
         Options:
-            h            display this help and exit
-            enable-debug,    build ffmpeg with debug information
-            disable-ffmpeg        no build ffmpeg [no]
-            platforms=xros,xrsimulator  deployment platform: ios,isimulator,tvos,tvsimulator,macos,maccatalyst,xros,xrsimulator,watchos,watchsimulator,
-            --xx      add ffmpeg Configuers
-            --disable-sandbox spm disable sanbox
+            h                   display this help and exit
+            enable-debug,       build ffmpeg with debug information
+            disable-ffmpeg      no build ffmpeg [no]
+            platforms=xros      deployment platform: ios,isimulator,tvos,tvsimulator,macos,maccatalyst,xros,xrsimulator,watchos,watchsimulator,
+            --xx                add ffmpeg Configuers
+            --disable-sandbox   spm disable sanbox
 
         Libraries:
             enable-libdav1d     build with dav1d [no]
@@ -120,7 +120,7 @@ extension Build {
             enable-gnutls       depend enable-gmp enable-nettle
             enable-libsmbclient depend enable-gmp enable-nettle enable-gnutls
             enable-harfbuzz     depend enable-libfreetype
-            enable-mpv          depend enable-libfreetype enable-libfribidi enable-harfbuzz enable-libass
+            enable-mpv          depend enable-png enable-libfreetype enable-libfribidi enable-harfbuzz enable-libass
         """)
     }
 }
@@ -305,6 +305,7 @@ private class BaseBuild {
                 "-DCMAKE_OSX_SYSROOT=\(platform.sdk().lowercased())",
                 "-DCMAKE_OSX_ARCHITECTURES=\(arch.rawValue)",
                 "-DCMAKE_INSTALL_PREFIX=\(thinDirPath)",
+                "-DBUILD_SHARED_LIBS=0"
             ]
             arguments.append(contentsOf: self.arguments(platform: platform, arch: arch))
             try Utility.launch(path: cmake, arguments: arguments, currentDirectoryURL: buildURL, environment: environ)
@@ -938,7 +939,7 @@ private class BuildGnutls: BaseBuild {
                 "--disable-doc",
                 "--disable-manpages",
                 "--disable-guile",
-                "--disable-tests",
+//                "--disable-tests",
                 "--disable-tools",
                 "--disable-maintainer-mode",
                 "--disable-full-test-suite",
@@ -1026,8 +1027,7 @@ private class BuildASS: BaseBuild {
     }
 
     override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
-        let asmOptions = "--enable-asm"
-        return super.arguments(platform: platform, arch: arch) +
+        var result = super.arguments(platform: platform, arch: arch) +
             [
                 "--disable-libtool-lock",
                 "--disable-fontconfig",
@@ -1035,13 +1035,16 @@ private class BuildASS: BaseBuild {
                 "--disable-test",
                 "--disable-profile",
                 "--disable-coretext",
-                asmOptions,
                 "--with-pic",
                 "--enable-static",
                 "--disable-shared",
                 "--disable-fast-install",
                 "--disable-dependency-tracking",
             ]
+        if arch == .x86_64 {
+            result.append("--enable-asm")
+        }
+        return result
     }
 }
 
@@ -1058,23 +1061,61 @@ private class BuildDav1d: BaseBuild {
 private class BuildMPV: BaseBuild {
     init() {
         super.init(library: .mpv)
+        let path = directoryURL + "wscript_build.py"
+        if let data = FileManager.default.contents(atPath: path.path), var str = String(data: data, encoding: .utf8) {
+            str = str.replacingOccurrences(of:
+                """
+                "osdep/subprocess-posix.c",            "posix"
+                """, with:
+                """
+                "osdep/subprocess-posix.c",            "posix && !tvos"
+                """)
+            try! str.write(toFile: path.path, atomically: true, encoding: .utf8)
+        }
     }
 
-    override func arguments(platform _: PlatformType, arch _: ArchType) -> [String] {
-        var array = [
-            "-Dcplayer=false",
-            "-Dlibmpv=true",
-            "-Dlua=disabled",
-            "-Djavascript=disabled",
-            "-Dswift-build=disabled",
-            "-Dcocoa=disabled",
+    // todo meson
+//    override func arguments(platform: PlatformType, arch _: ArchType) -> [String] {
+//        var array = [
+//            "-Dcplayer=false",
+//            "-Dlibmpv=true",
+//            "-Dlua=disabled",
+//            "-Djavascript=disabled",
+//            "-Dswift-build=disabled",
+//            "-Dcocoa=disabled",
+//        ]
+    ////        if platform == .macos {
+    ////            array.append("-Dvideotoolbox-gl=enabled")
+    ////        } else {
+    ////            array.append("-Dios-gl=enabled")
+    ////        }
+//        return array
+//    }
+    override func build(platform: PlatformType, arch: ArchType, buildURL _: URL) throws {
+        let environ = environment(platform: platform, arch: arch)
+        try Utility.launch(executableURL: directoryURL + "bootstrap.py", arguments: [], currentDirectoryURL: directoryURL)
+        try Utility.launch(path: "/usr/bin/python3", arguments: ["./waf", "distclean"], currentDirectoryURL: directoryURL, environment: environ)
+        try Utility.launch(path: "/usr/bin/python3", arguments: ["./waf", "configure"] + arguments(platform: platform, arch: arch), currentDirectoryURL: directoryURL, environment: environ)
+        try Utility.launch(path: "/usr/bin/python3", arguments: ["./waf", "build"], currentDirectoryURL: directoryURL, environment: environ)
+        try Utility.launch(path: "/usr/bin/python3", arguments: ["./waf", "install"], currentDirectoryURL: directoryURL, environment: environ)
+    }
+
+    override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
+        [
+            "--prefix=\(thinDir(platform: platform, arch: arch).path)",
+            "--disable-cplayer",
+            "--disable-lcms2",
+            "--disable-lua",
+            "--disable-rubberband",
+            "--disable-zimg",
+            "--disable-javascript",
+            "--disable-jpeg",
+            "--disable-swift",
+            "--disable-vapoursynth",
+            "--enable-lgpl",
+            "--enable-libmpv-static",
+            platform == .macos ? "--enable-videotoolbox-gl" : (platform == .maccatalyst ? "--enable-gl" : "--enable-ios-gl"),
         ]
-//        if platform == .macos {
-//            array.append("-Dvideotoolbox-gl=enabled")
-//        } else {
-//            array.append("-Dios-gl=enabled")
-//        }
-        return array
     }
 }
 

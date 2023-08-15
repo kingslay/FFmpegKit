@@ -21,6 +21,7 @@ let package = Package(
         .library(name: "Libswscale", targets: ["Libswscale"]),
         .library(name: "Libssl", targets: ["Libssl"]),
         .library(name: "Libcrypto", targets: ["Libcrypto"]),
+//        .library(name: "Libmpv", targets: ["Libmpv", "Libpng", "Libfreetype", "Libfribidi", "Libharfbuzz", "Libass",]),
         .executable(name: "ffplay", targets: ["ffplay"]),
         .executable(name: "ffmpeg", targets: ["ffmpeg"]),
         .executable(name: "ffprobe", targets: ["ffprobe"]),
@@ -171,6 +172,10 @@ let package = Package(
 //        .binaryTarget(
 //            name: "Libharfbuzz",
 //            path: "Sources/Libharfbuzz.xcframework"
+//        ),
+//        .binaryTarget(
+//            name: "Libmpv",
+//            path: "Sources/Libmpv.xcframework"
 //        ),
     ]
 )
