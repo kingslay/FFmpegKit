@@ -305,7 +305,7 @@ private class BaseBuild {
                 "-DCMAKE_OSX_SYSROOT=\(platform.sdk().lowercased())",
                 "-DCMAKE_OSX_ARCHITECTURES=\(arch.rawValue)",
                 "-DCMAKE_INSTALL_PREFIX=\(thinDirPath)",
-                "-DBUILD_SHARED_LIBS=0"
+                "-DBUILD_SHARED_LIBS=0",
             ]
             arguments.append(contentsOf: self.arguments(platform: platform, arch: arch))
             try Utility.launch(path: cmake, arguments: arguments, currentDirectoryURL: buildURL, environment: environ)
