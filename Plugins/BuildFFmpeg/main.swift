@@ -140,7 +140,7 @@ private enum Library: String, CaseIterable {
         case .libass:
             return "0.17.1-branch"
         case .png:
-            return "v1.6.39"
+            return "v1.6.40"
         case .mpv:
             return "v0.36.0"
         case .openssl:
@@ -489,16 +489,18 @@ private class BaseBuild {
         let prefix = thinDir(platform: platform, arch: arch)
         let content = """
         [binaries]
-        c = '/usr/bin/clang'
-        cpp = '/usr/bin/clang++'
-        objc = '/usr/bin/clang'
+        c = ['/usr/bin/clang', '-arch', '\(arch.rawValue)']
+        cpp = ['/usr/bin/clang++', '-arch', '\(arch.rawValue)']
+        objc = ['/usr/bin/clang', '-arch', '\(arch.rawValue)']
+        objcpp = ['/usr/bin/clang++', '-arch', '\(arch.rawValue)']
         ar = '\(platform.xcrunFind(tool: "ar"))'
         strip = '\(platform.xcrunFind(tool: "strip"))'
         pkgconfig = 'pkg-config'
 
         [properties]
         has_function_printf = true
-
+        has_function_hfkerhisadf = false
+        
         [host_machine]
         system = 'darwin'
         cpu_family = '\(arch.cpuFamily())'
