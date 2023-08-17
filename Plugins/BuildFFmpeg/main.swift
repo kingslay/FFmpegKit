@@ -338,7 +338,7 @@ private class BaseBuild {
             // "SDKROOT": platform.sdk().lowercased(),
             "CURRENT_ARCH": arch.rawValue,
             // makefile can't use CPPFLAGS
-            // "CPPFLAGS": platform.cFlags(arch: arch),
+            "CPPFLAGS": platform.cFlags(arch: arch),
             "CFLAGS": platform.cFlags(arch: arch),
             "CXXFLAGS": platform.cFlags(arch: arch),
             "LDFLAGS": platform.ldFlags(arch: arch).joined(separator: " "),
@@ -500,9 +500,11 @@ private class BaseBuild {
         [properties]
         has_function_printf = true
         has_function_hfkerhisadf = false
-        
+
         [host_machine]
         system = 'darwin'
+        subsystem = '\(platform.rawValue)'
+        kernel = 'xnu'
         cpu_family = '\(arch.cpuFamily())'
         cpu = '\(arch.targetCpu())'
         endian = 'little'
@@ -1063,61 +1065,29 @@ private class BuildDav1d: BaseBuild {
 private class BuildMPV: BaseBuild {
     init() {
         super.init(library: .mpv)
-        let path = directoryURL + "wscript_build.py"
-        if let data = FileManager.default.contents(atPath: path.path), var str = String(data: data, encoding: .utf8) {
-            str = str.replacingOccurrences(of:
-                """
-                "osdep/subprocess-posix.c",            "posix"
-                """, with:
-                """
-                "osdep/subprocess-posix.c",            "posix && !tvos"
-                """)
-            try! str.write(toFile: path.path, atomically: true, encoding: .utf8)
-        }
     }
 
-    // todo meson
-//    override func arguments(platform: PlatformType, arch _: ArchType) -> [String] {
-//        var array = [
-//            "-Dcplayer=false",
-//            "-Dlibmpv=true",
-//            "-Dlua=disabled",
-//            "-Djavascript=disabled",
-//            "-Dswift-build=disabled",
-//            "-Dcocoa=disabled",
-//        ]
-    ////        if platform == .macos {
-    ////            array.append("-Dvideotoolbox-gl=enabled")
-    ////        } else {
-    ////            array.append("-Dios-gl=enabled")
-    ////        }
-//        return array
-//    }
-    override func build(platform: PlatformType, arch: ArchType, buildURL _: URL) throws {
-        let environ = environment(platform: platform, arch: arch)
-        try Utility.launch(executableURL: directoryURL + "bootstrap.py", arguments: [], currentDirectoryURL: directoryURL)
-        try Utility.launch(path: "/usr/bin/python3", arguments: ["./waf", "distclean"], currentDirectoryURL: directoryURL, environment: environ)
-        try Utility.launch(path: "/usr/bin/python3", arguments: ["./waf", "configure"] + arguments(platform: platform, arch: arch), currentDirectoryURL: directoryURL, environment: environ)
-        try Utility.launch(path: "/usr/bin/python3", arguments: ["./waf", "build"], currentDirectoryURL: directoryURL, environment: environ)
-        try Utility.launch(path: "/usr/bin/python3", arguments: ["./waf", "install"], currentDirectoryURL: directoryURL, environment: environ)
-    }
-
+    
     override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
-        [
-            "--prefix=\(thinDir(platform: platform, arch: arch).path)",
-            "--disable-cplayer",
-            "--disable-lcms2",
-            "--disable-lua",
-            "--disable-rubberband",
-            "--disable-zimg",
-            "--disable-javascript",
-            "--disable-jpeg",
-            "--disable-swift",
-            "--disable-vapoursynth",
-            "--enable-lgpl",
-            "--enable-libmpv-static",
-            platform == .macos ? "--enable-videotoolbox-gl" : (platform == .maccatalyst ? "--enable-gl" : "--enable-ios-gl"),
+        var array = [
+            "-Dlibmpv=true",
         ]
+        if !(platform == .macos && arch.executable()) {
+            array.append("-Dcplayer=false")
+        }
+        if platform == .macos {
+            array.append("-Dswift-flags=-sdk \(platform.isysroot()) -target \(platform.deploymentTarget(arch: arch))")
+            array.append("-Dvideotoolbox-gl=enabled")
+        } else {
+            array.append("-Dvideotoolbox-gl=disabled")
+            array.append("-Dswift-build=disabled")
+            if platform == .maccatalyst {
+                array.append("-Dgl=enabled")
+            } else {
+                array.append("-Dios-gl=enabled")
+            }
+        }
+        return array
     }
 }
 
@@ -1176,7 +1146,7 @@ private enum PlatformType: String, CaseIterable {
         }
     }
 
-    private func deploymentTarget(arch: ArchType) -> String {
+    fileprivate func deploymentTarget(arch: ArchType) -> String {
         switch self {
         case .ios, .tvos, .watchos, .macos, .xros:
             return "\(arch.targetCpu())-apple-\(rawValue)\(minVersion)"
@@ -1310,7 +1280,7 @@ enum ArchType: String, CaseIterable {
     func cpuFamily() -> String {
         switch self {
         case .arm64, .arm64e:
-            return "arm"
+            return "aarch64"
         case .x86_64:
             return "x86_64"
         }
