@@ -1067,7 +1067,6 @@ private class BuildMPV: BaseBuild {
         super.init(library: .mpv)
     }
 
-    
     override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
         var array = [
             "-Dlibmpv=true",
@@ -1081,8 +1080,12 @@ private class BuildMPV: BaseBuild {
         } else {
             array.append("-Dvideotoolbox-gl=disabled")
             array.append("-Dswift-build=disabled")
-            if platform == .maccatalyst {
-                array.append("-Dgl=enabled")
+            if platform == .xros || platform == .xrsimulator || platform == .maccatalyst {
+                array.append("-Dios-gl=disabled")
+                if platform == .maccatalyst {
+                    array.append("-Dcocoa=disabled")
+                    array.append("-Dcoreaudio=disabled")
+                }
             } else {
                 array.append("-Dios-gl=enabled")
             }
