@@ -25,6 +25,9 @@ dependencies: [
 ## Build Scripts
 ```bash
 swift package BuildFFmpeg --disable-sandbox enable-libdav1d enable-openssl enable-libsrt
+
+/// build MPV
+swift package BuildFFmpeg --disable-sandbox enable-libdav1d enable-openssl enable-libsrt enable-libfreetype enable-libfribidi enable-harfbuzz enable-libass enable-mpv platforms=macos
 ```
 ## Executable product
 ```bash
