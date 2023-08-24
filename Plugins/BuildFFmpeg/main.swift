@@ -102,6 +102,7 @@ extension Build {
         print("""
         Usage: swift package BuildFFmpeg [OPTION]...
         Demo: swift package BuildFFmpeg --disable-sandbox enable-libdav1d enable-openssl enable-libsrt
+        Build MPV: swift package BuildFFmpeg --disable-sandbox enable-libdav1d enable-openssl enable-libsrt enable-png enable-libfreetype enable-libfribidi enable-harfbuzz enable-libass enable-mpv
         Options:
             h                   display this help and exit
             enable-debug,       build ffmpeg with debug information
@@ -272,8 +273,7 @@ private class BaseBuild {
     func build(platform: PlatformType, arch: ArchType, buildURL: URL) throws {
         try? _ = Utility.launch(path: "/usr/bin/make", arguments: ["distclean"], currentDirectoryURL: buildURL)
         let environ = environment(platform: platform, arch: arch)
-        let mesonBuild = directoryURL + "meson.build"
-        if FileManager.default.fileExists(atPath: mesonBuild.path) {
+        if FileManager.default.fileExists(atPath: (directoryURL + "meson.build").path) {
             if Utility.shell("which meson") == nil {
                 Utility.shell("brew install meson")
             }
@@ -283,11 +283,20 @@ private class BaseBuild {
             try Utility.launch(path: meson, arguments: ["compile", "--clean"], currentDirectoryURL: buildURL, environment: environ)
             try Utility.launch(path: meson, arguments: ["compile", "--verbose"], currentDirectoryURL: buildURL, environment: environ)
             try Utility.launch(path: meson, arguments: ["install"], currentDirectoryURL: buildURL, environment: environ)
+        } else if FileManager.default.fileExists(atPath: (directoryURL + wafPath()).path) {
+            try Utility.launch(path: "/usr/bin/python3", arguments: [wafPath(), "distclean"], currentDirectoryURL: directoryURL, environment: environ)
+            try Utility.launch(path: "/usr/bin/python3", arguments: [wafPath(), "configure"] + arguments(platform: platform, arch: arch), currentDirectoryURL: directoryURL, environment: environ)
+            try Utility.launch(path: "/usr/bin/python3", arguments: [wafPath(), "build"], currentDirectoryURL: directoryURL, environment: environ)
+            try Utility.launch(path: "/usr/bin/python3", arguments: [wafPath(), "install"], currentDirectoryURL: directoryURL, environment: environ)
         } else {
             try configure(buildURL: buildURL, environ: environ, platform: platform, arch: arch)
             try Utility.launch(path: "/usr/bin/make", arguments: ["-j5"], currentDirectoryURL: buildURL, environment: environ)
             try Utility.launch(path: "/usr/bin/make", arguments: ["-j5", "install"], currentDirectoryURL: buildURL, environment: environ)
         }
+    }
+
+    func wafPath() -> String {
+        "./waf"
     }
 
     func configure(buildURL: URL, environ: [String: String], platform: PlatformType, arch: ArchType) throws {
@@ -634,18 +643,12 @@ private class BuildFFMPEG: BaseBuild {
         }
     }
 
-    override func environment(platform: PlatformType, arch: ArchType) -> [String: String] {
-        var environ = super.environment(platform: platform, arch: arch)
-        environ["CPPFLAGS"] = platform.cFlags(arch: arch)
-        return environ
-    }
-
     override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
         var arguments = ["--prefix=\(thinDir(platform: platform, arch: arch).path)"]
         arguments += ffmpegConfiguers
         arguments += Build.ffmpegConfiguers
         arguments.append("--arch=\(arch.arch())")
-        // arguments.append("--target-os=darwin")
+        arguments.append("--target-os=darwin")
         // arguments.append(arch.cpu())
         /**
          aacpsdsp.o), building for Mac Catalyst, but linking in object file built for
@@ -818,6 +821,7 @@ private class BuildLibreSSL: BaseBuild {
 private class BuildSmbclient: BaseBuild {
     init() {
         super.init(library: .libsmbclient)
+        try? Utility.launch(executableURL: directoryURL + "bootstrap/config.py", arguments: [], currentDirectoryURL: directoryURL)
     }
 
     override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
