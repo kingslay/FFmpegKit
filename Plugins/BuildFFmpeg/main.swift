@@ -193,10 +193,12 @@ private enum Library: String, CaseIterable {
 
     var isFFmpegDependentLibrary: Bool {
         switch self {
+        case .libdav1d, .openssl, .libsrt, .libsmbclient:
+            return true
         case .png, .harfbuzz, .nettle, .mpv, .FFmpeg:
             return false
         default:
-            return true
+            return false
         }
     }
 
@@ -694,6 +696,8 @@ private class BuildFFMPEG: BaseBuild {
                     arguments.append("--enable-protocol=\(library.rawValue)")
                 } else if library == .libdav1d {
                     arguments.append("--enable-decoder=\(library.rawValue)")
+                } else if library == .libass {
+                    arguments.append("--enable-filter=ass")
                 }
             }
         }
