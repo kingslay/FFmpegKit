@@ -24,10 +24,10 @@ dependencies: [
 
 ## Build Scripts
 ```bash
-swift package BuildFFmpeg --disable-sandbox enable-libdav1d enable-openssl enable-libsrt
+swift package --disable-sandbox BuildFFmpeg enable-libdav1d enable-openssl enable-libsrt
 
 /// build MPV
-swift package BuildFFmpeg --disable-sandbox enable-libdav1d enable-openssl enable-libsrt enable-libfreetype enable-libfribidi enable-harfbuzz enable-libass enable-mpv platforms=macos
+swift package --disable-sandbox BuildFFmpeg enable-libdav1d enable-openssl enable-libsrt enable-libfreetype enable-libfribidi enable-harfbuzz enable-libass enable-mpv platforms=macos
 ```
 ## Executable product
 ```bash
@@ -42,7 +42,7 @@ swift package BuildFFmpeg h
 
 ```bash
 Usage: swift package BuildFFmpeg [OPTION]...
-Demo: swift package BuildFFmpeg --disable-sandbox enable-libdav1d enable-openssl enable-libsrt
+Demo: swift package --disable-sandbox BuildFFmpeg enable-libdav1d enable-openssl enable-libsrt
 Options:
     h                   display this help and exit
     enable-debug,       build ffmpeg with debug information
