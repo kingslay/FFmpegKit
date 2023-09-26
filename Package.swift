@@ -5,7 +5,6 @@ let package = Package(
     name: "FFmpegKit",
     defaultLocalization: "en",
     platforms: [.macOS(.v10_15), .iOS(.v13), .tvOS(.v13),
-//        .visionOS(.v1),
     ],
     products: [
         .library(
@@ -26,7 +25,6 @@ let package = Package(
         .executable(name: "ffplay", targets: ["ffplay"]),
         .executable(name: "ffmpeg", targets: ["ffmpeg"]),
         .executable(name: "ffprobe", targets: ["ffprobe"]),
-//        .executable(name: "BuildFFmpegPlugin", targets: ["BuildFFmpegPlugin"]),
         .plugin(name: "BuildFFmpeg", targets: ["BuildFFmpeg"]),
     ],
     dependencies: [
@@ -104,8 +102,6 @@ let package = Package(
                 ),
                 permissions: [
                     .writeToPackageDirectory(reason: "This command compile FFmpeg and generate xcframework. compile FFmpeg need brew install nasm sdl2 cmake. So you need add --allow-writing-to-directory /usr/local/ --allow-writing-to-directory ~/Library/ or add --disable-sandbox"),
-                    // swift 5.9
-                    // .allowNetworkConnections(scope: .all(), reason: "The plugin must connect to a remote server to brew install nasm sdl2 cmake"),
                 ]
             )
         ),

@@ -25,7 +25,6 @@ let package = Package(
         .executable(name: "ffplay", targets: ["ffplay"]),
         .executable(name: "ffmpeg", targets: ["ffmpeg"]),
         .executable(name: "ffprobe", targets: ["ffprobe"]),
-//        .executable(name: "BuildFFmpegPlugin", targets: ["BuildFFmpegPlugin"]),
         .plugin(name: "BuildFFmpeg", targets: ["BuildFFmpeg"]),
     ],
     dependencies: [
