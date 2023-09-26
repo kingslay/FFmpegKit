@@ -4,8 +4,7 @@ import Foundation
 #if canImport(PackagePlugin)
 import PackagePlugin
 extension Build: CommandPlugin {
-    func performCommand(context: PluginContext, arguments: [String]) throws {
-        print(context.package.origin)
+    func performCommand(context _: PluginContext, arguments: [String]) throws {
         try Build.performCommand(arguments: arguments)
     }
 }
@@ -31,7 +30,7 @@ extension Build {
     static var ffmpegConfiguers = [String]()
     static func performCommand(arguments: [String]) throws {
         print(arguments)
-        if arguments.contains("h") {
+        if arguments.contains("h") || arguments.contains("-h") || arguments.contains("--help") {
             printHelp()
             return
         }
@@ -54,9 +53,7 @@ extension Build {
         var disableFFmpeg = false
         var isFFmpegDebug = false
         for argument in arguments {
-            if argument == "disable-ffmpeg" {
-                disableFFmpeg = true
-            } else if argument == "enable-debug" {
+            if argument == "enable-debug" {
                 isFFmpegDebug = true
             } else if argument.hasPrefix("platforms=") {
                 let values = String(argument.suffix(argument.count - "platforms=".count))
@@ -84,15 +81,11 @@ extension Build {
             Build.ffmpegConfiguers.append("--enable-stripping")
             Build.ffmpegConfiguers.append("--enable-optimizations")
         }
-
-        if !disableFFmpeg {
-            librarys.append(.FFmpeg)
+        if arguments.isEmpty {
+            librarys.append(contentsOf: [.libdav1d, .openssl, .libsrt, .FFmpeg])
+        } else if arguments == ["mpv"] {
+            librarys.append(contentsOf: [.libdav1d, .openssl, .libsrt, .png, .libfreetype, .libfribidi, .harfbuzz, .libass, .FFmpeg, .mpv])
         }
-        if let index = librarys.firstIndex(of: .mpv) {
-            librarys.remove(at: index)
-            librarys.append(.mpv)
-        }
-
         for library in librarys {
             try library.build.buildALL()
         }
@@ -101,27 +94,27 @@ extension Build {
     static func printHelp() {
         print("""
         Usage: swift package BuildFFmpeg [OPTION]...
-        Demo: swift package BuildFFmpeg --disable-sandbox enable-libdav1d enable-openssl enable-libsrt
-        Build MPV: swift package BuildFFmpeg --disable-sandbox enable-libdav1d enable-openssl enable-libsrt enable-png enable-libfreetype enable-libfribidi enable-harfbuzz enable-libass enable-mpv
+        Default Build: swift package --disable-sandbox BuildFFmpeg enable-libdav1d enable-openssl enable-libsrt enable-FFmpeg
+        Build MPV: swift package --disable-sandbox BuildFFmpeg mpv or swift package --disable-sandbox BuildFFmpeg enable-libdav1d enable-openssl enable-libsrt enable-png enable-libfreetype enable-libfribidi enable-harfbuzz enable-libass enable-FFmpeg enable-mpv
         Options:
-            h                   display this help and exit
+            h, -h, --help       display this help and exit
             enable-debug,       build ffmpeg with debug information
-            disable-ffmpeg      no build ffmpeg [no]
             platforms=xros      deployment platform: ios,isimulator,tvos,tvsimulator,macos,maccatalyst,xros,xrsimulator,watchos,watchsimulator,
             --xx                add ffmpeg Configuers
-            --disable-sandbox   spm disable sanbox
+            mpv                 build mpv
 
         Libraries:
-            enable-libdav1d     build with dav1d [no]
-            enable-openssl      build with openssl [no]
+            enable-libdav1d     build with dav1d
+            enable-openssl      build with openssl
             enable-libsrt       depend enable-openssl
-            enable-libfreetype  depend enable-png
-            enable-libass       depend enable-png enable-libfreetype enable-libfribidi enable-harfbuzz
-            enable-nettle       depend enable-gmp
-            enable-gnutls       depend enable-gmp enable-nettle
-            enable-libsmbclient depend enable-gmp enable-nettle enable-gnutls
-            enable-harfbuzz     depend enable-libfreetype
-            enable-mpv          depend enable-png enable-libfreetype enable-libfribidi enable-harfbuzz enable-libass
+            enable-libfreetype  depend enable-png [no]
+            enable-libass       depend enable-png enable-libfreetype enable-libfribidi enable-harfbuzz [no]
+            enable-nettle       depend enable-gmp [no]
+            enable-gnutls       depend enable-gmp enable-nettle [no]
+            enable-libsmbclient depend enable-gmp enable-nettle enable-gnutls [no]
+            enable-harfbuzz     depend enable-libfreetype [no]
+            enable-FFmpeg       build with FFmpeg
+            enable-mpv          depend enable-png enable-libfreetype enable-libfribidi enable-harfbuzz enable-libass [no]
         """)
     }
 }
