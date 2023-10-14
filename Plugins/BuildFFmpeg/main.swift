@@ -139,7 +139,7 @@ private enum Library: String, CaseIterable {
             return "v0.36.0"
         case .openssl:
             // 用openssl-3.1.0 在真机启动会_armv8_sve_probe, 3.1.1在真机启动会crash
-            return "openssl-3.0.7"
+            return "openssl-3.1.3"
         case .libsrt:
             return "v1.5.1"
         case .libsmbclient:
@@ -623,6 +623,10 @@ private class BuildFFMPEG: BaseBuild {
                     try FileManager.default.copyItem(at: fftools + fileName, to: fftoolsFile + fileName)
                 }
             }
+            let prefix = scratch(platform: platform, arch: arch)
+            try? FileManager.default.copyItem(at: prefix + "ffmpeg", to: NSURL(fileURLWithPath: "/usr/local/bin/ffmpeg"))
+            try? FileManager.default.copyItem(at: prefix + "ffplay", to: NSURL(fileURLWithPath: "/usr/local/bin/ffplay"))
+            try? FileManager.default.copyItem(at: prefix + "ffprobe", to: NSURL(fileURLWithPath: "/usr/local/bin/ffprobe"))
         }
     }
 
@@ -733,7 +737,8 @@ private class BuildFFMPEG: BaseBuild {
         "--enable-decoder=av1", "--enable-decoder=dca", "--enable-decoder=flv", "--enable-decoder=h263",
         "--enable-decoder=h263i", "--enable-decoder=h263p", "--enable-decoder=h264", "--enable-decoder=hevc",
         "--enable-decoder=mjpeg", "--enable-decoder=mjpegb", "--enable-decoder=mpeg1video", "--enable-decoder=mpeg2video",
-        "--enable-decoder=mpeg4", "--enable-decoder=mpegvideo", "--enable-decoder=rv30", "--enable-decoder=rv40",
+        "--enable-decoder=mpeg4", "--enable-decoder=mpegvideo",
+        "--enable-decoder=rv10", "--enable-decoder=rv20", "--enable-decoder=rv30", "--enable-decoder=rv40",
         "--enable-decoder=tscc", "--enable-decoder=wmv1", "--enable-decoder=wmv2", "--enable-decoder=wmv3",
         "--enable-decoder=vc1", "--enable-decoder=vp6", "--enable-decoder=vp6a", "--enable-decoder=vp6f",
         "--enable-decoder=vp7", "--enable-decoder=vp8", "--enable-decoder=vp9",
