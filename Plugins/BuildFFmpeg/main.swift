@@ -50,7 +50,6 @@ extension Build {
         }
         FileManager.default.changeCurrentDirectoryPath(path.path)
         var librarys = [Library]()
-        var disableFFmpeg = false
         var isFFmpegDebug = false
         for argument in arguments {
             if argument == "enable-debug" {
@@ -440,7 +439,7 @@ private class BaseBuild {
         URL.currentDirectory + [library.rawValue, platform.rawValue, "thin", arch.rawValue]
     }
 
-    private func scratch(platform: PlatformType, arch: ArchType) -> URL {
+    fileprivate func scratch(platform: PlatformType, arch: ArchType) -> URL {
         URL.currentDirectory + [library.rawValue, platform.rawValue, "scratch", arch.rawValue]
     }
 
@@ -624,9 +623,9 @@ private class BuildFFMPEG: BaseBuild {
                 }
             }
             let prefix = scratch(platform: platform, arch: arch)
-            try? FileManager.default.copyItem(at: prefix + "ffmpeg", to: NSURL(fileURLWithPath: "/usr/local/bin/ffmpeg"))
-            try? FileManager.default.copyItem(at: prefix + "ffplay", to: NSURL(fileURLWithPath: "/usr/local/bin/ffplay"))
-            try? FileManager.default.copyItem(at: prefix + "ffprobe", to: NSURL(fileURLWithPath: "/usr/local/bin/ffprobe"))
+            try? FileManager.default.copyItem(at: prefix + "ffmpeg", to: URL(fileURLWithPath: "/usr/local/bin/ffmpeg"))
+            try? FileManager.default.copyItem(at: prefix + "ffplay", to: URL(fileURLWithPath: "/usr/local/bin/ffplay"))
+            try? FileManager.default.copyItem(at: prefix + "ffprobe", to: URL(fileURLWithPath: "/usr/local/bin/ffprobe"))
         }
     }
 
