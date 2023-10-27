@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2022 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2023 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -85,6 +85,8 @@
 /* Easy to use macros for EVP_PKEY related selections */
 # define EVP_PKEY_KEY_PARAMETERS                                            \
     ( OSSL_KEYMGMT_SELECT_ALL_PARAMETERS )
+# define EVP_PKEY_PRIVATE_KEY                                               \
+    ( EVP_PKEY_KEY_PARAMETERS | OSSL_KEYMGMT_SELECT_PRIVATE_KEY )
 # define EVP_PKEY_PUBLIC_KEY                                                \
     ( EVP_PKEY_KEY_PARAMETERS | OSSL_KEYMGMT_SELECT_PUBLIC_KEY )
 # define EVP_PKEY_KEYPAIR                                                   \
@@ -634,6 +636,7 @@ unsigned char *EVP_CIPHER_CTX_buf_noconst(EVP_CIPHER_CTX *ctx);
 int EVP_CIPHER_CTX_get_num(const EVP_CIPHER_CTX *ctx);
 # define EVP_CIPHER_CTX_num EVP_CIPHER_CTX_get_num
 int EVP_CIPHER_CTX_set_num(EVP_CIPHER_CTX *ctx, int num);
+EVP_CIPHER_CTX *EVP_CIPHER_CTX_dup(const EVP_CIPHER_CTX *in);
 int EVP_CIPHER_CTX_copy(EVP_CIPHER_CTX *out, const EVP_CIPHER_CTX *in);
 void *EVP_CIPHER_CTX_get_app_data(const EVP_CIPHER_CTX *ctx);
 void EVP_CIPHER_CTX_set_app_data(EVP_CIPHER_CTX *ctx, void *data);
@@ -699,6 +702,7 @@ void EVP_MD_CTX_free(EVP_MD_CTX *ctx);
 # define EVP_MD_CTX_create()     EVP_MD_CTX_new()
 # define EVP_MD_CTX_init(ctx)    EVP_MD_CTX_reset((ctx))
 # define EVP_MD_CTX_destroy(ctx) EVP_MD_CTX_free((ctx))
+__owur EVP_MD_CTX *EVP_MD_CTX_dup(const EVP_MD_CTX *in);
 __owur int EVP_MD_CTX_copy_ex(EVP_MD_CTX *out, const EVP_MD_CTX *in);
 void EVP_MD_CTX_set_flags(EVP_MD_CTX *ctx, int flags);
 void EVP_MD_CTX_clear_flags(EVP_MD_CTX *ctx, int flags);
@@ -1248,6 +1252,7 @@ const OSSL_PROVIDER *EVP_RAND_get0_provider(const EVP_RAND *rand);
 int EVP_RAND_get_params(EVP_RAND *rand, OSSL_PARAM params[]);
 
 EVP_RAND_CTX *EVP_RAND_CTX_new(EVP_RAND *rand, EVP_RAND_CTX *parent);
+int EVP_RAND_CTX_up_ref(EVP_RAND_CTX *ctx);
 void EVP_RAND_CTX_free(EVP_RAND_CTX *ctx);
 EVP_RAND *EVP_RAND_CTX_get0_rand(EVP_RAND_CTX *ctx);
 int EVP_RAND_CTX_get_params(EVP_RAND_CTX *ctx, OSSL_PARAM params[]);

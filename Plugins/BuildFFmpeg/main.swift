@@ -81,7 +81,7 @@ extension Build {
             Build.ffmpegConfiguers.append("--enable-optimizations")
         }
         if arguments.isEmpty {
-            librarys.append(contentsOf: [.libdav1d, .openssl, .libsrt, .FFmpeg])
+            librarys.append(contentsOf: [.libdav1d, .openssl, .libsrt, .libzvbi, .FFmpeg])
         } else if arguments == ["mpv"] {
             librarys.append(contentsOf: [.libdav1d, .openssl, .libsrt, .png, .libfreetype, .libfribidi, .harfbuzz, .libass, .FFmpeg, .mpv])
         }
@@ -119,7 +119,7 @@ extension Build {
 }
 
 private enum Library: String, CaseIterable {
-    case libfreetype, libfribidi, libass, openssl, libsrt, libsmbclient, gnutls, gmp, FFmpeg, nettle, harfbuzz, png, libdav1d, libtls, mpv
+    case libfreetype, libfribidi, libass, openssl, libsrt, libsmbclient, gnutls, gmp, FFmpeg, nettle, harfbuzz, png, libdav1d, libtls, libzvbi, boringssl, mpv
     var version: String {
         switch self {
         case .FFmpeg:
@@ -138,7 +138,7 @@ private enum Library: String, CaseIterable {
             return "v0.36.0"
         case .openssl:
             // 用openssl-3.1.0 在真机启动会_armv8_sve_probe, 3.1.1在真机启动会crash
-            return "openssl-3.1.3"
+            return "openssl-3.1.4"
         case .libsrt:
             return "v1.5.1"
         case .libsmbclient:
@@ -153,6 +153,10 @@ private enum Library: String, CaseIterable {
             return "v6.2.1"
         case .libtls:
             return "OPENBSD_7_3"
+        case .libzvbi:
+            return "v0.2.42"
+        case .boringssl:
+            return "master"
         }
     }
 
@@ -174,6 +178,10 @@ private enum Library: String, CaseIterable {
             return "https://github.com/videolan/dav1d"
         case .libtls:
             return "https://github.com/libressl/portable"
+        case .libzvbi:
+            return "https://github.com/zapping-vbi/zvbi.git"
+        case .boringssl:
+            return "https://github.com/google/boringssl"
         default:
             var value = rawValue
             if self != .libass, value.hasPrefix("lib") {
@@ -185,7 +193,7 @@ private enum Library: String, CaseIterable {
 
     var isFFmpegDependentLibrary: Bool {
         switch self {
-        case .libdav1d, .openssl, .libsrt, .libsmbclient:
+        case .libdav1d, .openssl, .libsrt, .libsmbclient, .libzvbi:
             return true
         case .png, .harfbuzz, .nettle, .mpv, .FFmpeg:
             return false
@@ -226,6 +234,10 @@ private enum Library: String, CaseIterable {
             return BuildGmp()
         case .libtls:
             return BuildLibreSSL()
+        case .libzvbi:
+            return BuildZvbi()
+        case .boringssl:
+            return BuildBoringSSL()
         }
     }
 }
@@ -246,8 +258,12 @@ private class BaseBuild {
         }
     }
 
+    func platforms() -> [PlatformType] {
+        BaseBuild.platforms
+    }
+
     fileprivate func buildALL() throws {
-        for platform in BaseBuild.platforms {
+        for platform in platforms() {
             for arch in architectures(platform) {
                 let prefix = thinDir(platform: platform, arch: arch)
                 try? FileManager.default.removeItem(at: prefix)
@@ -358,7 +374,7 @@ private class BaseBuild {
 
     private func createXCFramework() throws {
         var frameworks: [String] = []
-        if let platform = BaseBuild.platforms.first {
+        if let platform = platforms().first {
             if let arch = architectures(platform).first {
                 let lib = thinDir(platform: platform, arch: arch) + "lib"
                 let fileNames = try FileManager.default.contentsOfDirectory(atPath: lib.path)
@@ -389,7 +405,7 @@ private class BaseBuild {
 
     private func createFramework(framework: String, platform: PlatformType) throws -> String? {
         let frameworkDir = URL.currentDirectory + [library.rawValue, platform.rawValue, "\(framework).framework"]
-        if !BaseBuild.platforms.contains(platform) {
+        if !platforms().contains(platform) {
             if FileManager.default.fileExists(atPath: frameworkDir.path) {
                 return frameworkDir.path
             } else {
@@ -623,8 +639,11 @@ private class BuildFFMPEG: BaseBuild {
                 }
             }
             let prefix = scratch(platform: platform, arch: arch)
+            try? FileManager.default.removeItem(at: URL(fileURLWithPath: "/usr/local/bin/ffmpeg"))
             try? FileManager.default.copyItem(at: prefix + "ffmpeg", to: URL(fileURLWithPath: "/usr/local/bin/ffmpeg"))
+            try? FileManager.default.removeItem(at: URL(fileURLWithPath: "/usr/local/bin/ffplay"))
             try? FileManager.default.copyItem(at: prefix + "ffplay", to: URL(fileURLWithPath: "/usr/local/bin/ffplay"))
+            try? FileManager.default.removeItem(at: URL(fileURLWithPath: "/usr/local/bin/ffprobe"))
             try? FileManager.default.copyItem(at: prefix + "ffprobe", to: URL(fileURLWithPath: "/usr/local/bin/ffprobe"))
         }
     }
@@ -675,6 +694,10 @@ private class BuildFFMPEG: BaseBuild {
             arguments.append("--enable-filter=lut")
             arguments.append("--enable-filter=testsrc")
             arguments.append("--disable-avdevice")
+            // debug
+            arguments.append("--enable-debug")
+            arguments.append("--disable-stripping")
+            arguments.append("--disable-optimizations")
             //            arguments.append("--enable-avdevice")
             //            arguments.append("--enable-indev=lavfi")
         } else {
@@ -694,6 +717,8 @@ private class BuildFFMPEG: BaseBuild {
                     arguments.append("--enable-decoder=\(library.rawValue)")
                 } else if library == .libass {
                     arguments.append("--enable-filter=ass")
+                } else if library == .libzvbi {
+                    arguments.append("--enable-decoder=libzvbi_teletext")
                 }
             }
         }
@@ -807,6 +832,20 @@ private class BuildOpenSSL: BaseBuild {
     }
 }
 
+private class BuildBoringSSL: BaseBuild {
+    init() {
+        super.init(library: .boringssl)
+        if Utility.shell("which go") == nil {
+            Utility.shell("brew install go")
+        }
+    }
+
+    override func arguments(platform _: PlatformType, arch _: ArchType) -> [String] {
+        []
+//        ["--prefix=\(thinDir(platform: platform, arch: arch).path)"]
+    }
+}
+
 private class BuildLibreSSL: BaseBuild {
     init() {
         super.init(library: .libtls)
@@ -818,6 +857,24 @@ private class BuildLibreSSL: BaseBuild {
             env["CFLAGS"]? += " -DOPENSSL_NO_SPEED=1"
         }
         return env
+    }
+}
+
+private class BuildZvbi: BaseBuild {
+    init() {
+        super.init(library: .libzvbi)
+        let path = directoryURL + "configure.ac"
+        if let data = FileManager.default.contents(atPath: path.path), var str = String(data: data, encoding: .utf8) {
+            str = str.replacingOccurrences(of: "AC_FUNC_MALLOC", with: "")
+            str = str.replacingOccurrences(of: "AC_FUNC_REALLOC", with: "")
+            try! str.write(toFile: path.path, atomically: true, encoding: .utf8)
+        }
+    }
+
+    override func platforms() -> [PlatformType] {
+        super.platforms().filter {
+            $0 != .maccatalyst
+        }
     }
 }
 

@@ -38,6 +38,7 @@ let package = Package(
                 "Libssl", "Libcrypto",
                 "Libdav1d",
                 "Libsrt",
+                "Libzvbi",
             ],
             linkerSettings: [
                 .linkedFramework("AudioToolbox"),
@@ -145,6 +146,10 @@ let package = Package(
         .binaryTarget(
             name: "Libsrt",
             path: "Sources/Libsrt.xcframework"
+        ),
+        .binaryTarget(
+            name: "Libzvbi",
+            path: "Sources/Libzvbi.xcframework"
         ),
 //        .binaryTarget(
 //            name: "Libass",
