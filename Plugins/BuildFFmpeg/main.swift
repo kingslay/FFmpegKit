@@ -563,7 +563,7 @@ private class BuildFFMPEG: BaseBuild {
         let prefix = thinDir(platform: platform, arch: arch)
         let lldbFile = URL.currentDirectory + "LLDBInitFile"
         if let data = FileManager.default.contents(atPath: lldbFile.path), var str = String(data: data, encoding: .utf8) {
-            str.append("settings \(str.count == 0 ? "set" : "append") target.source-map \((buildURL + "src").path) \(directoryURL.path)\n")
+            str.append("settings \(str.isEmpty ? "set" : "append") target.source-map \((buildURL + "src").path) \(directoryURL.path)\n")
             try str.write(toFile: lldbFile.path, atomically: true, encoding: .utf8)
         }
         try FileManager.default.copyItem(at: buildURL + "config.h", to: prefix + "include/libavutil/config.h")
@@ -1159,7 +1159,7 @@ private class BuildMPV: BaseBuild {
 }
 
 private enum PlatformType: String, CaseIterable {
-    case ios, isimulator, tvos, tvsimulator, macos, maccatalyst, watchos, watchsimulator, xros, xrsimulator
+    case macos, ios, isimulator, tvos, tvsimulator, maccatalyst, watchos, watchsimulator, xros, xrsimulator
     var minVersion: String {
         switch self {
         case .ios, .isimulator:
