@@ -664,7 +664,7 @@ private class BuildFFMPEG: BaseBuild {
         var arguments = ["--prefix=\(thinDir(platform: platform, arch: arch).path)"]
         arguments += ffmpegConfiguers
         arguments += Build.ffmpegConfiguers
-        arguments.append("--arch=\(arch.arch())")
+        arguments.append("--arch=\(arch.cpuFamily())")
         arguments.append("--target-os=darwin")
         // arguments.append(arch.cpu())
         /**
@@ -686,9 +686,6 @@ private class BuildFFMPEG: BaseBuild {
         if platform == .macos, arch.executable() {
             arguments.append("--enable-ffplay")
             arguments.append("--enable-sdl2")
-            arguments.append("--enable-encoder=aac")
-            arguments.append("--enable-encoder=movtext")
-            arguments.append("--enable-encoder=mpeg4")
             arguments.append("--enable-decoder=rawvideo")
             arguments.append("--enable-filter=color")
             arguments.append("--enable-filter=lut")
@@ -717,6 +714,7 @@ private class BuildFFMPEG: BaseBuild {
                     arguments.append("--enable-decoder=\(library.rawValue)")
                 } else if library == .libass {
                     arguments.append("--enable-filter=ass")
+                    arguments.append("--enable-filter=subtitles")
                 } else if library == .libzvbi {
                     arguments.append("--enable-decoder=libzvbi_teletext")
                 }
@@ -754,10 +752,13 @@ private class BuildFFMPEG: BaseBuild {
         // ,"--disable-everything"
         // ./configure --list-muxers
         "--disable-muxers",
-        "--enable-muxer=dash", "--enable-muxer=hevc", "--enable-muxer=mp4", "--enable-muxer=m4v", "--enable-muxer=mov",
+        "--enable-muxer=flac", "--enable-muxer=dash", "--enable-muxer=hevc", "--enable-muxer=mp4", "--enable-muxer=m4v", "--enable-muxer=mov",
         "--enable-muxer=mpegts", "--enable-muxer=webm*",
         // ./configure --list-encoders
         "--disable-encoders",
+        "--enable-encoder=aac", "--enable-encoder=alac", "--enable-encoder=flac", "--enable-encoder=pcm*",
+        "--enable-encoder=movtext", "--enable-encoder=mpeg4", "--enable-encoder=h264_videotoolbox",
+        "--enable-encoder=hevc_videotoolbox", "--enable-encoder=prores", "--enable-encoder=prores_videotoolbox",
         // ./configure --list-protocols
         "--enable-protocols",
         // ./configure --list-demuxers
@@ -781,7 +782,7 @@ private class BuildFFMPEG: BaseBuild {
         "--enable-decoder=av1", "--enable-decoder=dca", "--enable-decoder=flv", "--enable-decoder=h263",
         "--enable-decoder=h263i", "--enable-decoder=h263p", "--enable-decoder=h264", "--enable-decoder=hevc",
         "--enable-decoder=mjpeg", "--enable-decoder=mjpegb", "--enable-decoder=mpeg1video", "--enable-decoder=mpeg2video",
-        "--enable-decoder=mpeg4", "--enable-decoder=mpegvideo",
+        "--enable-decoder=mpeg4", "--enable-decoder=mpegvideo", "--enable-decoder=prores",
         "--enable-decoder=rv10", "--enable-decoder=rv20", "--enable-decoder=rv30", "--enable-decoder=rv40",
         "--enable-decoder=tscc", "--enable-decoder=wmv1", "--enable-decoder=wmv2", "--enable-decoder=wmv3",
         "--enable-decoder=vc1", "--enable-decoder=vp6", "--enable-decoder=vp6a", "--enable-decoder=vp6f",
@@ -808,7 +809,7 @@ private class BuildFFMPEG: BaseBuild {
         "--enable-filter=overlay",
         "--enable-filter=palettegen", "--enable-filter=paletteuse", "--enable-filter=pan",
         "--enable-filter=rotate",
-        "--enable-filter=scale", "--enable-filter=setpts", "--enable-filter=subtitles", "--enable-filter=superequalizer",
+        "--enable-filter=scale", "--enable-filter=setpts", "--enable-filter=superequalizer",
         "--enable-filter=transpose", "--enable-filter=trim",
         "--enable-filter=vflip", "--enable-filter=volume",
         "--enable-filter=w3fdif",
@@ -1179,20 +1180,18 @@ private enum PlatformType: String, CaseIterable {
 
     func architectures() -> [ArchType] {
         switch self {
-        case .ios, .xros:
+        case .ios, .xros, .tvos, .watchos:
             return [.arm64, .arm64e]
-        case .tvos, .watchos:
-            return [.arm64]
         case .isimulator, .tvsimulator, .watchsimulator, .xrsimulator:
-            return [.arm64, .x86_64]
+            return [.arm64e, .x86_64]
         case .macos:
             #if arch(x86_64)
-            return [.x86_64, .arm64]
+            return [.x86_64, .arm64e]
             #else
-            return [.arm64, .x86_64]
+            return [.arm64e, .x86_64]
             #endif
         case .maccatalyst:
-            return [.arm64, .x86_64]
+            return [.arm64e, .x86_64]
         }
     }
 
@@ -1327,21 +1326,12 @@ enum ArchType: String, CaseIterable {
             return false
         }
         // NSBundleExecutableArchitectureARM64
-        if architecture == 0x0100_000C, self == .arm64 {
+        if architecture == 0x0100_000C, self == .arm64 || self == .arm64e {
             return true
         } else if architecture == NSBundleExecutableArchitectureX86_64, self == .x86_64 {
             return true
         }
         return false
-    }
-
-    func arch() -> String {
-        switch self {
-        case .arm64, .arm64e:
-            return "aarch64"
-        case .x86_64:
-            return "x86_64"
-        }
     }
 
     func cpuFamily() -> String {
