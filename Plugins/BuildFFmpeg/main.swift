@@ -73,12 +73,11 @@ extension Build {
         }
         if isFFmpegDebug {
             Build.ffmpegConfiguers.append("--enable-debug")
+            Build.ffmpegConfiguers.append("--enable-debug=3")
             Build.ffmpegConfiguers.append("--disable-stripping")
-            Build.ffmpegConfiguers.append("--disable-optimizations")
         } else {
             Build.ffmpegConfiguers.append("--disable-debug")
             Build.ffmpegConfiguers.append("--enable-stripping")
-            Build.ffmpegConfiguers.append("--enable-optimizations")
         }
         if arguments.isEmpty {
             librarys.append(contentsOf: [.libdav1d, .openssl, .libsrt, .libzvbi, .FFmpeg])
@@ -693,8 +692,8 @@ private class BuildFFMPEG: BaseBuild {
             arguments.append("--disable-avdevice")
             // debug
             arguments.append("--enable-debug")
+            arguments.append("--enable-debug=3")
             arguments.append("--disable-stripping")
-            arguments.append("--disable-optimizations")
             //            arguments.append("--enable-avdevice")
             //            arguments.append("--enable-indev=lavfi")
         } else {
@@ -727,10 +726,10 @@ private class BuildFFMPEG: BaseBuild {
         // Configuration options:
         "--disable-armv5te", "--disable-armv6", "--disable-armv6t2",
         "--disable-bzlib", "--disable-gray", "--disable-iconv", "--disable-linux-perf",
-        "--disable-xlib", "--disable-swscale-alpha", "--disable-symver", "--disable-small",
+        "--disable-shared", "--disable-small", "--disable-swscale-alpha", "--disable-symver", "--disable-xlib",
         "--enable-cross-compile", "--enable-gpl", "--enable-libxml2", "--enable-nonfree",
-        "--enable-runtime-cpudetect", "--enable-thumb", "--enable-version3", "--pkg-config-flags=--static",
-        "--enable-static", "--disable-shared", "--enable-pic",
+        "--enable-optimizations", "--enable-pic", "--enable-runtime-cpudetect", "--enable-static", "--enable-thumb", "--enable-version3",
+        "--pkg-config-flags=--static",
         // Documentation options:
         "--disable-doc", "--disable-htmlpages", "--disable-manpages", "--disable-podpages", "--disable-txtpages",
         // Component options:
