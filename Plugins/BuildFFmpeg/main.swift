@@ -1184,10 +1184,11 @@ private enum PlatformType: String, CaseIterable {
         case .isimulator, .tvsimulator, .watchsimulator, .xrsimulator:
             return [.arm64e, .x86_64]
         case .macos:
+            // macos 不能用arm64，不然打包release包会报错，不能通过
             #if arch(x86_64)
-            return [.x86_64, .arm64e]
+            return [.x86_64, .arm64]
             #else
-            return [.arm64e, .x86_64]
+            return [.arm64, .x86_64]
             #endif
         case .maccatalyst:
             return [.arm64e, .x86_64]
