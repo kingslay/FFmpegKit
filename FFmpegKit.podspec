@@ -21,7 +21,7 @@ Pod::Spec.new do |s|
     s.source_files = 'Sources/FFmpegKit/**/*.{h,c,m}'
     s.subspec 'FFmpegKit' do |ffmpeg|
         ffmpeg.libraries   = 'bz2', 'z', 'iconv', 'xml2', 'c++'
-        ffmpeg.vendored_frameworks = 'Sources/Libavcodec.xcframework','Sources/Libavfilter.xcframework','Sources/Libavformat.xcframework','Sources/Libavutil.xcframework','Sources/Libswresample.xcframework','Sources/Libswscale.xcframework', 'Sources/Libdav1d.xcframework', 'Sources/Libdav1d.xcframework', 'Sources/Libsrt.xcframework'
+        ffmpeg.vendored_frameworks = 'Sources/Libavcodec.xcframework','Sources/Libavfilter.xcframework','Sources/Libavformat.xcframework','Sources/Libavutil.xcframework','Sources/Libswresample.xcframework','Sources/Libswscale.xcframework', 'Sources/Libdav1d.xcframework', 'Sources/Libdav1d.xcframework', 'Sources/Libsrt.xcframework', 'Sources/Libzvbi.xcframework'
         ffmpeg.dependency 'OpenSSL'
     end
 end
