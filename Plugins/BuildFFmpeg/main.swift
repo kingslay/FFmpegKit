@@ -92,8 +92,8 @@ extension Build {
     static func printHelp() {
         print("""
         Usage: swift package BuildFFmpeg [OPTION]...
-        Default Build: swift package --disable-sandbox BuildFFmpeg enable-libdav1d enable-openssl enable-libsrt enable-FFmpeg
-        Build MPV: swift package --disable-sandbox BuildFFmpeg mpv or swift package --disable-sandbox BuildFFmpeg enable-libdav1d enable-openssl enable-libsrt enable-png enable-libfreetype enable-libfribidi enable-harfbuzz enable-libass enable-FFmpeg enable-mpv
+        Default Build: swift package --disable-sandbox BuildFFmpeg enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-FFmpeg
+        Build MPV: swift package --disable-sandbox BuildFFmpeg mpv or swift package --disable-sandbox BuildFFmpeg enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-png enable-libfreetype enable-libfribidi enable-harfbuzz enable-libass enable-FFmpeg enable-mpv
         Options:
             h, -h, --help       display this help and exit
             enable-debug,       build ffmpeg with debug information
@@ -104,6 +104,7 @@ extension Build {
         Libraries:
             enable-libdav1d     build with dav1d
             enable-openssl      build with openssl
+            enable-libzvbi      build with libzvbi
             enable-libsrt       depend enable-openssl
             enable-libfreetype  depend enable-png [no]
             enable-libass       depend enable-png enable-libfreetype enable-libfribidi enable-harfbuzz [no]
