@@ -82,7 +82,7 @@ extension Build {
         if arguments.isEmpty {
             librarys.append(contentsOf: [.libdav1d, .openssl, .libsrt, .libzvbi, .FFmpeg])
         } else if arguments == ["mpv"] {
-            librarys.append(contentsOf: [.libdav1d, .openssl, .libsrt, libzvbi, .png, .libfreetype, .libfribidi, .harfbuzz, .libass, .FFmpeg, .mpv])
+            librarys.append(contentsOf: [.libdav1d, .openssl, .libsrt, .libzvbi, .png, .libfreetype, .libfribidi, .harfbuzz, .libass, .FFmpeg, .mpv])
         }
         for library in librarys {
             try library.build.buildALL()
