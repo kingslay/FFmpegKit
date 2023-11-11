@@ -752,7 +752,8 @@ private class BuildFFMPEG: BaseBuild {
         // ,"--disable-everything"
         // ./configure --list-muxers
         "--disable-muxers",
-        "--enable-muxer=flac", "--enable-muxer=dash", "--enable-muxer=hevc", "--enable-muxer=mp4", "--enable-muxer=m4v", "--enable-muxer=mov",
+        "--enable-muxer=flac", "--enable-muxer=dash", "--enable-muxer=hevc",
+        "--enable-muxer=m4v", "--enable-muxer=matroska", "--enable-muxer=mov", "--enable-muxer=mp4",
         "--enable-muxer=mpegts", "--enable-muxer=webm*",
         // ./configure --list-encoders
         "--disable-encoders",
@@ -770,6 +771,7 @@ private class BuildFFMPEG: BaseBuild {
         "--enable-demuxer=concat", "--enable-demuxer=dash", "--enable-demuxer=data", "--enable-demuxer=eac3",
         "--enable-demuxer=flac", "--enable-demuxer=flv", "--enable-demuxer=h264", "--enable-demuxer=hevc",
         "--enable-demuxer=hls", "--enable-demuxer=live_flv", "--enable-demuxer=loas", "--enable-demuxer=m4v",
+        // matroska=mkv,mka,mks,mk3d
         "--enable-demuxer=matroska", "--enable-demuxer=mov", "--enable-demuxer=mp3", "--enable-demuxer=mpeg*",
         "--enable-demuxer=ogg", "--enable-demuxer=rm", "--enable-demuxer=rtsp", "--enable-demuxer=rtp", "--enable-demuxer=srt",
         "--enable-demuxer=vc1", "--enable-demuxer=wav", "--enable-demuxer=webm_dash_manifest",
@@ -1076,7 +1078,10 @@ private class BuildFreetype: BaseBuild {
     }
 
     override func arguments(platform _: PlatformType, arch _: ArchType) -> [String] {
-        ["-Dharfbuzz=disabled"]
+        [
+            "-Dharfbuzz=disabled",
+            "-Dbrotli=disabled",
+        ]
     }
 }
 
@@ -1192,7 +1197,7 @@ private enum PlatformType: String, CaseIterable {
             return [.arm64, .x86_64]
             #endif
         case .maccatalyst:
-            return [.arm64e, .x86_64]
+            return [.arm64, .x86_64]
         }
     }
 
