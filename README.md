@@ -27,7 +27,7 @@ dependencies: [
 swift package --disable-sandbox BuildFFmpeg
 
 /// build MPV
-swift package --disable-sandbox BuildFFmpeg mpv
+swift package --disable-sandbox BuildFFmpeg enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-png enable-libfreetype enable-libfribidi enable-harfbuzz enable-libass enable-FFmpeg enable-mpv platforms=macos
 ```
 ## Executable product
 ```bash
