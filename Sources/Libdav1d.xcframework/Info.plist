@@ -8,54 +8,6 @@
 			<key>BinaryPath</key>
 			<string>Libdav1d.framework/Libdav1d</string>
 			<key>LibraryIdentifier</key>
-			<string>tvos-arm64_x86_64-simulator</string>
-			<key>LibraryPath</key>
-			<string>Libdav1d.framework</string>
-			<key>SupportedArchitectures</key>
-			<array>
-				<string>arm64</string>
-				<string>x86_64</string>
-			</array>
-			<key>SupportedPlatform</key>
-			<string>tvos</string>
-			<key>SupportedPlatformVariant</key>
-			<string>simulator</string>
-		</dict>
-		<dict>
-			<key>BinaryPath</key>
-			<string>Libdav1d.framework/Libdav1d</string>
-			<key>LibraryIdentifier</key>
-			<string>xros-arm64_x86_64-simulator</string>
-			<key>LibraryPath</key>
-			<string>Libdav1d.framework</string>
-			<key>SupportedArchitectures</key>
-			<array>
-				<string>arm64</string>
-				<string>x86_64</string>
-			</array>
-			<key>SupportedPlatform</key>
-			<string>xros</string>
-			<key>SupportedPlatformVariant</key>
-			<string>simulator</string>
-		</dict>
-		<dict>
-			<key>BinaryPath</key>
-			<string>Libdav1d.framework/Libdav1d</string>
-			<key>LibraryIdentifier</key>
-			<string>tvos-arm64</string>
-			<key>LibraryPath</key>
-			<string>Libdav1d.framework</string>
-			<key>SupportedArchitectures</key>
-			<array>
-				<string>arm64</string>
-			</array>
-			<key>SupportedPlatform</key>
-			<string>tvos</string>
-		</dict>
-		<dict>
-			<key>BinaryPath</key>
-			<string>Libdav1d.framework/Libdav1d</string>
-			<key>LibraryIdentifier</key>
 			<string>ios-arm64_arm64e</string>
 			<key>LibraryPath</key>
 			<string>Libdav1d.framework</string>
@@ -71,18 +23,16 @@
 			<key>BinaryPath</key>
 			<string>Libdav1d.framework/Libdav1d</string>
 			<key>LibraryIdentifier</key>
-			<string>ios-arm64_x86_64-simulator</string>
+			<string>tvos-arm64_arm64e</string>
 			<key>LibraryPath</key>
 			<string>Libdav1d.framework</string>
 			<key>SupportedArchitectures</key>
 			<array>
 				<string>arm64</string>
-				<string>x86_64</string>
+				<string>arm64e</string>
 			</array>
 			<key>SupportedPlatform</key>
-			<string>ios</string>
-			<key>SupportedPlatformVariant</key>
-			<string>simulator</string>
+			<string>tvos</string>
 		</dict>
 		<dict>
 			<key>BinaryPath</key>
@@ -105,16 +55,35 @@
 			<key>BinaryPath</key>
 			<string>Libdav1d.framework/Libdav1d</string>
 			<key>LibraryIdentifier</key>
-			<string>xros-arm64_arm64e</string>
+			<string>ios-arm64e_x86_64-simulator</string>
 			<key>LibraryPath</key>
 			<string>Libdav1d.framework</string>
 			<key>SupportedArchitectures</key>
 			<array>
-				<string>arm64</string>
 				<string>arm64e</string>
+				<string>x86_64</string>
 			</array>
 			<key>SupportedPlatform</key>
-			<string>xros</string>
+			<string>ios</string>
+			<key>SupportedPlatformVariant</key>
+			<string>simulator</string>
+		</dict>
+		<dict>
+			<key>BinaryPath</key>
+			<string>Libdav1d.framework/Libdav1d</string>
+			<key>LibraryIdentifier</key>
+			<string>tvos-arm64e_x86_64-simulator</string>
+			<key>LibraryPath</key>
+			<string>Libdav1d.framework</string>
+			<key>SupportedArchitectures</key>
+			<array>
+				<string>arm64e</string>
+				<string>x86_64</string>
+			</array>
+			<key>SupportedPlatform</key>
+			<string>tvos</string>
+			<key>SupportedPlatformVariant</key>
+			<string>simulator</string>
 		</dict>
 		<dict>
 			<key>BinaryPath</key>
@@ -130,6 +99,38 @@
 			</array>
 			<key>SupportedPlatform</key>
 			<string>macos</string>
+		</dict>
+		<dict>
+			<key>BinaryPath</key>
+			<string>Libdav1d.framework/Libdav1d</string>
+			<key>LibraryIdentifier</key>
+			<string>xros-arm64e_x86_64-simulator</string>
+			<key>LibraryPath</key>
+			<string>Libdav1d.framework</string>
+			<key>SupportedArchitectures</key>
+			<array>
+				<string>arm64e</string>
+				<string>x86_64</string>
+			</array>
+			<key>SupportedPlatform</key>
+			<string>xros</string>
+			<key>SupportedPlatformVariant</key>
+			<string>simulator</string>
+		</dict>
+		<dict>
+			<key>BinaryPath</key>
+			<string>Libdav1d.framework/Libdav1d</string>
+			<key>LibraryIdentifier</key>
+			<string>xros-arm64_arm64e</string>
+			<key>LibraryPath</key>
+			<string>Libdav1d.framework</string>
+			<key>SupportedArchitectures</key>
+			<array>
+				<string>arm64</string>
+				<string>arm64e</string>
+			</array>
+			<key>SupportedPlatform</key>
+			<string>xros</string>
 		</dict>
 	</array>
 	<key>CFBundlePackageType</key>

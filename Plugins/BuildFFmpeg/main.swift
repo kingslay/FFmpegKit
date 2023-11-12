@@ -97,7 +97,7 @@ extension Build {
         Options:
             h, -h, --help       display this help and exit
             enable-debug,       build ffmpeg with debug information
-            platforms=xros      deployment platform: ios,isimulator,tvos,tvsimulator,macos,maccatalyst,xros,xrsimulator,watchos,watchsimulator,
+            platforms=xros      deployment platform: macos,ios,isimulator,tvos,tvsimulator,maccatalyst,xros,xrsimulator,watchos,watchsimulator
             --xx                add ffmpeg Configuers
             mpv                 build mpv
 
@@ -123,7 +123,7 @@ private enum Library: String, CaseIterable {
     var version: String {
         switch self {
         case .FFmpeg:
-            return "n6.0"
+            return "n6.1"
         case .libfreetype:
             return "VER-2-12-1"
         case .libfribidi:
@@ -300,8 +300,8 @@ private class BaseBuild {
             try Utility.launch(path: "/usr/bin/python3", arguments: [wafPath(), "install"], currentDirectoryURL: directoryURL, environment: environ)
         } else {
             try configure(buildURL: buildURL, environ: environ, platform: platform, arch: arch)
-            try Utility.launch(path: "/usr/bin/make", arguments: ["-j5"], currentDirectoryURL: buildURL, environment: environ)
-            try Utility.launch(path: "/usr/bin/make", arguments: ["-j5", "install"], currentDirectoryURL: buildURL, environment: environ)
+            try Utility.launch(path: "/usr/bin/make", arguments: ["-j8"], currentDirectoryURL: buildURL, environment: environ)
+            try Utility.launch(path: "/usr/bin/make", arguments: ["-j8", "install"], currentDirectoryURL: buildURL, environment: environ)
         }
     }
 
@@ -1165,7 +1165,7 @@ private class BuildMPV: BaseBuild {
 }
 
 private enum PlatformType: String, CaseIterable {
-    case macos, ios, isimulator, tvos, tvsimulator, maccatalyst, watchos, watchsimulator, xros, xrsimulator
+    case macos, ios, isimulator, tvos, tvsimulator, maccatalyst, xros, xrsimulator, watchos, watchsimulator
     var minVersion: String {
         switch self {
         case .ios, .isimulator:
