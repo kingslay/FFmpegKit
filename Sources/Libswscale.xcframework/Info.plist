@@ -8,7 +8,22 @@
 			<key>BinaryPath</key>
 			<string>Libswscale.framework/Libswscale</string>
 			<key>LibraryIdentifier</key>
-			<string>macos-arm64_x86_64</string>
+			<string>tvos-arm64_arm64e</string>
+			<key>LibraryPath</key>
+			<string>Libswscale.framework</string>
+			<key>SupportedArchitectures</key>
+			<array>
+				<string>arm64</string>
+				<string>arm64e</string>
+			</array>
+			<key>SupportedPlatform</key>
+			<string>tvos</string>
+		</dict>
+		<dict>
+			<key>BinaryPath</key>
+			<string>Libswscale.framework/Libswscale</string>
+			<key>LibraryIdentifier</key>
+			<string>ios-arm64_x86_64-simulator</string>
 			<key>LibraryPath</key>
 			<string>Libswscale.framework</string>
 			<key>SupportedArchitectures</key>
@@ -17,18 +32,20 @@
 				<string>x86_64</string>
 			</array>
 			<key>SupportedPlatform</key>
-			<string>macos</string>
+			<string>ios</string>
+			<key>SupportedPlatformVariant</key>
+			<string>simulator</string>
 		</dict>
 		<dict>
 			<key>BinaryPath</key>
 			<string>Libswscale.framework/Libswscale</string>
 			<key>LibraryIdentifier</key>
-			<string>tvos-arm64e_x86_64-simulator</string>
+			<string>tvos-arm64_x86_64-simulator</string>
 			<key>LibraryPath</key>
 			<string>Libswscale.framework</string>
 			<key>SupportedArchitectures</key>
 			<array>
-				<string>arm64e</string>
+				<string>arm64</string>
 				<string>x86_64</string>
 			</array>
 			<key>SupportedPlatform</key>
@@ -72,7 +89,22 @@
 			<key>BinaryPath</key>
 			<string>Libswscale.framework/Libswscale</string>
 			<key>LibraryIdentifier</key>
-			<string>tvos-arm64_arm64e</string>
+			<string>macos-arm64_x86_64</string>
+			<key>LibraryPath</key>
+			<string>Libswscale.framework</string>
+			<key>SupportedArchitectures</key>
+			<array>
+				<string>arm64</string>
+				<string>x86_64</string>
+			</array>
+			<key>SupportedPlatform</key>
+			<string>macos</string>
+		</dict>
+		<dict>
+			<key>BinaryPath</key>
+			<string>Libswscale.framework/Libswscale</string>
+			<key>LibraryIdentifier</key>
+			<string>ios-arm64_arm64e</string>
 			<key>LibraryPath</key>
 			<string>Libswscale.framework</string>
 			<key>SupportedArchitectures</key>
@@ -81,39 +113,21 @@
 				<string>arm64e</string>
 			</array>
 			<key>SupportedPlatform</key>
-			<string>tvos</string>
+			<string>ios</string>
 		</dict>
 		<dict>
 			<key>BinaryPath</key>
 			<string>Libswscale.framework/Libswscale</string>
 			<key>LibraryIdentifier</key>
-			<string>xros-arm64e_x86_64-simulator</string>
+			<string>xros-arm64-simulator</string>
 			<key>LibraryPath</key>
 			<string>Libswscale.framework</string>
 			<key>SupportedArchitectures</key>
 			<array>
-				<string>arm64e</string>
-				<string>x86_64</string>
+				<string>arm64</string>
 			</array>
 			<key>SupportedPlatform</key>
 			<string>xros</string>
-			<key>SupportedPlatformVariant</key>
-			<string>simulator</string>
-		</dict>
-		<dict>
-			<key>BinaryPath</key>
-			<string>Libswscale.framework/Libswscale</string>
-			<key>LibraryIdentifier</key>
-			<string>ios-arm64e_x86_64-simulator</string>
-			<key>LibraryPath</key>
-			<string>Libswscale.framework</string>
-			<key>SupportedArchitectures</key>
-			<array>
-				<string>arm64e</string>
-				<string>x86_64</string>
-			</array>
-			<key>SupportedPlatform</key>
-			<string>ios</string>
 			<key>SupportedPlatformVariant</key>
 			<string>simulator</string>
 		</dict>

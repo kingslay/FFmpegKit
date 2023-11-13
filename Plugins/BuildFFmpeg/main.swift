@@ -1187,10 +1187,10 @@ private enum PlatformType: String, CaseIterable {
         switch self {
         case .ios, .xros, .tvos, .watchos:
             return [.arm64, .arm64e]
-        case .isimulator, .tvsimulator, .watchsimulator, .xrsimulator:
-            return [.arm64e, .x86_64]
+        case .isimulator, .tvsimulator, .watchsimulator:
+            return [.arm64, .x86_64]
         case .xrsimulator:
-            return [.arm64e]
+            return [.arm64]
         case .macos:
             // macos 不能用arm64，不然打包release包会报错，不能通过
             #if arch(x86_64)
