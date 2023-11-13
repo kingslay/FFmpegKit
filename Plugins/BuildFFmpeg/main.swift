@@ -1185,10 +1185,8 @@ private enum PlatformType: String, CaseIterable {
 
     func architectures() -> [ArchType] {
         switch self {
-        case .ios, .tvos, .watchos:
-            return [.arm64, .arm64e]
-        case .xros:
-            return [.arm64e]
+        case .ios, .tvos, .xros.watchos:
+            return [.arm64]
         case .isimulator, .tvsimulator, .watchsimulator:
             return [.arm64, .x86_64]
         case .xrsimulator:
@@ -1329,6 +1327,7 @@ private enum PlatformType: String, CaseIterable {
 
 enum ArchType: String, CaseIterable {
     // swiftlint:disable identifier_name
+    // arm64e 还没ABI。所以第三方库是无法使用的。
     case arm64, x86_64, arm64e
     // swiftlint:enable identifier_name
     func executable() -> Bool {
