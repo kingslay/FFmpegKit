@@ -1185,8 +1185,10 @@ private enum PlatformType: String, CaseIterable {
 
     func architectures() -> [ArchType] {
         switch self {
-        case .ios, .xros, .tvos, .watchos:
+        case .ios, .tvos, .watchos:
             return [.arm64, .arm64e]
+        case .xros:
+            return [.arm64e]
         case .isimulator, .tvsimulator, .watchsimulator:
             return [.arm64, .x86_64]
         case .xrsimulator:
