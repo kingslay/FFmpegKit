@@ -794,11 +794,12 @@ private class BuildFFMPEG: BaseBuild {
         "--enable-decoder=amr*", "--enable-decoder=ape", "--enable-decoder=cook",
         "--enable-decoder=dca", "--enable-decoder=dolby_e", "--enable-decoder=eac3*", "--enable-decoder=flac",
         "--enable-decoder=mp1*", "--enable-decoder=mp2*", "--enable-decoder=mp3*", "--enable-decoder=opus",
-        "--enable-decoder=pcm*", "--enable-decoder=truehd", "--enable-decoder=vorbis", "--enable-decoder=wma*",
+        "--enable-decoder=pcm*", "--enable-decoder=truehd", "--enable-decoder=tta", "--enable-decoder=vorbis", "--enable-decoder=wma*",
         // 字幕
-        "--enable-decoder=ass", "--enable-decoder=ccaption", "--enable-decoder=dvbsub", "--enable-decoder=dvdsub", "--enable-decoder=movtext",
+        "--enable-decoder=ass", "--enable-decoder=ccaption", "--enable-decoder=dvbsub", "--enable-decoder=dvdsub",
+        "--enable-decoder=mpl2", "--enable-decoder=movtext",
         "--enable-decoder=pgssub", "--enable-decoder=srt", "--enable-decoder=ssa", "--enable-decoder=subrip",
-        "--enable-decoder=webvtt",
+        "--enable-decoder=xsub", "--enable-decoder=webvtt",
         // ./configure --list-filters
         "--disable-filters",
         "--enable-filter=aformat", "--enable-filter=amix", "--enable-filter=anull", "--enable-filter=aresample",
