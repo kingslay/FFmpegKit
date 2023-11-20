@@ -8,18 +8,16 @@
 			<key>BinaryPath</key>
 			<string>Libavutil.framework/Libavutil</string>
 			<key>LibraryIdentifier</key>
-			<string>tvos-arm64_x86_64-simulator</string>
+			<string>ios-arm64_arm64e</string>
 			<key>LibraryPath</key>
 			<string>Libavutil.framework</string>
 			<key>SupportedArchitectures</key>
 			<array>
 				<string>arm64</string>
-				<string>x86_64</string>
+				<string>arm64e</string>
 			</array>
 			<key>SupportedPlatform</key>
-			<string>tvos</string>
-			<key>SupportedPlatformVariant</key>
-			<string>simulator</string>
+			<string>ios</string>
 		</dict>
 		<dict>
 			<key>BinaryPath</key>
@@ -41,7 +39,39 @@
 			<key>BinaryPath</key>
 			<string>Libavutil.framework/Libavutil</string>
 			<key>LibraryIdentifier</key>
-			<string>ios-arm64_arm64e</string>
+			<string>tvos-arm64_x86_64-simulator</string>
+			<key>LibraryPath</key>
+			<string>Libavutil.framework</string>
+			<key>SupportedArchitectures</key>
+			<array>
+				<string>arm64</string>
+				<string>x86_64</string>
+			</array>
+			<key>SupportedPlatform</key>
+			<string>tvos</string>
+			<key>SupportedPlatformVariant</key>
+			<string>simulator</string>
+		</dict>
+		<dict>
+			<key>BinaryPath</key>
+			<string>Libavutil.framework/Libavutil</string>
+			<key>LibraryIdentifier</key>
+			<string>macos-arm64_x86_64</string>
+			<key>LibraryPath</key>
+			<string>Libavutil.framework</string>
+			<key>SupportedArchitectures</key>
+			<array>
+				<string>arm64</string>
+				<string>x86_64</string>
+			</array>
+			<key>SupportedPlatform</key>
+			<string>macos</string>
+		</dict>
+		<dict>
+			<key>BinaryPath</key>
+			<string>Libavutil.framework/Libavutil</string>
+			<key>LibraryIdentifier</key>
+			<string>tvos-arm64_arm64e</string>
 			<key>LibraryPath</key>
 			<string>Libavutil.framework</string>
 			<key>SupportedArchitectures</key>
@@ -50,7 +80,22 @@
 				<string>arm64e</string>
 			</array>
 			<key>SupportedPlatform</key>
-			<string>ios</string>
+			<string>tvos</string>
+		</dict>
+		<dict>
+			<key>BinaryPath</key>
+			<string>Libavutil.framework/Libavutil</string>
+			<key>LibraryIdentifier</key>
+			<string>xros-arm64_arm64e</string>
+			<key>LibraryPath</key>
+			<string>Libavutil.framework</string>
+			<key>SupportedArchitectures</key>
+			<array>
+				<string>arm64</string>
+				<string>arm64e</string>
+			</array>
+			<key>SupportedPlatform</key>
+			<string>xros</string>
 		</dict>
 		<dict>
 			<key>BinaryPath</key>
@@ -73,21 +118,6 @@
 			<key>BinaryPath</key>
 			<string>Libavutil.framework/Libavutil</string>
 			<key>LibraryIdentifier</key>
-			<string>macos-arm64_x86_64</string>
-			<key>LibraryPath</key>
-			<string>Libavutil.framework</string>
-			<key>SupportedArchitectures</key>
-			<array>
-				<string>arm64</string>
-				<string>x86_64</string>
-			</array>
-			<key>SupportedPlatform</key>
-			<string>macos</string>
-		</dict>
-		<dict>
-			<key>BinaryPath</key>
-			<string>Libavutil.framework/Libavutil</string>
-			<key>LibraryIdentifier</key>
 			<string>ios-arm64_x86_64-simulator</string>
 			<key>LibraryPath</key>
 			<string>Libavutil.framework</string>
@@ -100,36 +130,6 @@
 			<string>ios</string>
 			<key>SupportedPlatformVariant</key>
 			<string>simulator</string>
-		</dict>
-		<dict>
-			<key>BinaryPath</key>
-			<string>Libavutil.framework/Libavutil</string>
-			<key>LibraryIdentifier</key>
-			<string>xros-arm64_arm64e</string>
-			<key>LibraryPath</key>
-			<string>Libavutil.framework</string>
-			<key>SupportedArchitectures</key>
-			<array>
-				<string>arm64</string>
-				<string>arm64e</string>
-			</array>
-			<key>SupportedPlatform</key>
-			<string>xros</string>
-		</dict>
-		<dict>
-			<key>BinaryPath</key>
-			<string>Libavutil.framework/Libavutil</string>
-			<key>LibraryIdentifier</key>
-			<string>tvos-arm64_arm64e</string>
-			<key>LibraryPath</key>
-			<string>Libavutil.framework</string>
-			<key>SupportedArchitectures</key>
-			<array>
-				<string>arm64</string>
-				<string>arm64e</string>
-			</array>
-			<key>SupportedPlatform</key>
-			<string>tvos</string>
 		</dict>
 	</array>
 	<key>CFBundlePackageType</key>

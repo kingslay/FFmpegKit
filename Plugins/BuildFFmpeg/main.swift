@@ -763,12 +763,13 @@ private class BuildFFMPEG: BaseBuild {
         // ./configure --list-protocols
         "--enable-protocols",
         // ./configure --list-demuxers
-        // 用所有的demuxers的话，那avformat就会达到8MB了，指定的话，那就只要4MB。
+        // 用所有的demuxers的话，那avformat就会达到12.5MB了，指定的话，那就只要6.35MB。
         "--disable-demuxers",
         "--enable-demuxer=aac", "--enable-demuxer=ac3", "--enable-demuxer=aiff", "--enable-demuxer=amr",
         "--enable-demuxer=ape", "--enable-demuxer=asf", "--enable-demuxer=ass", "--enable-demuxer=av1",
-        "--enable-demuxer=avi", "--enable-demuxer=caf",
-        "--enable-demuxer=concat", "--enable-demuxer=dash", "--enable-demuxer=data", "--enable-demuxer=eac3",
+        "--enable-demuxer=avi", "--enable-demuxer=caf", "--enable-demuxer=concat",
+        "--enable-demuxer=dash", "--enable-demuxer=data", "--enable-demuxer=dv",
+        "--enable-demuxer=eac3",
         "--enable-demuxer=flac", "--enable-demuxer=flv", "--enable-demuxer=h264", "--enable-demuxer=hevc",
         "--enable-demuxer=hls", "--enable-demuxer=live_flv", "--enable-demuxer=loas", "--enable-demuxer=m4v",
         // matroska=mkv,mka,mks,mk3d
