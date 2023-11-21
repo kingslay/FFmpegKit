@@ -763,7 +763,7 @@ private class BuildFFMPEG: BaseBuild {
         // ./configure --list-protocols
         "--enable-protocols",
         // ./configure --list-demuxers
-        // 用所有的demuxers的话，那avformat就会达到12.5MB了，指定的话，那就只要6.35MB。
+        // 用所有的demuxers的话，那avformat就会达到8MB了，指定的话，那就只要4MB。
         "--disable-demuxers",
         "--enable-demuxer=aac", "--enable-demuxer=ac3", "--enable-demuxer=aiff", "--enable-demuxer=amr",
         "--enable-demuxer=ape", "--enable-demuxer=asf", "--enable-demuxer=ass", "--enable-demuxer=av1",
@@ -782,25 +782,32 @@ private class BuildFFMPEG: BaseBuild {
         // 用所有的decoders的话，那avcodec就会达到40MB了，指定的话，那就只要20MB。
         "--disable-decoders",
         // 视频
-        "--enable-decoder=av1", "--enable-decoder=dca", "--enable-decoder=flv", "--enable-decoder=h263",
-        "--enable-decoder=h263i", "--enable-decoder=h263p", "--enable-decoder=h264", "--enable-decoder=hevc",
-        "--enable-decoder=mjpeg", "--enable-decoder=mjpegb", "--enable-decoder=mpeg1video", "--enable-decoder=mpeg2video",
-        "--enable-decoder=mpeg4", "--enable-decoder=mpegvideo", "--enable-decoder=prores",
+        "--enable-decoder=av1", "--enable-decoder=dca", "--enable-decoder=dxv",
+        "--enable-decoder=ffv1", "--enable-decoder=ffvhuff", "--enable-decoder=flv",
+        "--enable-decoder=h263", "--enable-decoder=h263i", "--enable-decoder=h263p", "--enable-decoder=h264",
+        "--enable-decoder=hap", "--enable-decoder=hevc", "--enable-decoder=huffyuv",
+        "--enable-decoder=indeo5",
+        "--enable-decoder=mjpeg", "--enable-decoder=mjpegb", "--enable-decoder=mpeg*", "--enable-decoder=mts2",
+        "--enable-decoder=prores",
         "--enable-decoder=rv10", "--enable-decoder=rv20", "--enable-decoder=rv30", "--enable-decoder=rv40",
-        "--enable-decoder=tscc", "--enable-decoder=wmv1", "--enable-decoder=wmv2", "--enable-decoder=wmv3",
+        "--enable-decoder=snow", "--enable-decoder=svq3",
+        "--enable-decoder=tscc", "--enable-decoder=txd",
+        "--enable-decoder=wmv1", "--enable-decoder=wmv2", "--enable-decoder=wmv3",
         "--enable-decoder=vc1", "--enable-decoder=vp6", "--enable-decoder=vp6a", "--enable-decoder=vp6f",
         "--enable-decoder=vp7", "--enable-decoder=vp8", "--enable-decoder=vp9",
         // 音频
-        "--enable-decoder=aac*", "--enable-decoder=ac3*", "--enable-decoder=alac*",
+        "--enable-decoder=aac*", "--enable-decoder=ac3*", "--enable-decoder=adpcm*", "--enable-decoder=alac*",
         "--enable-decoder=amr*", "--enable-decoder=ape", "--enable-decoder=cook",
         "--enable-decoder=dca", "--enable-decoder=dolby_e", "--enable-decoder=eac3*", "--enable-decoder=flac",
         "--enable-decoder=mp1*", "--enable-decoder=mp2*", "--enable-decoder=mp3*", "--enable-decoder=opus",
-        "--enable-decoder=pcm*", "--enable-decoder=truehd", "--enable-decoder=tta", "--enable-decoder=vorbis", "--enable-decoder=wma*",
+        "--enable-decoder=pcm*", "--enable-decoder=sonic",
+        "--enable-decoder=truehd", "--enable-decoder=tta", "--enable-decoder=vorbis", "--enable-decoder=wma*",
         // 字幕
         "--enable-decoder=ass", "--enable-decoder=ccaption", "--enable-decoder=dvbsub", "--enable-decoder=dvdsub",
         "--enable-decoder=mpl2", "--enable-decoder=movtext",
         "--enable-decoder=pgssub", "--enable-decoder=srt", "--enable-decoder=ssa", "--enable-decoder=subrip",
         "--enable-decoder=xsub", "--enable-decoder=webvtt",
+
         // ./configure --list-filters
         "--disable-filters",
         "--enable-filter=aformat", "--enable-filter=amix", "--enable-filter=anull", "--enable-filter=aresample",
