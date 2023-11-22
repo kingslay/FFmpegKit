@@ -1,11 +1,12 @@
-// swift-tools-version:5.9
+// swift-tools-version:5.7
 import PackageDescription
 
 let package = Package(
     name: "FFmpegKit",
     defaultLocalization: "en",
-    platforms: [.macOS(.v10_15), .iOS(.v13), .tvOS(.v13),
-                .visionOS(.v1)],
+    platforms: [.macOS(.v10_15),
+                .iOS(.v13),
+                .tvOS(.v13)],
     products: [
         .library(
             name: "FFmpegKit",
@@ -35,9 +36,8 @@ let package = Package(
             name: "FFmpegKit",
             dependencies: [
                 "Libavcodec", "Libavfilter", "Libavformat", "Libavutil", "Libswresample", "Libswscale",
-                "Libssl", "Libcrypto",
-                "Libdav1d",
-                "Libsrt",
+                "Libssl", "Libcrypto", "Libsrt",
+                "Libplacebo", "Libdav1d",
                 "Libzvbi",
             ],
             linkerSettings: [
@@ -103,9 +103,12 @@ let package = Package(
                 ),
                 permissions: [
                     .writeToPackageDirectory(reason: "This command compile FFmpeg and generate xcframework. compile FFmpeg need brew install nasm sdl2 cmake. So you need add --allow-writing-to-directory /usr/local/ --allow-writing-to-directory ~/Library/ or add --disable-sandbox"),
-                    .allowNetworkConnections(scope: .all(), reason: "The plugin must connect to a remote server to brew install nasm sdl2 cmake"),
                 ]
             )
+        ),
+        .binaryTarget(
+            name: "Libplacebo",
+            path: "Sources/Libplacebo.xcframework"
         ),
         .binaryTarget(
             name: "Libavcodec",

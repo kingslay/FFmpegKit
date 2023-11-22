@@ -80,9 +80,9 @@ extension Build {
             Build.ffmpegConfiguers.append("--enable-stripping")
         }
         if arguments.isEmpty {
-            librarys.append(contentsOf: [.libdav1d, .openssl, .libsrt, .libzvbi, .FFmpeg])
+            librarys.append(contentsOf: [.libplacebo, .libdav1d, .openssl, .libsrt, .libzvbi, .FFmpeg])
         } else if arguments == ["mpv"] {
-            librarys.append(contentsOf: [.libdav1d, .openssl, .libsrt, .libzvbi, .png, .libfreetype, .libfribidi, .harfbuzz, .libass, .FFmpeg, .mpv])
+            librarys.append(contentsOf: [.libplacebo, .libdav1d, .openssl, .libsrt, .libzvbi, .png, .libfreetype, .libfribidi, .harfbuzz, .libass, .libplacebo, .FFmpeg, .mpv])
         }
         for library in librarys {
             try library.build.buildALL()
@@ -92,7 +92,7 @@ extension Build {
     static func printHelp() {
         print("""
         Usage: swift package BuildFFmpeg [OPTION]...
-        Default Build: swift package --disable-sandbox BuildFFmpeg enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-FFmpeg
+        Default Build: swift package --disable-sandbox BuildFFmpeg libplacebo enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-FFmpeg
         Build MPV: swift package --disable-sandbox BuildFFmpeg mpv or swift package --disable-sandbox BuildFFmpeg enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-png enable-libfreetype enable-libfribidi enable-harfbuzz enable-libass enable-FFmpeg enable-mpv
         Options:
             h, -h, --help       display this help and exit
@@ -102,6 +102,7 @@ extension Build {
             mpv                 build mpv
 
         Libraries:
+            enable-libplacebo   build with placebo
             enable-libdav1d     build with dav1d
             enable-openssl      build with openssl
             enable-libzvbi      build with libzvbi
@@ -119,7 +120,7 @@ extension Build {
 }
 
 private enum Library: String, CaseIterable {
-    case libfreetype, libfribidi, libass, openssl, libsrt, libsmbclient, gnutls, gmp, FFmpeg, nettle, harfbuzz, png, libdav1d, libtls, libzvbi, boringssl, mpv
+    case libdav1d, libplacebo, libfreetype, libfribidi, libass, openssl, libsrt, libsmbclient, gnutls, gmp, FFmpeg, nettle, harfbuzz, png, libtls, libzvbi, boringssl, mpv
     var version: String {
         switch self {
         case .FFmpeg:
@@ -135,7 +136,7 @@ private enum Library: String, CaseIterable {
         case .png:
             return "v1.6.40"
         case .mpv:
-            return "v0.36.0"
+            return "v0.37.0"
         case .openssl:
             // 用openssl-3.1.0 在真机启动会_armv8_sve_probe, 3.1.1在真机启动会crash
             return "openssl-3.1.4"
@@ -157,6 +158,8 @@ private enum Library: String, CaseIterable {
             return "v0.2.42"
         case .boringssl:
             return "master"
+        case .libplacebo:
+            return "v6.338.1"
         }
     }
 
@@ -182,6 +185,8 @@ private enum Library: String, CaseIterable {
             return "https://github.com/zapping-vbi/zvbi.git"
         case .boringssl:
             return "https://github.com/google/boringssl"
+        case .libplacebo:
+            return "https://github.com/haasn/libplacebo"
         default:
             var value = rawValue
             if self != .libass, value.hasPrefix("lib") {
@@ -193,7 +198,7 @@ private enum Library: String, CaseIterable {
 
     var isFFmpegDependentLibrary: Bool {
         switch self {
-        case .libdav1d, .openssl, .libsrt, .libsmbclient, .libzvbi:
+        case .libplacebo, .libdav1d, .openssl, .libsrt, .libsmbclient, .libzvbi:
             return true
         case .png, .harfbuzz, .nettle, .mpv, .FFmpeg:
             return false
@@ -238,6 +243,8 @@ private enum Library: String, CaseIterable {
             return BuildZvbi()
         case .boringssl:
             return BuildBoringSSL()
+        case .libplacebo:
+            return BuildPlacebo()
         }
     }
 }
@@ -254,7 +261,7 @@ private class BaseBuild {
         self.library = library
         directoryURL = URL.currentDirectory + "\(library.rawValue)-\(library.version)"
         if !FileManager.default.fileExists(atPath: directoryURL.path) {
-            try! Utility.launch(path: "/usr/bin/git", arguments: ["clone", "--depth", "1", "--branch", library.version, library.url, directoryURL.path])
+            try! Utility.launch(path: "/usr/bin/git", arguments: ["clone", "--recurse-submodules", "--depth", "1", "--branch", library.version, library.url, directoryURL.path])
         }
     }
 
@@ -1138,6 +1145,16 @@ private class BuildDav1d: BaseBuild {
 
     override func arguments(platform _: PlatformType, arch _: ArchType) -> [String] {
         ["-Denable_asm=true", "-Denable_tools=false", "-Denable_examples=false", "-Denable_tests=false"]
+    }
+}
+
+private class BuildPlacebo: BaseBuild {
+    init() {
+        super.init(library: .libplacebo)
+    }
+
+    override func arguments(platform _: PlatformType, arch _: ArchType) -> [String] {
+        ["-Dvulkan=disabled", "-Dopengl=disabled"]
     }
 }
 
