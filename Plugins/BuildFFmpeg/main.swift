@@ -120,7 +120,7 @@ extension Build {
 }
 
 private enum Library: String, CaseIterable {
-    case libdav1d, libplacebo, libfreetype, libfribidi, libass, openssl, libsrt, libsmbclient, gnutls, gmp, FFmpeg, nettle, harfbuzz, png, libtls, libzvbi, boringssl, mpv
+    case vulkan, libplacebo, libdav1d, libfreetype, libfribidi, libass, openssl, libsrt, libsmbclient, gnutls, gmp, FFmpeg, nettle, harfbuzz, png, libtls, libzvbi, boringssl, mpv
     var version: String {
         switch self {
         case .FFmpeg:
@@ -160,6 +160,8 @@ private enum Library: String, CaseIterable {
             return "master"
         case .libplacebo:
             return "v6.338.1"
+        case .vulkan:
+            return "v1.2.6"
         }
     }
 
@@ -187,6 +189,8 @@ private enum Library: String, CaseIterable {
             return "https://github.com/google/boringssl"
         case .libplacebo:
             return "https://github.com/haasn/libplacebo"
+        case .vulkan:
+            return "https://github.com/KhronosGroup/MoltenVK"
         default:
             var value = rawValue
             if self != .libass, value.hasPrefix("lib") {
@@ -245,6 +249,8 @@ private enum Library: String, CaseIterable {
             return BuildBoringSSL()
         case .libplacebo:
             return BuildPlacebo()
+        case .vulkan:
+            return BuildVulkan()
         }
     }
 }
@@ -1145,6 +1151,12 @@ private class BuildDav1d: BaseBuild {
 
     override func arguments(platform _: PlatformType, arch _: ArchType) -> [String] {
         ["-Denable_asm=true", "-Denable_tools=false", "-Denable_examples=false", "-Denable_tests=false"]
+    }
+}
+
+private class BuildVulkan: BaseBuild {
+    init() {
+        super.init(library: .vulkan)
     }
 }
 
