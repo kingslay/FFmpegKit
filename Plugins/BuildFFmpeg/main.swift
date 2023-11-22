@@ -198,7 +198,7 @@ private enum Library: String, CaseIterable {
 
     var isFFmpegDependentLibrary: Bool {
         switch self {
-        case .libplacebo, .libdav1d, .openssl, .libsrt, .libsmbclient, .libzvbi:
+        case .libdav1d, .openssl, .libsrt, .libsmbclient, .libzvbi:
             return true
         case .png, .harfbuzz, .nettle, .mpv, .FFmpeg:
             return false
