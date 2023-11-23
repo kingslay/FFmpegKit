@@ -16,10 +16,6 @@ It includes scripts to build `FFmpeg` native libraries, three executable product
 dependencies: [
     .package(url: "https://github.com/kingslay/FFmpegKit.git", .branch("main"))
 ]
-// mpv
-dependencies: [
-    .package(url: "https://github.com/kingslay/FFmpegKit.git", .branch("mpv"))
-]
 ```
 
 ## Build Scripts
@@ -27,7 +23,7 @@ dependencies: [
 swift package --disable-sandbox BuildFFmpeg
 
 /// build MPV
-swift package --disable-sandbox BuildFFmpeg enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-png enable-libfreetype enable-libfribidi enable-harfbuzz enable-libass enable-FFmpeg enable-mpv platforms=macos
+swift package --disable-sandbox BuildFFmpeg enable-vulkan enable-libplacebo enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-png enable-libfreetype enable-libfribidi enable-harfbuzz enable-libass enable-FFmpeg enable-mpv platforms=macos
 ```
 ## Executable product
 ```bash
@@ -42,18 +38,21 @@ swift package BuildFFmpeg -h
 
 ```bash
 Usage: swift package BuildFFmpeg [OPTION]...
-Default Build: swift package --disable-sandbox BuildFFmpeg enable-libdav1d enable-openssl enable-libsrt enable-FFmpeg
-Build MPV: swift package --disable-sandbox BuildFFmpeg mpv or swift package --disable-sandbox BuildFFmpeg enable-libdav1d enable-openssl enable-libsrt enable-png enable-libfreetype enable-libfribidi enable-harfbuzz enable-libass enable-FFmpeg enable-mpv
+Default Build: swift package --disable-sandbox BuildFFmpeg enable-vulkan enable-libplacebo enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-FFmpeg
+Build MPV: swift package --disable-sandbox BuildFFmpeg mpv or swift package --disable-sandbox BuildFFmpeg enable-vulkan enable-libplacebo enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-png enable-libfreetype enable-libfribidi enable-harfbuzz enable-libass enable-FFmpeg enable-mpv
 Options:
     h, -h, --help       display this help and exit
     enable-debug,       build ffmpeg with debug information
-    platforms=xros      deployment platform: ios,isimulator,tvos,tvsimulator,macos,maccatalyst,xros,xrsimulator,watchos,watchsimulator,
+    platforms=xros      deployment platform: macos,ios,isimulator,tvos,tvsimulator,maccatalyst,xros,xrsimulator,watchos,watchsimulator
     --xx                add ffmpeg Configuers
     mpv                 build mpv
 
 Libraries:
+    enable-vulkan       build with vulkan
+    enable-libplacebo   build with placebo
     enable-libdav1d     build with dav1d
     enable-openssl      build with openssl
+    enable-libzvbi      build with libzvbi
     enable-libsrt       depend enable-openssl
     enable-libfreetype  depend enable-png [no]
     enable-libass       depend enable-png enable-libfreetype enable-libfribidi enable-harfbuzz [no]
