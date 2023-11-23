@@ -80,9 +80,9 @@ extension Build {
             Build.ffmpegConfiguers.append("--enable-stripping")
         }
         if arguments.isEmpty {
-            librarys.append(contentsOf: [.libplacebo, .libdav1d, .openssl, .libsrt, .libzvbi, .FFmpeg])
+            librarys.append(contentsOf: [.vulkan, .libplacebo, .libdav1d, .openssl, .libsrt, .libzvbi, .FFmpeg])
         } else if arguments == ["mpv"] {
-            librarys.append(contentsOf: [.libplacebo, .libdav1d, .openssl, .libsrt, .libzvbi, .png, .libfreetype, .libfribidi, .harfbuzz, .libass, .libplacebo, .FFmpeg, .mpv])
+            librarys.append(contentsOf: [.vulkan, .libplacebo, .libdav1d, .openssl, .libsrt, .libzvbi, .png, .libfreetype, .libfribidi, .harfbuzz, .libass, .libplacebo, .FFmpeg, .mpv])
         }
         for library in librarys {
             try library.build.buildALL()
@@ -92,8 +92,8 @@ extension Build {
     static func printHelp() {
         print("""
         Usage: swift package BuildFFmpeg [OPTION]...
-        Default Build: swift package --disable-sandbox BuildFFmpeg libplacebo enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-FFmpeg
-        Build MPV: swift package --disable-sandbox BuildFFmpeg mpv or swift package --disable-sandbox BuildFFmpeg enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-png enable-libfreetype enable-libfribidi enable-harfbuzz enable-libass enable-FFmpeg enable-mpv
+        Default Build: swift package --disable-sandbox BuildFFmpeg enable-vulkan enable-libplacebo enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-FFmpeg
+        Build MPV: swift package --disable-sandbox BuildFFmpeg mpv or swift package --disable-sandbox BuildFFmpeg enable-vulkan enable-libplacebo enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-png enable-libfreetype enable-libfribidi enable-harfbuzz enable-libass enable-FFmpeg enable-mpv
         Options:
             h, -h, --help       display this help and exit
             enable-debug,       build ffmpeg with debug information
@@ -102,6 +102,7 @@ extension Build {
             mpv                 build mpv
 
         Libraries:
+            enable-vulkan       build with vulkan
             enable-libplacebo   build with placebo
             enable-libdav1d     build with dav1d
             enable-openssl      build with openssl
@@ -202,7 +203,7 @@ private enum Library: String, CaseIterable {
 
     var isFFmpegDependentLibrary: Bool {
         switch self {
-        case .libdav1d, .openssl, .libsrt, .libsmbclient, .libzvbi:
+        case .vulkan, .libplacebo, .libdav1d, .openssl, .libsrt, .libsmbclient, .libzvbi:
             return true
         case .png, .harfbuzz, .nettle, .mpv, .FFmpeg:
             return false
@@ -730,6 +731,8 @@ private class BuildFFMPEG: BaseBuild {
                     arguments.append("--enable-filter=subtitles")
                 } else if library == .libzvbi {
                     arguments.append("--enable-decoder=libzvbi_teletext")
+                } else if library == .libplacebo {
+                    arguments.append("--enable-filter=libplacebo")
                 }
             }
         }
@@ -1158,15 +1161,26 @@ private class BuildVulkan: BaseBuild {
     init() {
         super.init(library: .vulkan)
     }
+
+    override func buildALL() throws {
+        try Utility.launch(path: (directoryURL + "fetchDependencies").path, arguments: [], currentDirectoryURL: directoryURL)
+        try Utility.launch(path: "/usr/bin/make", arguments: [], currentDirectoryURL: directoryURL)
+        try? FileManager.default.copyItem(at: directoryURL + "Package/Release/MoltenVK/MoltenVK.xcframework", to: URL.currentDirectory() + "../Sources/MoltenVK.xcframework")
+    }
 }
 
 private class BuildPlacebo: BaseBuild {
     init() {
         super.init(library: .libplacebo)
+        let path = directoryURL + "demos/meson.build"
+        if let data = FileManager.default.contents(atPath: path.path), var str = String(data: data, encoding: .utf8) {
+            str = str.replacingOccurrences(of: "if sdl.found()", with: "if false")
+            try! str.write(toFile: path.path, atomically: true, encoding: .utf8)
+        }
     }
 
     override func arguments(platform _: PlatformType, arch _: ArchType) -> [String] {
-        ["-Dvulkan=disabled", "-Dopengl=disabled"]
+        ["-Dxxhash=disabled", "-Dopengl=disabled"]
     }
 }
 
@@ -1317,7 +1331,7 @@ private enum PlatformType: String, CaseIterable {
 
     func ldFlags(arch: ArchType) -> [String] {
         // ldFlags的关键参数要跟cFlags保持一致，不然会在ld的时候不通过。
-        var flags = ["-arch", arch.rawValue, "-isysroot", isysroot(), "-target", deploymentTarget(arch: arch)]
+        var flags = ["-lc++", "-arch", arch.rawValue, "-isysroot", isysroot(), "-target", deploymentTarget(arch: arch)]
         let gmpPath = URL.currentDirectory + [Library.gmp.rawValue, rawValue, "thin", arch.rawValue]
         if FileManager.default.fileExists(atPath: gmpPath.path) {
             flags.append("-L\(gmpPath.path)/lib")
@@ -1339,6 +1353,10 @@ private enum PlatformType: String, CaseIterable {
         let gmpPath = URL.currentDirectory + [Library.gmp.rawValue, rawValue, "thin", arch.rawValue]
         if FileManager.default.fileExists(atPath: gmpPath.path) {
             cflags += " -I\(gmpPath.path)/include"
+        }
+        let vulkanPath = URL.currentDirectory + "\(Library.vulkan.rawValue)-\(Library.vulkan.version)/Package/Release/MoltenVK"
+        if FileManager.default.fileExists(atPath: vulkanPath.path) {
+            cflags += " -I\(vulkanPath.path)/include"
         }
         return cflags
     }

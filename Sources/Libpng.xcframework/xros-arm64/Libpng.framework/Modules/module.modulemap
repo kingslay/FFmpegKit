@@ -1,0 +1,4 @@
+framework module Libpng [system] {
+    umbrella "."
+    export *
+}

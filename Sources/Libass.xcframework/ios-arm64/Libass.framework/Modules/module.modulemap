@@ -1,0 +1,4 @@
+framework module Libass [system] {
+    umbrella "."
+    export *
+}
