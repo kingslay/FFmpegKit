@@ -1,4 +1,0 @@
-framework module Libdav1d [system] {
-    umbrella "."
-    export *
-}
