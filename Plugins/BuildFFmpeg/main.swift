@@ -139,8 +139,7 @@ private enum Library: String, CaseIterable {
         case .mpv:
             return "v0.37.0"
         case .openssl:
-            // 用openssl-3.1.0 在真机启动会_armv8_sve_probe, 3.1.1在真机启动会crash
-            return "openssl-3.1.4"
+            return "openssl-3.2.0"
         case .libsrt:
             return "v1.5.1"
         case .libsmbclient:
@@ -696,6 +695,8 @@ private class BuildFFMPEG: BaseBuild {
             arguments.append("--enable-videotoolbox")
             arguments.append("--enable-audiotoolbox")
             arguments.append("--enable-filter=yadif_videotoolbox")
+            arguments.append("--enable-filter=scale_vt")
+            arguments.append("--enable-filter=transpose_vt")
         }
         if platform == .macos, arch.executable() {
             arguments.append("--enable-ffplay")
@@ -832,7 +833,7 @@ private class BuildFFMPEG: BaseBuild {
         "--enable-filter=equalizer", "--enable-filter=estdif",
         "--enable-filter=firequalizer", "--enable-filter=format", "--enable-filter=fps",
         "--enable-filter=hflip", "--enable-filter=hwdownload", "--enable-filter=hwmap", "--enable-filter=hwupload",
-        "--enable-filter=idet", "--enable-filter=lenscorrection", "--enable-filter=negate", "--enable-filter=null",
+        "--enable-filter=idet", "--enable-filter=lenscorrection", "--enable-filter=lut_filter", "--enable-filter=negate", "--enable-filter=null",
         "--enable-filter=overlay",
         "--enable-filter=palettegen", "--enable-filter=paletteuse", "--enable-filter=pan",
         "--enable-filter=rotate",
@@ -841,6 +842,10 @@ private class BuildFFMPEG: BaseBuild {
         "--enable-filter=vflip", "--enable-filter=volume",
         "--enable-filter=w3fdif",
         "--enable-filter=yadif",
+        "--enable-filter=avgblur_vulkan", "--enable-filter=blend_vulkan", "--enable-filter=bwdif_vulkan",
+        "--enable-filter=chromaber_vulkan", "--enable-filter=flip_vulkan", "--enable-filter=gblur_vulkan",
+        "--enable-filter=hflip_vulkan", "--enable-filter=nlmeans_vulkan", "--enable-filter=overlay_vulkan",
+        "--enable-filter=vflip_vulkan", "--enable-filter=xfade_vulkan",
     ]
 }
 
