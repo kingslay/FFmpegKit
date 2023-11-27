@@ -1207,14 +1207,10 @@ private class BuildMPV: BaseBuild {
         } else {
             array.append("-Dvideotoolbox-gl=disabled")
             array.append("-Dswift-build=disabled")
-            if platform == .xros || platform == .xrsimulator || platform == .maccatalyst {
-                array.append("-Dios-gl=disabled")
-                if platform == .maccatalyst {
-                    array.append("-Dcocoa=disabled")
-                    array.append("-Dcoreaudio=disabled")
-                }
-            } else {
-                array.append("-Dios-gl=enabled")
+            array.append("-Dios-gl=disabled")
+            if platform == .maccatalyst {
+                array.append("-Dcocoa=disabled")
+                array.append("-Dcoreaudio=disabled")
             }
         }
         return array
