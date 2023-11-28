@@ -1168,7 +1168,7 @@ private class BuildVulkan: BaseBuild {
     }
 
     override func buildALL() throws {
-        try Utility.launch(path: (directoryURL + "fetchDependencies").path, arguments: [], currentDirectoryURL: directoryURL)
+        try Utility.launch(path: (directoryURL + "fetchDependencies").path, arguments: ["--all"], currentDirectoryURL: directoryURL)
         try Utility.launch(path: "/usr/bin/make", arguments: [], currentDirectoryURL: directoryURL)
         try? FileManager.default.copyItem(at: directoryURL + "Package/Release/MoltenVK/MoltenVK.xcframework", to: URL.currentDirectory() + "../Sources/MoltenVK.xcframework")
     }

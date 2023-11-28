@@ -5,8 +5,8 @@
 //  Created by kintan on 11/27/23.
 //
 
-import SwiftUI
 import Libmpv
+import SwiftUI
 @main
 struct DemoApp: App {
     var body: some Scene {

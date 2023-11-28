@@ -18,8 +18,7 @@ let package = Package(
         .library(name: "Libavutil", targets: ["Libavutil"]),
         .library(name: "Libswresample", targets: ["Libswresample"]),
         .library(name: "Libswscale", targets: ["Libswscale"]),
-        .library(name: "Libssl", targets: ["Libssl"]),
-        .library(name: "Libcrypto", targets: ["Libcrypto"]),
+        .library(name: "Openssl", targets: ["Libssl", "Libcrypto"]),
         .library(name: "Libass", targets: ["Libpng", "Libfreetype", "Libfribidi", "Libharfbuzz", "Libass"]),
         .library(name: "Libmpv", targets: ["FFmpegKit", "Libass", "Libmpv"]),
         .executable(name: "ffplay", targets: ["ffplay"]),
@@ -34,10 +33,11 @@ let package = Package(
         .target(
             name: "FFmpegKit",
             dependencies: [
-                "Libavcodec", "Libavfilter", "Libavformat", "Libavutil", "Libswresample", "Libswscale",
+                "Libzvbi",
                 "Libssl", "Libcrypto", "Libsrt",
                 "MoltenVK", "Libplacebo", "Libdav1d",
-                "Libzvbi",
+                "Libpng", "Libfreetype", "Libfribidi", "Libharfbuzz", "Libass",
+                "Libavcodec", "Libavfilter", "Libavformat", "Libavutil", "Libswresample", "Libswscale",
             ],
             linkerSettings: [
                 .linkedFramework("AudioToolbox"),
