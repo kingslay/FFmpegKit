@@ -1,12 +1,9 @@
 // swift-tools-version:5.7
 import PackageDescription
-
 let package = Package(
     name: "FFmpegKit",
     defaultLocalization: "en",
-    platforms: [.macOS(.v10_15),
-                .iOS(.v13),
-                .tvOS(.v13)],
+    platforms: [.macOS(.v10_15), .macCatalyst(.v13), .iOS(.v13), .tvOS(.v13)],
     products: [
         .library(
             name: "FFmpegKit",
@@ -35,10 +32,11 @@ let package = Package(
         .target(
             name: "FFmpegKit",
             dependencies: [
-                "Libavcodec", "Libavfilter", "Libavformat", "Libavutil", "Libswresample", "Libswscale",
+                .target(name: "Libzvbi", condition: .when(platforms: [.macOS, .iOS, .tvOS])),
                 "Libssl", "Libcrypto", "Libsrt",
                 "MoltenVK", "Libplacebo", "Libdav1d",
-                "Libzvbi",
+                "Libpng", "Libfreetype", "Libfribidi", "Libharfbuzz", "Libass",
+                "Libavcodec", "Libavfilter", "Libavformat", "Libavutil", "Libswresample", "Libswscale",
             ],
             linkerSettings: [
                 .linkedFramework("AudioToolbox"),

@@ -176,7 +176,7 @@ private enum Library: String, CaseIterable {
         case .libsmbclient:
             return "https://github.com/samba-team/samba"
         case .nettle:
-            return "https://git.lysator.liu.se/nettle/nettle.git"
+            return "https://git.lysator.liu.se/nettle/nettle"
         case .gmp:
             return "https://github.com/alisw/GMP"
         case .libdav1d:
@@ -184,7 +184,7 @@ private enum Library: String, CaseIterable {
         case .libtls:
             return "https://github.com/libressl/portable"
         case .libzvbi:
-            return "https://github.com/zapping-vbi/zvbi.git"
+            return "https://github.com/zapping-vbi/zvbi"
         case .boringssl:
             return "https://github.com/google/boringssl"
         case .libplacebo:
@@ -1168,7 +1168,10 @@ private class BuildVulkan: BaseBuild {
     }
 
     override func buildALL() throws {
-        try Utility.launch(path: (directoryURL + "fetchDependencies").path, arguments: ["--all"], currentDirectoryURL: directoryURL)
+        let arguments = platforms().map {
+            "--\($0.name)"
+        }
+        try Utility.launch(path: (directoryURL + "fetchDependencies").path, arguments: arguments, currentDirectoryURL: directoryURL)
         try Utility.launch(path: "/usr/bin/make", arguments: [], currentDirectoryURL: directoryURL)
         try? FileManager.default.copyItem(at: directoryURL + "Package/Release/MoltenVK/MoltenVK.xcframework", to: URL.currentDirectory() + "../Sources/MoltenVK.xcframework")
     }
@@ -1233,6 +1236,27 @@ private enum PlatformType: String, CaseIterable {
             return "6.0"
         case .xros, .xrsimulator:
             return "1.0"
+        }
+    }
+
+    var name: String {
+        switch self {
+        case .ios, .tvos, .macos:
+            return rawValue
+        case .tvsimulator:
+            return "tvossim"
+        case .isimulator:
+            return "iossim"
+        case .maccatalyst:
+            return "maccat"
+        case .watchos:
+            return "watchos"
+        case .watchsimulator:
+            return "watchossim"
+        case .xros:
+            return "visionos"
+        case .xrsimulator:
+            return "visionossim"
         }
     }
 

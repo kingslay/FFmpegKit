@@ -1,10 +1,9 @@
 // swift-tools-version:5.9
 import PackageDescription
-
 let package = Package(
     name: "FFmpegKit",
     defaultLocalization: "en",
-    platforms: [.macOS(.v10_15), .iOS(.v13), .tvOS(.v13),
+    platforms: [.macOS(.v10_15), .macCatalyst(.v13), .iOS(.v13), .tvOS(.v13),
                 .visionOS(.v1)],
     products: [
         .library(
@@ -33,7 +32,7 @@ let package = Package(
         .target(
             name: "FFmpegKit",
             dependencies: [
-                "Libzvbi",
+                .target(name: "Libzvbi", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS])),
                 "Libssl", "Libcrypto", "Libsrt",
                 "MoltenVK", "Libplacebo", "Libdav1d",
                 "Libpng", "Libfreetype", "Libfribidi", "Libharfbuzz", "Libass",
