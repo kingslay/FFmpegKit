@@ -1168,11 +1168,13 @@ private class BuildVulkan: BaseBuild {
     }
 
     override func buildALL() throws {
-        let arguments = platforms().map {
+        var arguments = platforms().map {
             "--\($0.name)"
         }
         try Utility.launch(path: (directoryURL + "fetchDependencies").path, arguments: arguments, currentDirectoryURL: directoryURL)
-        try Utility.launch(path: "/usr/bin/make", arguments: [], currentDirectoryURL: directoryURL)
+        arguments = platforms().map(\.name)
+        try Utility.launch(path: "/usr/bin/make", arguments: arguments, currentDirectoryURL: directoryURL)
+        try? FileManager.default.removeItem(at: URL.currentDirectory() + "../Sources/MoltenVK.xcframework")
         try? FileManager.default.copyItem(at: directoryURL + "Package/Release/MoltenVK/MoltenVK.xcframework", to: URL.currentDirectory() + "../Sources/MoltenVK.xcframework")
     }
 }
