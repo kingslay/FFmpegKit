@@ -33,8 +33,10 @@ let package = Package(
             name: "FFmpegKit",
             dependencies: [
                 .target(name: "Libzvbi", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS])),
+                .target(name: "MoltenVK", condition: .when(platforms: [.macOS, .iOS, .tvOS, .macCatalyst])),
+                .target(name: "Libplacebo", condition: .when(platforms: [.macOS, .iOS, .tvOS, .macCatalyst])),
+                "Libdav1d",
                 "Libssl", "Libcrypto", "Libsrt",
-                "MoltenVK", "Libplacebo", "Libdav1d",
                 "Libpng", "Libfreetype", "Libfribidi", "Libharfbuzz", "Libass",
                 "Libavcodec", "Libavfilter", "Libavformat", "Libavutil", "Libswresample", "Libswscale",
             ],
