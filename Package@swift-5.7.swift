@@ -34,6 +34,7 @@ let package = Package(
             dependencies: [
                 .target(name: "Libzvbi", condition: .when(platforms: [.macOS, .iOS, .tvOS])),
                 .target(name: "MoltenVK", condition: .when(platforms: [.macOS, .iOS, .tvOS, .macCatalyst])),
+                "Libshaderc_combined",
                 .target(name: "Libplacebo", condition: .when(platforms: [.macOS, .iOS, .tvOS, .macCatalyst])),
                 "Libdav1d",
                 "Libssl", "Libcrypto", "Libsrt",
@@ -109,6 +110,10 @@ let package = Package(
         .binaryTarget(
             name: "MoltenVK",
             path: "Sources/MoltenVK.xcframework"
+        ),
+        .binaryTarget(
+            name: "Libshaderc_combined",
+            path: "Sources/Libshaderc_combined.xcframework"
         ),
         .binaryTarget(
             name: "Libplacebo",

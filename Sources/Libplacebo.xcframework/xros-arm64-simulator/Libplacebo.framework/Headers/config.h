@@ -41,10 +41,10 @@
 #undef PL_HAVE_LCMS
 #undef PL_HAVE_LIBDOVI
 #undef PL_HAVE_OPENGL
-#undef PL_HAVE_SHADERC
+#define PL_HAVE_SHADERC 1
 #undef PL_HAVE_VK_PROC_ADDR
-#undef PL_HAVE_VULKAN
-#define PL_HAVE_XXHASH 1
+#define PL_HAVE_VULKAN 1
+#undef PL_HAVE_XXHASH
 
 
 // Extra compiler-specific stuff

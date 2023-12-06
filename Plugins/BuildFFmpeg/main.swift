@@ -121,7 +121,7 @@ extension Build {
 }
 
 private enum Library: String, CaseIterable {
-    case vulkan, libplacebo, libdav1d, libfreetype, libfribidi, libass, openssl, libsrt, libsmbclient, gnutls, gmp, FFmpeg, nettle, harfbuzz, png, libtls, libzvbi, boringssl, mpv
+    case vulkan, libshaderc, libplacebo, libdav1d, libfreetype, libfribidi, libass, openssl, libsrt, libsmbclient, gnutls, gmp, FFmpeg, nettle, harfbuzz, png, libtls, libzvbi, boringssl, mpv
     var version: String {
         switch self {
         case .FFmpeg:
@@ -162,6 +162,8 @@ private enum Library: String, CaseIterable {
             return "v6.338.1"
         case .vulkan:
             return "v1.2.6"
+        case .libshaderc:
+            return "v2023.7"
         }
     }
 
@@ -191,6 +193,8 @@ private enum Library: String, CaseIterable {
             return "https://github.com/haasn/libplacebo"
         case .vulkan:
             return "https://github.com/KhronosGroup/MoltenVK"
+        case .libshaderc:
+            return "https://github.com/google/shaderc"
         default:
             var value = rawValue
             if self != .libass, value.hasPrefix("lib") {
@@ -202,7 +206,7 @@ private enum Library: String, CaseIterable {
 
     var isFFmpegDependentLibrary: Bool {
         switch self {
-        case .vulkan, .libplacebo, .libdav1d, .openssl, .libsrt, .libsmbclient, .libzvbi:
+        case .vulkan, .libshaderc, .libplacebo, .libdav1d, .openssl, .libsrt, .libsmbclient, .libzvbi:
             return true
         case .png, .harfbuzz, .nettle, .mpv, .FFmpeg:
             return false
@@ -251,6 +255,8 @@ private enum Library: String, CaseIterable {
             return BuildPlacebo()
         case .vulkan:
             return BuildVulkan()
+        case .libshaderc:
+            return BuildShaderc()
         }
     }
 }
@@ -277,7 +283,7 @@ private class BaseBuild {
 
     fileprivate func buildALL() throws {
         for platform in platforms() {
-            for arch in architectures(platform) {
+            for arch in platform.architectures {
                 let prefix = thinDir(platform: platform, arch: arch)
                 try? FileManager.default.removeItem(at: prefix)
                 let buildURL = scratch(platform: platform, arch: arch)
@@ -287,10 +293,6 @@ private class BaseBuild {
             }
         }
         try createXCFramework()
-    }
-
-    private func architectures(_ platform: PlatformType) -> [ArchType] {
-        platform.architectures()
     }
 
     func build(platform: PlatformType, arch: ArchType, buildURL: URL) throws {
@@ -334,7 +336,7 @@ private class BaseBuild {
                 makeLists.path,
                 "-DCMAKE_VERBOSE_MAKEFILE=0",
                 "-DCMAKE_BUILD_TYPE=Release",
-                "-DCMAKE_OSX_SYSROOT=\(platform.sdk().lowercased())",
+                "-DCMAKE_OSX_SYSROOT=\(platform.sdk.lowercased())",
                 "-DCMAKE_OSX_ARCHITECTURES=\(arch.rawValue)",
                 "-DCMAKE_INSTALL_PREFIX=\(thinDirPath)",
                 "-DBUILD_SHARED_LIBS=0",
@@ -367,12 +369,12 @@ private class BaseBuild {
             "LC_CTYPE": "C",
             "CC": "/usr/bin/clang",
             "CXX": "/usr/bin/clang++",
-            // "SDKROOT": platform.sdk().lowercased(),
+            // "SDKROOT": platform.sdk.lowercased(),
             "CURRENT_ARCH": arch.rawValue,
+            "CFLAGS": platform.cFlags(arch: arch).joined(separator: " "),
             // makefile can't use CPPFLAGS
-            "CPPFLAGS": platform.cFlags(arch: arch),
-            "CFLAGS": platform.cFlags(arch: arch),
-            "CXXFLAGS": platform.cFlags(arch: arch),
+            "CPPFLAGS": platform.cFlags(arch: arch).joined(separator: " "),
+            "CXXFLAGS": platform.cFlags(arch: arch).joined(separator: " "),
             "LDFLAGS": platform.ldFlags(arch: arch).joined(separator: " "),
             "PKG_CONFIG_PATH": platform.pkgConfigPath(arch: arch),
         ]
@@ -385,10 +387,10 @@ private class BaseBuild {
         ]
     }
 
-    private func createXCFramework() throws {
+    func frameworks() throws -> [String] {
         var frameworks: [String] = []
         if let platform = platforms().first {
-            if let arch = architectures(platform).first {
+            if let arch = platform.architectures.first {
                 let lib = thinDir(platform: platform, arch: arch) + "lib"
                 let fileNames = try FileManager.default.contentsOfDirectory(atPath: lib.path)
                 for fileName in fileNames {
@@ -398,6 +400,11 @@ private class BaseBuild {
                 }
             }
         }
+        return frameworks
+    }
+
+    private func createXCFramework() throws {
+        let frameworks = try frameworks()
         for framework in frameworks {
             var arguments = ["-create-xcframework"]
             for platform in PlatformType.allCases {
@@ -428,7 +435,7 @@ private class BaseBuild {
         try? FileManager.default.removeItem(at: frameworkDir)
         try FileManager.default.createDirectory(at: frameworkDir, withIntermediateDirectories: true, attributes: nil)
         var arguments = ["-create"]
-        for arch in architectures(platform) {
+        for arch in platform.architectures {
             let prefix = thinDir(platform: platform, arch: arch)
             if !FileManager.default.fileExists(atPath: prefix.path) {
                 return nil
@@ -460,7 +467,7 @@ private class BaseBuild {
         }
         """
         FileManager.default.createFile(atPath: frameworkDir.path + "/Modules/module.modulemap", contents: modulemap.data(using: .utf8), attributes: nil)
-        createPlist(path: frameworkDir.path + "/Info.plist", name: framework, minVersion: platform.minVersion, platform: platform.sdk())
+        createPlist(path: frameworkDir.path + "/Info.plist", name: framework, minVersion: platform.minVersion, platform: platform.sdk)
         return frameworkDir.path
     }
 
@@ -519,12 +526,20 @@ private class BaseBuild {
         let url = scratch(platform: platform, arch: arch)
         let crossFile = url + "crossFile.meson"
         let prefix = thinDir(platform: platform, arch: arch)
+        let cFlags = platform.cFlags(arch: arch).map {
+            "'" + $0 + "'"
+        }.joined(separator: ", ")
+
+//        c = ['/usr/bin/clang', \(cFlags)]
+//        cpp = ['/usr/bin/clang++', \(cFlags)]
+//        objc = ['/usr/bin/clang', \(cFlags)]
+//        objcpp = ['/usr/bin/clang++', \(cFlags)]
         let content = """
         [binaries]
-        c = ['/usr/bin/clang', '-arch', '\(arch.rawValue)']
-        cpp = ['/usr/bin/clang++', '-arch', '\(arch.rawValue)']
-        objc = ['/usr/bin/clang', '-arch', '\(arch.rawValue)']
-        objcpp = ['/usr/bin/clang++', '-arch', '\(arch.rawValue)']
+        objc = '/usr/bin/clang'
+        c_args = [\(cFlags)]
+        cpp_args = [\(cFlags)]
+        objc_args = [\(cFlags)]
         ar = '\(platform.xcrunFind(tool: "ar"))'
         strip = '\(platform.xcrunFind(tool: "strip"))'
         pkgconfig = 'pkg-config'
@@ -1123,6 +1138,10 @@ private class BuildPng: BaseBuild {
     override func arguments(platform _: PlatformType, arch _: ArchType) -> [String] {
         ["-DPNG_HARDWARE_OPTIMIZATIONS=yes"]
     }
+
+    override func frameworks() throws -> [String] {
+        ["Libpng"]
+    }
 }
 
 private class BuildASS: BaseBuild {
@@ -1176,6 +1195,96 @@ private class BuildVulkan: BaseBuild {
         try Utility.launch(path: "/usr/bin/make", arguments: arguments, currentDirectoryURL: directoryURL)
         try? FileManager.default.removeItem(at: URL.currentDirectory() + "../Sources/MoltenVK.xcframework")
         try? FileManager.default.copyItem(at: directoryURL + "Package/Release/MoltenVK/MoltenVK.xcframework", to: URL.currentDirectory() + "../Sources/MoltenVK.xcframework")
+        for platform in platforms() {
+            var frameworks = ["CoreFoundation", "CoreGraphics", "Foundation", "IOSurface", "Metal", "QuartzCore"]
+            if platform == .macos {
+                frameworks.append("Cocoa")
+            } else {
+                frameworks.append("UIKit")
+            }
+            if !(platform == .tvos || platform == .tvsimulator) {
+                frameworks.append("IOKit")
+            }
+            let libframework = frameworks.map {
+                "-framework \($0)"
+            }.joined(separator: " ")
+            for arch in platform.architectures {
+                let prefix = thinDir(platform: platform, arch: arch) + "/lib/pkgconfig"
+                try? FileManager.default.removeItem(at: prefix)
+                try? FileManager.default.createDirectory(at: prefix, withIntermediateDirectories: true, attributes: nil)
+                let vulkanPC = prefix + "vulkan.pc"
+
+                let content = """
+                prefix=\((directoryURL + "Package/Release/MoltenVK").path)
+                includedir=${prefix}/include
+                libdir=${prefix}/MoltenVK.xcframework/\(platform.frameworkName)
+
+                Name: Vulkan-Loader
+                Description: Vulkan Loader
+                Version: 1.2
+                Libs: -L${libdir} -lMoltenVK \(libframework)
+                Cflags: -I${includedir}
+                """
+                FileManager.default.createFile(atPath: vulkanPC.path, contents: content.data(using: .utf8), attributes: nil)
+            }
+        }
+    }
+}
+
+private class BuildShaderc: BaseBuild {
+    init() {
+        super.init(library: .libshaderc)
+        try? Utility.launch(executableURL: directoryURL + "/utils/git-sync-deps", arguments: [], currentDirectoryURL: directoryURL)
+        var path = directoryURL + "third_party/spirv-tools/tools/reduce/reduce.cpp"
+        if let data = FileManager.default.contents(atPath: path.path), var str = String(data: data, encoding: .utf8) {
+            str = str.replacingOccurrences(of: """
+              int res = std::system(nullptr);
+              return res != 0;
+            """, with: """
+              FILE* fp = popen(nullptr, "r");
+              return fp == NULL;
+            """)
+            str = str.replacingOccurrences(of: """
+              int status = std::system(command.c_str());
+            """, with: """
+              FILE* fp = popen(command.c_str(), "r");
+            """)
+            str = str.replacingOccurrences(of: """
+              return status == 0;
+            """, with: """
+              return fp != NULL;
+            """)
+            try! str.write(toFile: path.path, atomically: true, encoding: .utf8)
+        }
+        path = directoryURL + "third_party/spirv-tools/tools/fuzz/fuzz.cpp"
+        if let data = FileManager.default.contents(atPath: path.path), var str = String(data: data, encoding: .utf8) {
+            str = str.replacingOccurrences(of: """
+              int res = std::system(nullptr);
+              return res != 0;
+            """, with: """
+              FILE* fp = popen(nullptr, "r");
+              return fp == NULL;
+            """)
+            str = str.replacingOccurrences(of: """
+              int status = std::system(command.c_str());
+            """, with: """
+              FILE* fp = popen(command.c_str(), "r");
+            """)
+            str = str.replacingOccurrences(of: """
+              return status == 0;
+            """, with: """
+              return fp != NULL;
+            """)
+            try! str.write(toFile: path.path, atomically: true, encoding: .utf8)
+        }
+    }
+
+    override func arguments(platform _: PlatformType, arch _: ArchType) -> [String] {
+        []
+    }
+
+    override func frameworks() throws -> [String] {
+        ["Libshaderc_combined"]
     }
 }
 
@@ -1207,7 +1316,7 @@ private class BuildMPV: BaseBuild {
             array.append("-Dcplayer=false")
         }
         if platform == .macos {
-            array.append("-Dswift-flags=-sdk \(platform.isysroot()) -target \(platform.deploymentTarget(arch: arch))")
+            array.append("-Dswift-flags=-sdk \(platform.isysroot) -target \(platform.deploymentTarget(arch: arch))")
             array.append("-Dvideotoolbox-gl=enabled")
         } else {
             array.append("-Dvideotoolbox-gl=disabled")
@@ -1262,10 +1371,37 @@ private enum PlatformType: String, CaseIterable {
         }
     }
 
-    func architectures() -> [ArchType] {
+    var frameworkName: String {
         switch self {
-        case .ios, .tvos, .xros, .watchos:
+        case .ios:
+            return "ios-arm64"
+        case .maccatalyst:
+            return "ios-arm64_x86_64-maccatalyst"
+        case .isimulator:
+            return "ios-arm64_x86_64-simulator"
+        case .macos:
+            return "macos-arm64_x86_64"
+        case .tvos:
+            return "tvos-arm64_arm64e"
+        case .tvsimulator:
+            return "tvos-arm64_x86_64-simulator"
+        case .watchos:
+            return "watchos-arm64"
+        case .watchsimulator:
+            return "watchossim"
+        case .xros:
+            return "xros-arm64"
+        case .xrsimulator:
+            return "xros-arm64_x86_64-simulator"
+        }
+    }
+
+    var architectures: [ArchType] {
+        switch self {
+        case .ios, .xros, .watchos:
             return [.arm64]
+        case .tvos:
+            return [.arm64, .arm64e]
         case .isimulator, .tvsimulator, .watchsimulator:
             return [.arm64, .x86_64]
         case .xrsimulator:
@@ -1316,24 +1452,24 @@ private enum PlatformType: String, CaseIterable {
         }
     }
 
-    private func osVersionMin() -> String {
+    private var osVersionMin: String {
         switch self {
         case .ios, .tvos, .watchos:
-            return " -m\(rawValue)-version-min=\(minVersion)"
+            return "-m\(rawValue)-version-min=\(minVersion)"
         case .macos:
-            return " -mmacosx-version-min=\(minVersion)"
+            return "-mmacosx-version-min=\(minVersion)"
         case .isimulator:
-            return " -mios-simulator-version-min=\(minVersion)"
+            return "-mios-simulator-version-min=\(minVersion)"
         case .tvsimulator:
-            return " -mtvos-simulator-version-min=\(minVersion)"
+            return "-mtvos-simulator-version-min=\(minVersion)"
         case .watchsimulator:
-            return " -mwatchos-simulator-version-min=\(minVersion)"
+            return "-mwatchos-simulator-version-min=\(minVersion)"
         case .maccatalyst, .xros, .xrsimulator:
             return ""
         }
     }
 
-    func sdk() -> String {
+    var sdk: String {
         switch self {
         case .ios:
             return "iPhoneOS"
@@ -1358,7 +1494,7 @@ private enum PlatformType: String, CaseIterable {
 
     func ldFlags(arch: ArchType) -> [String] {
         // ldFlags的关键参数要跟cFlags保持一致，不然会在ld的时候不通过。
-        var flags = ["-lc++", "-arch", arch.rawValue, "-isysroot", isysroot(), "-target", deploymentTarget(arch: arch)]
+        var flags = ["-lc++", "-arch", arch.rawValue, "-isysroot", isysroot, "-target", deploymentTarget(arch: arch)]
         let gmpPath = URL.currentDirectory + [Library.gmp.rawValue, rawValue, "thin", arch.rawValue]
         if FileManager.default.fileExists(atPath: gmpPath.path) {
             flags.append("-L\(gmpPath.path)/lib")
@@ -1366,34 +1502,29 @@ private enum PlatformType: String, CaseIterable {
         return flags
     }
 
-    func cFlags(arch: ArchType) -> String {
-        let isysroot = isysroot()
-        var cflags = "-arch \(arch.rawValue) -isysroot \(isysroot) -target \(deploymentTarget(arch: arch))"
-            + osVersionMin()
+    func cFlags(arch: ArchType) -> [String] {
+        let isysroot = isysroot
+        var cflags = ["-arch", arch.rawValue, "-isysroot", isysroot, "-target", deploymentTarget(arch: arch), osVersionMin]
 //        if self == .macos || self == .maccatalyst {
         // 不能同时有强符合和弱符号出现
-        cflags += " -fno-common"
+        cflags.append("-fno-common")
 //        }
         if self == .maccatalyst {
-            cflags += " -iframework \(isysroot)/System/iOSSupport/System/Library/Frameworks"
+            cflags.append("-iframework \(isysroot)/System/iOSSupport/System/Library/Frameworks")
         }
         let gmpPath = URL.currentDirectory + [Library.gmp.rawValue, rawValue, "thin", arch.rawValue]
         if FileManager.default.fileExists(atPath: gmpPath.path) {
-            cflags += " -I\(gmpPath.path)/include"
-        }
-        let vulkanPath = URL.currentDirectory + "\(Library.vulkan.rawValue)-\(Library.vulkan.version)/Package/Release/MoltenVK"
-        if FileManager.default.fileExists(atPath: vulkanPath.path) {
-            cflags += " -I\(vulkanPath.path)/include"
+            cflags.append("-I\(gmpPath.path)/include")
         }
         return cflags
     }
 
-    func isysroot() -> String {
+    var isysroot: String {
         xcrunFind(tool: "--show-sdk-path")
     }
 
     func xcrunFind(tool: String) -> String {
-        try! Utility.launch(path: "/usr/bin/xcrun", arguments: ["--sdk", sdk().lowercased(), "--find", tool], isOutput: true)
+        try! Utility.launch(path: "/usr/bin/xcrun", arguments: ["--sdk", sdk.lowercased(), "--find", tool], isOutput: true)
     }
 
     func pkgConfigPath(arch: ArchType) -> String {
