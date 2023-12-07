@@ -1705,7 +1705,7 @@ enum ArchType: String, CaseIterable {
 
 enum Utility {
     @discardableResult
-    static func shell(_ command: String, isOutput: Bool = false, currentDirectoryURL: URL? = nil, environment: [String: String] = [:]) -> String? {
+    static func shell(_ command: String, isOutput: Bool = false, currentDirectoryURL: URL? = nil, environment: [String: String] = ["PATH": "/usr/local/bin:/opt/homebrew/bin:"]) -> String? {
         do {
             return try launch(executableURL: URL(fileURLWithPath: "/bin/zsh"), arguments: ["-c", command], isOutput: isOutput, currentDirectoryURL: currentDirectoryURL, environment: environment)
         } catch {
