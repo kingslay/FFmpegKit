@@ -5,13 +5,13 @@
 <key>CFBundleDevelopmentRegion</key>
 <string>en</string>
 <key>CFBundleExecutable</key>
-<string>Libfreetype</string>
+<string>libfreetype</string>
 <key>CFBundleIdentifier</key>
-<string>com.kintan.ksplayer.Libfreetype</string>
+<string>com.kintan.ksplayer.libfreetype</string>
 <key>CFBundleInfoDictionaryVersion</key>
 <string>6.0</string>
 <key>CFBundleName</key>
-<string>Libfreetype</string>
+<string>libfreetype</string>
 <key>CFBundlePackageType</key>
 <string>FMWK</string>
 <key>CFBundleShortVersionString</key>

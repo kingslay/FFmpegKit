@@ -5,13 +5,13 @@
 <key>CFBundleDevelopmentRegion</key>
 <string>en</string>
 <key>CFBundleExecutable</key>
-<string>Libmpv</string>
+<string>libmpv</string>
 <key>CFBundleIdentifier</key>
-<string>com.kintan.ksplayer.Libmpv</string>
+<string>com.kintan.ksplayer.libmpv</string>
 <key>CFBundleInfoDictionaryVersion</key>
 <string>6.0</string>
 <key>CFBundleName</key>
-<string>Libmpv</string>
+<string>libmpv</string>
 <key>CFBundlePackageType</key>
 <string>FMWK</string>
 <key>CFBundleShortVersionString</key>

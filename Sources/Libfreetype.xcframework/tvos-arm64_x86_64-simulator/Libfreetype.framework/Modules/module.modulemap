@@ -1,4 +1,4 @@
-framework module Libfreetype [system] {
+framework module libfreetype [system] {
     umbrella "."
     export *
 }

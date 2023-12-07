@@ -93,7 +93,7 @@ extension Build {
         print("""
         Usage: swift package BuildFFmpeg [OPTION]...
         Default Build: swift package --disable-sandbox BuildFFmpeg enable-vulkan enable-libplacebo enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-FFmpeg
-        Build MPV: swift package --disable-sandbox BuildFFmpeg mpv or swift package --disable-sandbox BuildFFmpeg enable-vulkan enable-libplacebo enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-libfreetype enable-libfribidi enable-libharfbuzz enable-libass enable-FFmpeg enable-mpv
+        Build MPV: swift package --disable-sandbox BuildFFmpeg mpv or swift package --disable-sandbox BuildFFmpeg enable-vulkan enable-libplacebo enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-libfreetype enable-libfribidi enable-libharfbuzz enable-libass enable-FFmpeg enable-libmpv
         Build libsmbclient: swift package --disable-sandbox BuildFFmpeg enable-gmp enable-nettle enable-gnutls enbale-readline enable-libsmbclient
 
         Options:
@@ -1404,6 +1404,23 @@ private class BuildPlacebo: BaseBuild {
 private class BuildMPV: BaseBuild {
     init() {
         super.init(library: .libmpv)
+        let path = directoryURL + "meson.build"
+        if let data = FileManager.default.contents(atPath: path.path), var str = String(data: data, encoding: .utf8) {
+            str = str.replacingOccurrences(of: "# ffmpeg", with: """
+            add_languages('objc')
+            #ffmpeg
+            """)
+            str = str.replacingOccurrences(of: """
+            subprocess_source = files('osdep/subprocess-posix.c')
+            """, with: """
+            if host_machine.subsystem() == 'tvos' or host_machine.subsystem() == 'tvsimulator'
+                subprocess_source = files('osdep/subprocess-dummy.c')
+            else
+                subprocess_source =files('osdep/subprocess-posix.c')
+            endif
+            """)
+            try! str.write(toFile: path.path, atomically: true, encoding: .utf8)
+        }
     }
 
     override func arguments(platform: PlatformType, arch: ArchType) -> [String] {

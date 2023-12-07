@@ -5,13 +5,13 @@
 <key>CFBundleDevelopmentRegion</key>
 <string>en</string>
 <key>CFBundleExecutable</key>
-<string>Libass</string>
+<string>libass</string>
 <key>CFBundleIdentifier</key>
-<string>com.kintan.ksplayer.Libass</string>
+<string>com.kintan.ksplayer.libass</string>
 <key>CFBundleInfoDictionaryVersion</key>
 <string>6.0</string>
 <key>CFBundleName</key>
-<string>Libass</string>
+<string>libass</string>
 <key>CFBundlePackageType</key>
 <string>FMWK</string>
 <key>CFBundleShortVersionString</key>

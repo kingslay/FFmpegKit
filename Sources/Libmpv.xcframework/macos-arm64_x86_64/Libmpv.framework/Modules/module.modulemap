@@ -1,4 +1,4 @@
-framework module Libmpv [system] {
+framework module libmpv [system] {
     umbrella "."
     export *
 }

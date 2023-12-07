@@ -1,4 +1,4 @@
-framework module Libharfbuzz [system] {
+framework module libharfbuzz [system] {
     umbrella "."
     export *
 }

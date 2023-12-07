@@ -1,4 +1,4 @@
-framework module Libfribidi [system] {
+framework module libfribidi [system] {
     umbrella "."
     export *
 }
