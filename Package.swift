@@ -17,9 +17,9 @@ let package = Package(
         .library(name: "Libavutil", targets: ["Libavutil"]),
         .library(name: "Libswresample", targets: ["Libswresample"]),
         .library(name: "Libswscale", targets: ["Libswscale"]),
-        .library(name: "Openssl", targets: ["Libssl", "Libcrypto"]),
-        .library(name: "Libass", targets: ["Libpng", "Libfreetype", "Libfribidi", "Libharfbuzz", "Libass"]),
-        .library(name: "Libmpv", targets: ["FFmpegKit", "Libass", "Libmpv"]),
+        .library(name: "Openssl", targets: ["libssl", "libcrypto"]),
+        .library(name: "libass", targets: ["libpng", "libfreetype", "libfribidi", "libharfbuzz", "libass"]),
+        .library(name: "libmpv", targets: ["FFmpegKit", "libass", "libmpv"]),
         .executable(name: "ffplay", targets: ["ffplay"]),
         .executable(name: "ffmpeg", targets: ["ffmpeg"]),
         .executable(name: "ffprobe", targets: ["ffprobe"]),
@@ -32,13 +32,13 @@ let package = Package(
         .target(
             name: "FFmpegKit",
             dependencies: [
-                .target(name: "Libzvbi", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS])),
+                .target(name: "libzvbi", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS])),
                 .target(name: "MoltenVK", condition: .when(platforms: [.macOS, .iOS, .tvOS, .macCatalyst])),
-                "Libshaderc_combined",
-                .target(name: "Libplacebo", condition: .when(platforms: [.macOS, .iOS, .tvOS, .macCatalyst])),
-                "Libdav1d",
-                "Libssl", "Libcrypto", "Libsrt",
-                "Libpng", "Libfreetype", "Libfribidi", "Libharfbuzz", "Libass",
+                "libshaderc_combined",
+                .target(name: "libplacebo", condition: .when(platforms: [.macOS, .iOS, .tvOS, .macCatalyst])),
+                "libdav1d",
+                "libssl", "libcrypto", "libsrt",
+                "libpng", "libfreetype", "libfribidi", "libharfbuzz", "libass",
                 "Libavcodec", "Libavfilter", "Libavformat", "Libavutil", "Libswresample", "Libswscale",
             ],
             linkerSettings: [
@@ -114,16 +114,16 @@ let package = Package(
             path: "Sources/MoltenVK.xcframework"
         ),
         .binaryTarget(
-            name: "Libshaderc_combined",
-            path: "Sources/Libshaderc_combined.xcframework"
+            name: "libshaderc_combined",
+            path: "Sources/libshaderc_combined.xcframework"
         ),
         .binaryTarget(
-            name: "Libplacebo",
-            path: "Sources/Libplacebo.xcframework"
+            name: "libplacebo",
+            path: "Sources/libplacebo.xcframework"
         ),
         .binaryTarget(
-            name: "Libdav1d",
-            path: "Sources/Libdav1d.xcframework"
+            name: "libdav1d",
+            path: "Sources/libdav1d.xcframework"
         ),
         .binaryTarget(
             name: "Libavcodec",
@@ -150,44 +150,44 @@ let package = Package(
             path: "Sources/Libswscale.xcframework"
         ),
         .binaryTarget(
-            name: "Libssl",
-            path: "Sources/Libssl.xcframework"
+            name: "libssl",
+            path: "Sources/libssl.xcframework"
         ),
         .binaryTarget(
-            name: "Libcrypto",
-            path: "Sources/Libcrypto.xcframework"
+            name: "libcrypto",
+            path: "Sources/libcrypto.xcframework"
         ),
         .binaryTarget(
-            name: "Libsrt",
-            path: "Sources/Libsrt.xcframework"
+            name: "libsrt",
+            path: "Sources/libsrt.xcframework"
         ),
         .binaryTarget(
-            name: "Libzvbi",
-            path: "Sources/Libzvbi.xcframework"
+            name: "libzvbi",
+            path: "Sources/libzvbi.xcframework"
         ),
         .binaryTarget(
-            name: "Libpng",
-            path: "Sources/Libpng.xcframework"
+            name: "libpng",
+            path: "Sources/libpng.xcframework"
         ),
         .binaryTarget(
-            name: "Libfreetype",
-            path: "Sources/Libfreetype.xcframework"
+            name: "libfreetype",
+            path: "Sources/libfreetype.xcframework"
         ),
         .binaryTarget(
-            name: "Libfribidi",
-            path: "Sources/Libfribidi.xcframework"
+            name: "libfribidi",
+            path: "Sources/libfribidi.xcframework"
         ),
         .binaryTarget(
-            name: "Libharfbuzz",
-            path: "Sources/Libharfbuzz.xcframework"
+            name: "libharfbuzz",
+            path: "Sources/libharfbuzz.xcframework"
         ),
         .binaryTarget(
-            name: "Libass",
-            path: "Sources/Libass.xcframework"
+            name: "libass",
+            path: "Sources/libass.xcframework"
         ),
         .binaryTarget(
-            name: "Libmpv",
-            path: "Sources/Libmpv.xcframework"
+            name: "libmpv",
+            path: "Sources/libmpv.xcframework"
         ),
     ]
 )

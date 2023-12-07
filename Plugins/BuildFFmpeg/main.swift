@@ -82,7 +82,7 @@ extension Build {
         if arguments.isEmpty {
             librarys.append(contentsOf: [.vulkan, .libplacebo, .libdav1d, .openssl, .libsrt, .libzvbi, .FFmpeg])
         } else if arguments == ["mpv"] {
-            librarys.append(contentsOf: [.vulkan, .libplacebo, .libdav1d, .openssl, .libsrt, .libzvbi, .png, .libfreetype, .libfribidi, .harfbuzz, .libass, .libplacebo, .FFmpeg, .mpv])
+            librarys.append(contentsOf: [.vulkan, .libplacebo, .libdav1d, .openssl, .libsrt, .libzvbi, .libpng, .libfreetype, .libfribidi, .libharfbuzz, .libass, .FFmpeg, .libmpv])
         }
         for library in librarys {
             try library.build.buildALL()
@@ -93,7 +93,9 @@ extension Build {
         print("""
         Usage: swift package BuildFFmpeg [OPTION]...
         Default Build: swift package --disable-sandbox BuildFFmpeg enable-vulkan enable-libplacebo enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-FFmpeg
-        Build MPV: swift package --disable-sandbox BuildFFmpeg mpv or swift package --disable-sandbox BuildFFmpeg enable-vulkan enable-libplacebo enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-png enable-libfreetype enable-libfribidi enable-harfbuzz enable-libass enable-FFmpeg enable-mpv
+        Build MPV: swift package --disable-sandbox BuildFFmpeg mpv or swift package --disable-sandbox BuildFFmpeg enable-vulkan enable-libplacebo enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-png enable-libfreetype enable-libfribidi enable-libharfbuzz enable-libass enable-FFmpeg enable-mpv
+        Build libsmbclient: swift package --disable-sandbox BuildFFmpeg enable-gmp enable-nettle enable-gnutls enbale-readline enable-libsmbclient
+
         Options:
             h, -h, --help       display this help and exit
             enable-debug,       build ffmpeg with debug information
@@ -109,19 +111,19 @@ extension Build {
             enable-libzvbi      build with libzvbi
             enable-libsrt       depend enable-openssl
             enable-libfreetype  depend enable-png [no]
-            enable-libass       depend enable-png enable-libfreetype enable-libfribidi enable-harfbuzz [no]
+            enable-libass       depend enable-png enable-libfreetype enable-libfribidi enable-libharfbuzz [no]
             enable-nettle       depend enable-gmp [no]
             enable-gnutls       depend enable-gmp enable-nettle [no]
-            enable-libsmbclient depend enable-gmp enable-nettle enable-gnutls [no]
-            enable-harfbuzz     depend enable-libfreetype [no]
+            enable-libsmbclient depend enable-gmp enable-nettle enable-gnutls enbale-readline [no]
+            enable-libharfbuzz  depend enable-libfreetype [no]
             enable-FFmpeg       build with FFmpeg
-            enable-mpv          depend enable-png enable-libfreetype enable-libfribidi enable-harfbuzz enable-libass [no]
+            enable-libmpv          depend enable-png enable-libfreetype enable-libfribidi enable-libharfbuzz enable-libass [no]
         """)
     }
 }
 
 private enum Library: String, CaseIterable {
-    case vulkan, libshaderc, libplacebo, libdav1d, libfreetype, libfribidi, libass, openssl, libsrt, libsmbclient, gnutls, gmp, FFmpeg, nettle, harfbuzz, png, libtls, libzvbi, boringssl, mpv
+    case vulkan, libshaderc, libplacebo, libdav1d, libfreetype, libfribidi, libass, openssl, libsrt, libsmbclient, gnutls, gmp, readline, FFmpeg, nettle, libharfbuzz, libpng, libtls, libzvbi, boringssl, libmpv
     var version: String {
         switch self {
         case .FFmpeg:
@@ -130,22 +132,22 @@ private enum Library: String, CaseIterable {
             return "VER-2-12-1"
         case .libfribidi:
             return "v1.0.12"
-        case .harfbuzz:
+        case .libharfbuzz:
             return "5.3.1"
         case .libass:
             return "0.17.1-branch"
-        case .png:
+        case .libpng:
             return "v1.6.40"
-        case .mpv:
+        case .libmpv:
             return "v0.37.0"
         case .openssl:
             return "openssl-3.2.0"
         case .libsrt:
             return "v1.5.1"
         case .libsmbclient:
-            return "samba-4.18.5"
+            return "samba-4.18.9"
         case .gnutls:
-            return "3.7.9"
+            return "3.8.2"
         case .nettle:
             return "nettle_3.9.1_release_20230601"
         case .libdav1d:
@@ -164,14 +166,16 @@ private enum Library: String, CaseIterable {
             return "v1.2.6"
         case .libshaderc:
             return "v2023.7"
+        case .readline:
+            return "readline-8.2"
         }
     }
 
     var url: String {
         switch self {
-        case .png:
+        case .libpng:
             return "https://github.com/glennrp/libpng"
-        case .mpv:
+        case .libmpv:
             return "https://github.com/\(rawValue)-player/\(rawValue)"
         case .libsrt:
             return "https://github.com/Haivision/srt"
@@ -195,6 +199,8 @@ private enum Library: String, CaseIterable {
             return "https://github.com/KhronosGroup/MoltenVK"
         case .libshaderc:
             return "https://github.com/google/shaderc"
+        case .readline:
+            return "https://git.savannah.gnu.org/git/readline.git"
         default:
             var value = rawValue
             if self != .libass, value.hasPrefix("lib") {
@@ -208,7 +214,7 @@ private enum Library: String, CaseIterable {
         switch self {
         case .vulkan, .libshaderc, .libplacebo, .libdav1d, .openssl, .libsrt, .libsmbclient, .libzvbi:
             return true
-        case .png, .harfbuzz, .nettle, .mpv, .FFmpeg:
+        case .gmp, .gnutls:
             return false
         default:
             return false
@@ -223,13 +229,13 @@ private enum Library: String, CaseIterable {
             return BuildFreetype()
         case .libfribidi:
             return BuildFribidi()
-        case .harfbuzz:
+        case .libharfbuzz:
             return BuildHarfbuzz()
         case .libass:
             return BuildASS()
-        case .png:
+        case .libpng:
             return BuildPng()
-        case .mpv:
+        case .libmpv:
             return BuildMPV()
         case .openssl:
             return BuildOpenSSL()
@@ -257,6 +263,8 @@ private enum Library: String, CaseIterable {
             return BuildVulkan()
         case .libshaderc:
             return BuildShaderc()
+        case .readline:
+            return BuildReadline()
         }
     }
 }
@@ -311,6 +319,9 @@ private class BaseBuild {
         } else if FileManager.default.fileExists(atPath: (directoryURL + wafPath()).path) {
             try Utility.launch(path: "/usr/bin/python3", arguments: [wafPath(), "distclean"], currentDirectoryURL: directoryURL, environment: environ)
             try Utility.launch(path: "/usr/bin/python3", arguments: [wafPath(), "configure"] + arguments(platform: platform, arch: arch), currentDirectoryURL: directoryURL, environment: environ)
+            try runWafTargets(platform: platform, arch: arch)
+            try Utility.launch(path: "/usr/bin/python3", arguments: ["./buildtools/bin/waf", "--targets=client/smbclient"], currentDirectoryURL: directoryURL, environment: environ)
+
             try Utility.launch(path: "/usr/bin/python3", arguments: [wafPath(), "build"], currentDirectoryURL: directoryURL, environment: environ)
             try Utility.launch(path: "/usr/bin/python3", arguments: [wafPath(), "install"], currentDirectoryURL: directoryURL, environment: environ)
         } else {
@@ -323,6 +334,8 @@ private class BaseBuild {
     func wafPath() -> String {
         "./waf"
     }
+
+    func runWafTargets(platform _: PlatformType, arch _: ArchType) throws {}
 
     func configure(buildURL: URL, environ: [String: String], platform: PlatformType, arch: ArchType) throws {
         let makeLists = directoryURL + "CMakeLists.txt"
@@ -377,6 +390,7 @@ private class BaseBuild {
             "CXXFLAGS": platform.cFlags(arch: arch).joined(separator: " "),
             "LDFLAGS": platform.ldFlags(arch: arch).joined(separator: " "),
             "PKG_CONFIG_PATH": platform.pkgConfigPath(arch: arch),
+            "PATH": "/usr/local/bin:/opt/homebrew/bin:/usr/local/opt/bison/bin:/usr/bin:/bin:/usr/sbin:/sbin",
         ]
     }
 
@@ -388,19 +402,7 @@ private class BaseBuild {
     }
 
     func frameworks() throws -> [String] {
-        var frameworks: [String] = []
-        if let platform = platforms().first {
-            if let arch = platform.architectures.first {
-                let lib = thinDir(platform: platform, arch: arch) + "lib"
-                let fileNames = try FileManager.default.contentsOfDirectory(atPath: lib.path)
-                for fileName in fileNames {
-                    if fileName.hasPrefix("lib"), fileName.hasSuffix(".a") {
-                        frameworks.append("Lib" + fileName.dropFirst(3).dropLast(2))
-                    }
-                }
-            }
-        }
-        return frameworks
+        [library.rawValue]
     }
 
     private func createXCFramework() throws {
@@ -440,7 +442,12 @@ private class BaseBuild {
             if !FileManager.default.fileExists(atPath: prefix.path) {
                 return nil
             }
-            arguments.append((prefix + ["lib", "\(framework).a"]).path)
+            let libname = framework.hasPrefix("lib") || framework.hasPrefix("Lib") ? framework : "lib" + framework
+            var libPath = prefix + ["lib", "\(libname).a"]
+            if !FileManager.default.fileExists(atPath: libPath.path) {
+                libPath = prefix + ["lib", "\(libname).dylib"]
+            }
+            arguments.append(libPath.path)
             var headerURL: URL = prefix + "include" + framework
             if !FileManager.default.fileExists(atPath: headerURL.path) {
                 headerURL = prefix + "include"
@@ -584,6 +591,22 @@ private class BuildFFMPEG: BaseBuild {
             str = str.replacingOccurrences(of: "kCVPixelBufferIOSurfaceOpenGLTextureCompatibilityKey", with: "kCVPixelBufferMetalCompatibilityKey")
             try! str.write(toFile: path.path, atomically: true, encoding: .utf8)
         }
+    }
+
+    override func frameworks() throws -> [String] {
+        var frameworks: [String] = []
+        if let platform = platforms().first {
+            if let arch = platform.architectures.first {
+                let lib = thinDir(platform: platform, arch: arch) + "lib"
+                let fileNames = try FileManager.default.contentsOfDirectory(atPath: lib.path)
+                for fileName in fileNames {
+                    if fileName.hasPrefix("lib"), fileName.hasSuffix(".a") {
+                        frameworks.append("Lib" + fileName.dropFirst(3).dropLast(2))
+                    }
+                }
+            }
+        }
+        return frameworks
     }
 
     override func build(platform: PlatformType, arch: ArchType, buildURL: URL) throws {
@@ -738,7 +761,7 @@ private class BuildFFMPEG: BaseBuild {
             let path = URL.currentDirectory + [library.rawValue, platform.rawValue, "thin", arch.rawValue]
             if FileManager.default.fileExists(atPath: path.path), library.isFFmpegDependentLibrary {
                 arguments.append("--enable-\(library.rawValue)")
-                if library == .libsrt {
+                if library == .libsrt || library == .libsmbclient {
                     arguments.append("--enable-protocol=\(library.rawValue)")
                 } else if library == .libdav1d {
                     arguments.append("--enable-decoder=\(library.rawValue)")
@@ -869,6 +892,10 @@ private class BuildOpenSSL: BaseBuild {
         super.init(library: .openssl)
     }
 
+    override func frameworks() throws -> [String] {
+        ["libssl", "libcrypto"]
+    }
+
     override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
         var array = ["--prefix=\(thinDir(platform: platform, arch: arch).path)",
                      arch == .x86_64 ? "darwin64-x86_64" : arch == .arm64e ? "iphoneos-cross" : "darwin64-arm64",
@@ -929,44 +956,113 @@ private class BuildZvbi: BaseBuild {
 private class BuildSmbclient: BaseBuild {
     init() {
         super.init(library: .libsmbclient)
-        try? Utility.launch(executableURL: directoryURL + "bootstrap/config.py", arguments: [], currentDirectoryURL: directoryURL)
+        _ = try? Utility.launch(executableURL: directoryURL + "bootstrap/config.py", arguments: [], currentDirectoryURL: directoryURL)
+        var path = directoryURL + "source3/wscript"
+        if let data = FileManager.default.contents(atPath: path.path), var str = String(data: data, encoding: .utf8) {
+            str = str.replacingOccurrences(of: """
+                        if not conf.CHECK_CODE('''
+                            #define HAVE_QUOTACTL_4A 1
+                            #define AUTOCONF_TEST 1
+                            #include "../tests/sysquotas.c"
+                            ''',
+                                               cflags=conf.env['WERROR_CFLAGS'],
+                                               define='HAVE_QUOTACTL_4A',
+                                               msg='for QUOTACTL_4A: long quotactl(int cmd, char *special, qid_t id, caddr_t addr)',
+                                               execute=True,
+                                               addmain=False):
+
+                            conf.CHECK_CODE('''
+                            #define HAVE_QUOTACTL_4B 1
+                            #define AUTOCONF_TEST 1
+                            #include "../tests/sysquotas.c"
+                            ''',
+                                            cflags=conf.env['WERROR_CFLAGS'],
+                                            define='HAVE_QUOTACTL_4B',
+                                            msg='for QUOTACTL_4B:  int quotactl(const char *path, int cmd, int id, char *addr)',
+                                            execute=True,
+                                            addmain=False)
+            """, with: """
+                        conf.DEFINE('HAVE_QUOTACTL_4A', '0')
+                        conf.DEFINE('HAVE_QUOTACTL_4B', '1')
+            """)
+            try! str.write(toFile: path.path, atomically: true, encoding: .utf8)
+        }
+        let patch = URL.currentDirectory + "/../Plugins/BuildFFmpeg/patch/libsmbclient"
+        _ = try? Utility.launch(path: "/usr/bin/git", arguments: ["apply", "\(patch.path)/fix-secure-getenv.patch"], currentDirectoryURL: directoryURL)
+        _ = try? Utility.launch(path: "/usr/bin/git", arguments: ["apply", "\(patch.path)/no-system.patch"], currentDirectoryURL: directoryURL)
+    }
+
+    override func wafPath() -> String {
+        "./buildtools/bin/waf"
+    }
+
+    override func environment(platform: PlatformType, arch: ArchType) -> [String: String] {
+        var env = super.environment(platform: platform, arch: arch)
+        env["PATH"] = (directoryURL + "buildtools/bin").path + ":" + env["PATH"]!
+        env["PYTHONHASHSEED"] = "1"
+        env["WAF_MAKE"] = "1"
+        return env
+    }
+
+    override func runWafTargets(platform: PlatformType, arch: ArchType) throws {
+        let environ = environment(platform: platform, arch: arch)
+        try Utility.launch(path: "/usr/bin/python3", arguments: [wafPath(), "--targets=client/smbclient"], currentDirectoryURL: directoryURL, environment: environ)
+    }
+
+    override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
+        var arg = super.arguments(platform: platform, arch: arch) +
+            [
+                "--without-cluster-support",
+                "--disable-rpath",
+                "--without-ldap",
+                "--without-pam",
+                "--enable-fhs",
+                "--without-winbind",
+                "--without-ads",
+                "--disable-avahi",
+                "--disable-cups",
+                "--without-gettext",
+                "--without-ad-dc",
+                "--without-acl-support",
+                "--without-utmp",
+                "--disable-iprint",
+                "--nopyc",
+                "--nopyo",
+                "--disable-python",
+                "--disable-symbol-versions",
+                "--without-json",
+                "--without-libarchive",
+                "--without-regedit",
+                "--without-lttng",
+                "--without-gpgme",
+                "--disable-cephfs",
+                "--disable-glusterfs",
+                "--without-syslog",
+                "--without-quotas",
+//                "--builtin-libraries=client/smbclient,talloc,CMDLINE_S3,smbconf,ndr-standard,SMBREADLINE,libsmb,msrpc3,RPC_NDR_SRVSVC,cli_smb_common,archive",
+                "--nonshared-binary=smbtorture,smbd/smbd,client/smbclient,smbclient",
+//                "--nonshared-binary=ALL",
+                "--with-static-modules=ALL",
+                "--bundled-libraries=ALL",
+            ]
+        arg.append("--cross-compile")
+        let crossFile = (URL.currentDirectory + "/../Plugins/BuildFFmpeg/crossanswer.txt").path
+        arg.append("--cross-answers=\(crossFile)")
+        return arg
+    }
+}
+
+private class BuildReadline: BaseBuild {
+    init() {
+        super.init(library: .readline)
     }
 
     override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
         super.arguments(platform: platform, arch: arch) +
             [
-                //                "--bundled-libraries=NONE,ldb,tdb,tevent",
-                "--disable-cephfs",
-                "--disable-cups",
-                "--disable-iprint",
-                "--disable-glusterfs",
-                "--without-acl-support",
-                "--disable-python",
-                "--without-ads",
-                "--without-ldap",
-                "--without-pam",
-                "--without-regedit",
-                "--without-syslog",
-                "--without-utmp",
-                "--without-winbind",
-//                "--with-system-mitkrb5",
-//                "--cross-compile",
-//                "--cross-answers=cross-answers.txt",
-//                "--cross-execute=./buildtools/example/run_on_target.py",
-                "--with-static-modules=ALL",
-                "--with-shared-modules=!vfs_snapper",
-                "--builtin-libraries=smbclient",
-//                "--targets=smbclient",
-                "--hostcc=\(platform.host(arch: arch))",
-                "--without-ad-dc",
-                "--without-json",
-                "--without-libarchive",
-                "--without-acl-support",
+                "--enable-static",
+                "--disable-shared",
             ]
-    }
-
-    override func build(platform: PlatformType, arch: ArchType, buildURL _: URL) throws {
-        try super.build(platform: platform, arch: arch, buildURL: directoryURL)
     }
 }
 
@@ -1002,7 +1098,7 @@ private class BuildNettle: BaseBuild {
     override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
         super.arguments(platform: platform, arch: arch) +
             [
-                "--disable-mini-gmp",
+                //                "--disable-mini-gmp",
                 "--disable-assembler",
                 "--disable-openssl",
                 "--disable-gcov",
@@ -1010,7 +1106,8 @@ private class BuildNettle: BaseBuild {
                 "--enable-pic",
                 "--enable-static",
                 "--disable-shared",
-                arch == .arm64 || arch == .arm64e ? "--enable-arm-neon" : "--enable-x86-aesni",
+                "--disable-dependency-tracking",
+//                arch == .arm64 || arch == .arm64e ? "--enable-arm-neon" : "--enable-x86-aesni",
             ]
     }
 }
@@ -1046,18 +1143,22 @@ private class BuildGnutls: BaseBuild {
             [
                 "--with-included-libtasn1",
                 "--with-included-unistring",
+                "--without-brotli",
                 "--without-idn",
                 "--without-p11-kit",
+                "--without-zlib",
                 "--without-zstd",
                 "--enable-hardware-acceleration",
                 "--disable-openssl-compatibility",
                 "--disable-code-coverage",
                 "--disable-doc",
-                "--disable-manpages",
                 "--disable-guile",
+                "--disable-maintainer-mode",
+                "--disable-manpages",
+                "--disable-nls",
+                "--disable-rpath",
 //                "--disable-tests",
                 "--disable-tools",
-                "--disable-maintainer-mode",
                 "--disable-full-test-suite",
                 "--with-pic",
                 "--enable-static",
@@ -1106,7 +1207,7 @@ private class BuildFribidi: BaseBuild {
 
 private class BuildHarfbuzz: BaseBuild {
     init() {
-        super.init(library: .harfbuzz)
+        super.init(library: .libharfbuzz)
     }
 
     override func arguments(platform _: PlatformType, arch _: ArchType) -> [String] {
@@ -1132,15 +1233,11 @@ private class BuildFreetype: BaseBuild {
 
 private class BuildPng: BaseBuild {
     init() {
-        super.init(library: .png)
+        super.init(library: .libpng)
     }
 
     override func arguments(platform _: PlatformType, arch _: ArchType) -> [String] {
         ["-DPNG_HARDWARE_OPTIMIZATIONS=yes"]
-    }
-
-    override func frameworks() throws -> [String] {
-        ["Libpng"]
     }
 }
 
@@ -1284,7 +1381,7 @@ private class BuildShaderc: BaseBuild {
     }
 
     override func frameworks() throws -> [String] {
-        ["Libshaderc_combined"]
+        ["libshaderc_combined"]
     }
 }
 
@@ -1305,7 +1402,7 @@ private class BuildPlacebo: BaseBuild {
 
 private class BuildMPV: BaseBuild {
     init() {
-        super.init(library: .mpv)
+        super.init(library: .libmpv)
     }
 
     override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
@@ -1495,9 +1592,18 @@ private enum PlatformType: String, CaseIterable {
     func ldFlags(arch: ArchType) -> [String] {
         // ldFlags的关键参数要跟cFlags保持一致，不然会在ld的时候不通过。
         var flags = ["-lc++", "-arch", arch.rawValue, "-isysroot", isysroot, "-target", deploymentTarget(arch: arch)]
-        let gmpPath = URL.currentDirectory + [Library.gmp.rawValue, rawValue, "thin", arch.rawValue]
-        if FileManager.default.fileExists(atPath: gmpPath.path) {
-            flags.append("-L\(gmpPath.path)/lib")
+        let librarys: [Library] = [.gmp, .nettle, .readline, .gnutls]
+        for library in librarys {
+            let path = URL.currentDirectory + [library.rawValue, rawValue, "thin", arch.rawValue]
+            if FileManager.default.fileExists(atPath: path.path) {
+                var libname = library.rawValue
+                if library == .nettle {
+                    libname += " -lhogweed"
+                } else if library == .gnutls {
+                    libname += " -framework Security -framework CoreFoundation"
+                }
+                flags.append("-L\(path.path)/lib -l\(libname)")
+            }
         }
         return flags
     }
@@ -1512,9 +1618,12 @@ private enum PlatformType: String, CaseIterable {
         if self == .maccatalyst {
             cflags.append("-iframework \(isysroot)/System/iOSSupport/System/Library/Frameworks")
         }
-        let gmpPath = URL.currentDirectory + [Library.gmp.rawValue, rawValue, "thin", arch.rawValue]
-        if FileManager.default.fileExists(atPath: gmpPath.path) {
-            cflags.append("-I\(gmpPath.path)/include")
+        let librarys: [Library] = [.gmp, .nettle, .readline, .gnutls]
+        for library in librarys {
+            let path = URL.currentDirectory + [library.rawValue, rawValue, "thin", arch.rawValue]
+            if FileManager.default.fileExists(atPath: path.path) {
+                cflags.append("-I\(path.path)/include")
+            }
         }
         return cflags
     }
@@ -1596,8 +1705,6 @@ enum Utility {
     static func launch(executableURL: URL, arguments: [String], isOutput: Bool = false, currentDirectoryURL: URL? = nil, environment: [String: String] = [:]) throws -> String {
         #if os(macOS)
         let task = Process()
-        var environment = environment
-        environment["PATH"] = "/usr/local/bin:/opt/homebrew/bin:/usr/local/opt/bison/bin:/usr/bin:/bin:/usr/sbin:/sbin"
         task.environment = environment
         var standardOutput: FileHandle?
         var log = executableURL.path + " " + arguments.joined(separator: " ") + " environment: " + environment.description

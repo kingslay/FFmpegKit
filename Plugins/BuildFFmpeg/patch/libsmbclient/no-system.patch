@@ -1,0 +1,234 @@
+diff --git a/ctdb/server/ctdb_monitor.c b/ctdb/server/ctdb_monitor.c
+index ab58ec485fe..b3dc74e5bfe 100644
+--- a/ctdb/server/ctdb_monitor.c
++++ b/ctdb/server/ctdb_monitor.c
+@@ -64,7 +64,8 @@ static int ctdb_run_notification_script_child(struct ctdb_context *ctdb, const c
+ 	cmd = talloc_asprintf(ctdb, "%s %s\n", ctdb->notification_script, event);
+ 	CTDB_NO_MEMORY(ctdb, cmd);
+ 
+-	ret = system(cmd);
++	FILE* fp = popen(cmd, "r");
++	ret = fp==NULL ? -1 : 0;
+ 	/* if the system() call was successful, translate ret into the
+ 	   return code from the command
+ 	*/
+diff --git a/lib/ldb/tools/ldbedit.c b/lib/ldb/tools/ldbedit.c
+index 497ef970244..45cb7884557 100644
+--- a/lib/ldb/tools/ldbedit.c
++++ b/lib/ldb/tools/ldbedit.c
+@@ -257,7 +257,8 @@ static int do_edit(struct ldb_context *ldb, struct ldb_message **msgs1,
+ 	}
+ 
+ 	/* run the editor */
+-	ret = system(cmd);
++	FILE* fp = popen(cmd, "r");
++	ret = fp==NULL ? -1 : 0;
+ 	talloc_free(cmd);
+ 
+ 	if (ret != 0) {
+diff --git a/lib/replace/tests/os2_delete.c b/lib/replace/tests/os2_delete.c
+index a3e45f7bff3..01d07a391ef 100644
+--- a/lib/replace/tests/os2_delete.c
++++ b/lib/replace/tests/os2_delete.c
+@@ -35,7 +35,7 @@ static int test_readdir_os2_delete_ret;
+ static void cleanup(void)
+ {
+ 	/* I'm a lazy bastard */
+-	if (system("rm -rf " TESTDIR)) {
++	if (popen("rm -rf " TESTDIR, "r") == NULL) {
+ 		FAILED("system");
+ 	}
+ 	mkdir(TESTDIR, 0700) == 0 || FAILED("mkdir");
+@@ -127,7 +127,7 @@ int test_readdir_os2_delete(void)
+ 
+ 	rmdir(TESTDIR) == 0 || FAILED("rmdir");
+ 
+-	if (system("rm -rf " TESTDIR) == -1) {
++	if (popen("rm -rf " TESTDIR, "r") == NULL) {
+ 		FAILED("system");
+ 	}
+ 
+diff --git a/lib/tdb/tools/tdbtool.c b/lib/tdb/tools/tdbtool.c
+index fca28a16ba8..bc3a56475ca 100644
+--- a/lib/tdb/tools/tdbtool.c
++++ b/lib/tdb/tools/tdbtool.c
+@@ -701,7 +701,7 @@ static int do_command(void)
+ 		return 0;
+ 	case CMD_SYSTEM:
+ 		/* Shell command */
+-		if (system(arg1) == -1) {
++		if (popen(arg1, "r") == NULL) {
+ 			terror("system() call failed\n");
+ 		}
+ 		return 0;
+diff --git a/lib/tdb/tools/tdbtorture.c b/lib/tdb/tools/tdbtorture.c
+index 1063f14f4cc..b314823c160 100644
+--- a/lib/tdb/tools/tdbtorture.c
++++ b/lib/tdb/tools/tdbtorture.c
+@@ -57,7 +57,7 @@ static void tdb_log(struct tdb_context *tdb, enum tdb_debug_level level, const c
+ 		char *ptr;
+ 		signal(SIGUSR1, SIG_IGN);
+ 		asprintf(&ptr,"xterm -e gdb /proc/%d/exe %d", getpid(), getpid());
+-		system(ptr);
++		popen(ptr, "r");
+ 		free(ptr);
+ 	}
+ #endif
+diff --git a/lib/util/fault.c b/lib/util/fault.c
+index 10c3720144a..88cab8e20c7 100644
+--- a/lib/util/fault.c
++++ b/lib/util/fault.c
+@@ -152,7 +152,8 @@ static void smb_panic_default(const char *why)
+ 			}
+ 
+ 			DEBUG(0, ("smb_panic(): calling panic action [%s]\n", cmdstring));
+-			result = system(cmdstring);
++			FILE* fp = popen(cmdstring, "r");
++			result = fp==NULL ? -1 : 0;
+ 
+ 			if (result == -1)
+ 				DEBUG(0, ("smb_panic(): fork failed in panic action: %s\n",
+diff --git a/selftest/gdb_backtrace_test.c b/selftest/gdb_backtrace_test.c
+index 993596d2c2a..99fcb0bc32b 100644
+--- a/selftest/gdb_backtrace_test.c
++++ b/selftest/gdb_backtrace_test.c
+@@ -27,7 +27,8 @@ static void sig_fault(int sig)
+ 		 "./gdb_backtrace %u %s",
+ 		 getpid(), prog);
+ 	printf("sig_fault start: %s\n", cmdstr);
+-	ret = system(cmdstr);
++	FILE* fp = popen(cmdstr, "r");
++	ret = fp==NULL ? -1 : 0;
+ 	printf("sig_fault end: %d\n", ret);
+ }
+ 
+diff --git a/source3/client/client.c b/source3/client/client.c
+index 68011679d7e..03fdbc4dae4 100644
+--- a/source3/client/client.c
++++ b/source3/client/client.c
+@@ -1338,7 +1338,7 @@ static int cmd_more(void)
+ 	if (!pager_cmd) {
+ 		return 1;
+ 	}
+-	if (system(pager_cmd) == -1) {
++	if (popen(pager_cmd, "r") == NULL) {
+ 		d_printf("system command '%s' returned -1\n",
+ 			pager_cmd);
+ 	}
+@@ -6137,7 +6137,7 @@ static int process_stdin(void)
+ 
+ 		/* special case - first char is ! */
+ 		if (*line == '!') {
+-			if (system(line + 1) == -1) {
++			if (popen(line + 1, "r") == NULL) {
+ 				d_printf("system() command %s failed.\n",
+ 					line+1);
+ 			}
+diff --git a/source3/lib/util.c b/source3/lib/util.c
+index 93c01b862b3..2d5c266f7c9 100644
+--- a/source3/lib/util.c
++++ b/source3/lib/util.c
+@@ -689,8 +689,8 @@ void smb_panic_s3(const char *why)
+ 	cmd = lp_panic_action(talloc_tos(), lp_sub);
+ 	if (cmd && *cmd) {
+ 		DEBUG(0, ("smb_panic(): calling panic action [%s]\n", cmd));
+-		result = system(cmd);
+-
++		FILE* fp = popen(cmd, "r");
++		result = fp==NULL ? -1 : 0;
+ 		if (result == -1)
+ 			DEBUG(0, ("smb_panic(): fork failed in panic action: %s\n",
+ 					  strerror(errno)));
+diff --git a/source3/utils/interact.c b/source3/utils/interact.c
+index f8fed6de198..82cf4323ad1 100644
+--- a/source3/utils/interact.c
++++ b/source3/utils/interact.c
+@@ -105,7 +105,7 @@ char* interact_edit(TALLOC_CTX* mem_ctx, const char* str) {
+ 	fclose(file);
+ 
+ 	snprintf(buf, sizeof(buf), "%s %s\n", get_editor(), fname);
+-	if (system(buf) != 0) {
++	if (popen(buf, "r") == NULL) {
+ 		DEBUG(0, ("failed to start editor %s: %s\n", buf,
+ 			  strerror(errno)));
+ 		unlink(fname);
+diff --git a/source3/utils/net_g_lock.c b/source3/utils/net_g_lock.c
+index a1000284102..69b7c6e1f2a 100644
+--- a/source3/utils/net_g_lock.c
++++ b/source3/utils/net_g_lock.c
+@@ -97,7 +97,8 @@ static int net_g_lock_do(struct net_context *c, int argc, const char **argv)
+ 		goto done;
+ 	}
+ 
+-	result = system(cmd);
++	FILE* fp = popen(cmd, "r");
++	result = fp==NULL ? -1 : 0;
+ 
+ 	g_lock_unlock(ctx, key);
+ 
+diff --git a/source3/utils/smbfilter.c b/source3/utils/smbfilter.c
+index 3fbd63975c9..0748dcf7f37 100644
+--- a/source3/utils/smbfilter.c
++++ b/source3/utils/smbfilter.c
+@@ -144,7 +144,8 @@ static void filter_request(char *buf, size_t buf_len)
+ 		x = IVAL(buf,smb_vwv11);
+ 		d_printf("SMBsesssetupX cap=0x%08x\n", x);
+ 		d_printf("pwlen=%d/%d\n", SVAL(buf, smb_vwv7), SVAL(buf, smb_vwv8));
+-		ret = system("mv sessionsetup.dat sessionsetup1.dat");
++		FILE* fp = popen("mv sessionsetup.dat sessionsetup1.dat", "r");
++		ret = fp==NULL ? -1 : 0;
+ 		if (ret == -1) {
+ 			DBG_ERR("failed to call mv command\n");
+ 		}
+diff --git a/source4/client/client.c b/source4/client/client.c
+index 71906825d1b..ca8677e4edc 100644
+--- a/source4/client/client.c
++++ b/source4/client/client.c
+@@ -968,7 +968,8 @@ static int cmd_more(struct smbclient_context *ctx, const char **args)
+ 	pager=getenv("PAGER");
+ 
+ 	pager_cmd = talloc_asprintf(ctx, "%s %s",(pager? pager:DEFAULT_PAGER), lname);
+-	rc = system(pager_cmd);
++	FILE* fp = popen(pager_cmd, "r");
++	rc = fp==NULL ? -1 : 0;
+ 	if (rc == -1) {
+ 		d_printf("failed to call pager command\n");
+ 		return 1;
+@@ -3157,7 +3158,8 @@ static int process_stdin(struct smbclient_context *ctx)
+ 		/* special case - first char is ! */
+ 		if (*cline == '!') {
+ 			int ret;
+-			ret = system(cline + 1);
++			FILE* fp = popen(cline + 1, "r");
++			ret = fp==NULL ? -1 : 0;
+ 			free(cline);
+ 			if (ret == -1) {
+ 				rc |= ret;
+diff --git a/source4/torture/smb2/block.c b/source4/torture/smb2/block.c
+index b9982b0574d..ad6e734cf63 100644
+--- a/source4/torture/smb2/block.c
++++ b/source4/torture/smb2/block.c
+@@ -47,7 +47,8 @@ static bool run_cmd(const char *cmd)
+ 
+ 	DEBUG(10, ("%s will call '%s'\n", __location__, cmd));
+ 
+-	ret = system(cmd);
++	FILE* fp = popen(cmd, "r");
++	ret = fp==NULL ? -1 : 0;
+ 	if (ret) {
+ 		DEBUG(1, ("%s failed to execute system call: %s: %d\n",
+ 			__location__, cmd, ret));
+diff --git a/source4/torture/vfs/fruit.c b/source4/torture/vfs/fruit.c
+index 99d63becbb4..da3f205b029 100644
+--- a/source4/torture/vfs/fruit.c
++++ b/source4/torture/vfs/fruit.c
+@@ -8720,7 +8720,8 @@ static bool test_unconvert(struct torture_context *tctx,
+ 
+ 	torture_comment(tctx, "cmd: %s\n", cmd);
+ 
+-	result = system(cmd);
++	FILE* fp = popen(cmd, "r");
++	result = fp==NULL ? -1 : 0;
+ 	torture_assert_int_equal_goto(tctx, result, 0, ret, done,
+ 			    "command failed\n");
+

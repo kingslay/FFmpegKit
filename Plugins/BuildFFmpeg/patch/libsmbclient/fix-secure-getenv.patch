@@ -1,0 +1,17 @@
+diff --git a/third_party/heimdal/lib/roken/roken.h.in b/third_party/heimdal/lib/roken/roken.h.in
+index c72d259a37a..936d34bfba7 100644
+--- a/third_party/heimdal/lib/roken/roken.h.in
++++ b/third_party/heimdal/lib/roken/roken.h.in
+@@ -930,10 +930,10 @@ ROKEN_LIB_FUNCTION int ROKEN_LIB_CALL
+ ROKEN_LIB_FUNCTION char * ROKEN_LIB_CALL
+     rk_secure_getenv(const char *);
+ 
+-#ifndef HAVE_SECURE_GETENV
++//#ifndef HAVE_SECURE_GETENV
+ #undef secure_getenv
+ #define secure_getenv(e) rk_secure_getenv(e)
+-#endif
++//#endif
+ 
+ #ifndef HAVE_STRUCT_WINSIZE
+ struct winsize {

@@ -1,0 +1,58 @@
+Checking simple C program: OK
+building library support: OK
+Checking for large file support: OK
+Checking for -D_FILE_OFFSET_BITS=64: OK
+Checking for WORDS_BIGENDIAN: OK
+Checking size of char: "1"
+Checking size of int: "4"
+Checking size of long long: "8"
+Checking size of long: "8"
+Checking size of off_t: "8"
+Checking size of short: "2"
+Checking size of size_t: "8"
+Checking size of ssize_t: "8"
+Checking size of dev_t: "4"
+Checking size of ino_t: "8"
+Checking size of time_t: "8"
+Checking size of void*: "8"
+Checking for C99 vsnprintf: OK
+Checking for HAVE_SECURE_MKSTEMP: OK
+Checking uname sysname type: "Darwin"
+Checking uname machine type: "arm64"
+Checking uname release type: "23.0.0"
+Checking uname version type: "Darwin Kernel Version 23.0.0: Fri Sep 15 14:42:42 PDT 2023; root:xnu-10002.1.13~1/RELEASE_X86_64"
+rpath library support: OK
+Checking getconf LFS_CFLAGS: NO
+Checking for large file support without additional flags: OK
+Checking correct behavior of strtoll: OK
+Checking for working strptime: OK
+Checking for HAVE_SHARED_MMAP: OK
+Checking for HAVE_INCOHERENT_MMAP: OK
+Checking getconf large file support flags work: OK
+Checking for HAVE_IFACE_GETIFADDRS: OK
+Checking for HAVE_IFACE_AIX: OK
+Checking for HAVE_IFACE_IFCONF: OK
+Checking value of NSIG: OK
+Checking for a 64-bit host to support lmdb: OK
+Checking for *bsd style statfs with statfs.f_iosize: OK
+Checking errno of iconv for illegal multibyte sequence: OK
+Checking if can we convert from CP850 to UCS-2LE: OK
+Checking if can we convert from IBM850 to UCS-2LE: OK
+Checking if can we convert from UTF-8 to UCS-2LE: OK
+Checking if can we convert from UTF8 to UCS-2LE: OK
+Checking whether setreuid is available: OK
+Checking whether setresuid is available: OK
+Checking whether seteuid is available: OK
+Checking whether fcntl locking is available: OK
+Checking whether fcntl lock supports open file description locks: OK
+Checking for the maximum value of the 'time_t' type: OK
+Checking whether the realpath function allows a NULL argument: OK
+Checking for ftruncate extend: OK
+Checking for readlink breakage: OK
+getcwd takes a NULL argument: OK
+checking for clnt_create(): OK
+for QUOTACTL_4B:  int quotactl(const char *path, int cmd, int id, char *addr): OK
+for QUOTACTL_4A: long quotactl(int cmd, char *special, qid_t id, caddr_t addr): NO
+Checking for gnutls fips mode support: OK
+Checking value of GNUTLS_CIPHER_AES_128_CFB8: NO
+Checking value of GNUTLS_MAC_AES_CMAC_128: NO

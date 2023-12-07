@@ -19,6 +19,6 @@ Pod::Spec.new do |s|
     s.default_subspec = 'Libass'
     s.static_framework = true
     s.subspec 'Libass' do |openssl|
-        openssl.vendored_frameworks = 'Sources/Libpng.xcframework', 'Sources/Libfreetype.xcframework','Sources/Libfribidi.xcframework', 'Sources/Libharfbuzz.xcframework', 'Sources/Libass.xcframework'
+        openssl.vendored_frameworks = 'Sources/libpng.xcframework', 'Sources/libfreetype.xcframework','Sources/libfribidi.xcframework', 'Sources/libharfbuzz.xcframework', 'Sources/libass.xcframework'
     end
 end
