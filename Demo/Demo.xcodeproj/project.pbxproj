@@ -7,26 +7,20 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AC09B5A52B220A4B00FCDB0B /* FFmpegKit in Frameworks */ = {isa = PBXBuildFile; productRef = AC09B5A42B220A4B00FCDB0B /* FFmpegKit */; };
+		AC09B5A72B220A4B00FCDB0B /* Libavcodec in Frameworks */ = {isa = PBXBuildFile; productRef = AC09B5A62B220A4B00FCDB0B /* Libavcodec */; };
+		AC09B5A92B220A4B00FCDB0B /* Libavfilter in Frameworks */ = {isa = PBXBuildFile; productRef = AC09B5A82B220A4B00FCDB0B /* Libavfilter */; };
+		AC09B5AB2B220A4B00FCDB0B /* Libavformat in Frameworks */ = {isa = PBXBuildFile; productRef = AC09B5AA2B220A4B00FCDB0B /* Libavformat */; };
+		AC09B5AD2B220A4B00FCDB0B /* Libavutil in Frameworks */ = {isa = PBXBuildFile; productRef = AC09B5AC2B220A4B00FCDB0B /* Libavutil */; };
+		AC09B5AF2B220A4B00FCDB0B /* Libswresample in Frameworks */ = {isa = PBXBuildFile; productRef = AC09B5AE2B220A4B00FCDB0B /* Libswresample */; };
+		AC09B5B12B220A4B00FCDB0B /* Libswscale in Frameworks */ = {isa = PBXBuildFile; productRef = AC09B5B02B220A4B00FCDB0B /* Libswscale */; };
+		AC09B5B32B220A4B00FCDB0B /* Openssl in Frameworks */ = {isa = PBXBuildFile; productRef = AC09B5B22B220A4B00FCDB0B /* Openssl */; };
+		AC09B5B52B220A4B00FCDB0B /* libass in Frameworks */ = {isa = PBXBuildFile; productRef = AC09B5B42B220A4B00FCDB0B /* libass */; };
+		AC09B5B72B220A4B00FCDB0B /* libmpv in Frameworks */ = {isa = PBXBuildFile; productRef = AC09B5B62B220A4B00FCDB0B /* libmpv */; };
 		AC11A88E2B149AD50038302D /* DemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC11A88D2B149AD50038302D /* DemoApp.swift */; };
 		AC11A8902B149AD50038302D /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC11A88F2B149AD50038302D /* ContentView.swift */; };
 		AC11A8922B149AD70038302D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AC11A8912B149AD70038302D /* Assets.xcassets */; };
 		AC11A8962B149AD70038302D /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AC11A8952B149AD70038302D /* Preview Assets.xcassets */; };
-		AC11A8A82B149C5F0038302D /* FFmpegKit in Frameworks */ = {isa = PBXBuildFile; productRef = AC11A8A72B149C5F0038302D /* FFmpegKit */; };
-		AC11A8AA2B149C5F0038302D /* Libass in Frameworks */ = {isa = PBXBuildFile; productRef = AC11A8A92B149C5F0038302D /* Libass */; };
-		AC11A8AC2B149C5F0038302D /* Libavcodec in Frameworks */ = {isa = PBXBuildFile; productRef = AC11A8AB2B149C5F0038302D /* Libavcodec */; };
-		AC11A8AE2B149C5F0038302D /* Libavfilter in Frameworks */ = {isa = PBXBuildFile; productRef = AC11A8AD2B149C5F0038302D /* Libavfilter */; };
-		AC11A8B02B149C5F0038302D /* Libavformat in Frameworks */ = {isa = PBXBuildFile; productRef = AC11A8AF2B149C5F0038302D /* Libavformat */; };
-		AC11A8B22B149C5F0038302D /* Libavutil in Frameworks */ = {isa = PBXBuildFile; productRef = AC11A8B12B149C5F0038302D /* Libavutil */; };
-		AC11A8B42B149C5F0038302D /* Libcrypto in Frameworks */ = {isa = PBXBuildFile; productRef = AC11A8B32B149C5F0038302D /* Libcrypto */; };
-		AC11A8B62B149C5F0038302D /* Libmpv in Frameworks */ = {isa = PBXBuildFile; productRef = AC11A8B52B149C5F0038302D /* Libmpv */; };
-		AC11A8B82B149C5F0038302D /* Libssl in Frameworks */ = {isa = PBXBuildFile; productRef = AC11A8B72B149C5F0038302D /* Libssl */; };
-		AC11A8BA2B149C5F0038302D /* Libswresample in Frameworks */ = {isa = PBXBuildFile; productRef = AC11A8B92B149C5F0038302D /* Libswresample */; };
-		AC11A8BC2B149C5F0038302D /* Libswscale in Frameworks */ = {isa = PBXBuildFile; productRef = AC11A8BB2B149C5F0038302D /* Libswscale */; };
-		AC11A8C52B14A0B70038302D /* FFmpegKit in Frameworks */ = {isa = PBXBuildFile; productRef = AC11A8C42B14A0B70038302D /* FFmpegKit */; };
-		AC11A8C72B14A0B70038302D /* Libass in Frameworks */ = {isa = PBXBuildFile; productRef = AC11A8C62B14A0B70038302D /* Libass */; };
-		AC11A8C92B14A0B70038302D /* Libavcodec in Frameworks */ = {isa = PBXBuildFile; productRef = AC11A8C82B14A0B70038302D /* Libavcodec */; };
-		AC11A8CB2B14A0B70038302D /* Libavfilter in Frameworks */ = {isa = PBXBuildFile; productRef = AC11A8CA2B14A0B70038302D /* Libavfilter */; };
-		AC11A8CD2B14A0B70038302D /* Libavformat in Frameworks */ = {isa = PBXBuildFile; productRef = AC11A8CC2B14A0B70038302D /* Libavformat */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -43,22 +37,16 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AC11A8C72B14A0B70038302D /* Libass in Frameworks */,
-				AC11A8B82B149C5F0038302D /* Libssl in Frameworks */,
-				AC11A8CD2B14A0B70038302D /* Libavformat in Frameworks */,
-				AC11A8BA2B149C5F0038302D /* Libswresample in Frameworks */,
-				AC11A8C52B14A0B70038302D /* FFmpegKit in Frameworks */,
-				AC11A8B62B149C5F0038302D /* Libmpv in Frameworks */,
-				AC11A8AA2B149C5F0038302D /* Libass in Frameworks */,
-				AC11A8A82B149C5F0038302D /* FFmpegKit in Frameworks */,
-				AC11A8AC2B149C5F0038302D /* Libavcodec in Frameworks */,
-				AC11A8CB2B14A0B70038302D /* Libavfilter in Frameworks */,
-				AC11A8B42B149C5F0038302D /* Libcrypto in Frameworks */,
-				AC11A8BC2B149C5F0038302D /* Libswscale in Frameworks */,
-				AC11A8C92B14A0B70038302D /* Libavcodec in Frameworks */,
-				AC11A8B22B149C5F0038302D /* Libavutil in Frameworks */,
-				AC11A8B02B149C5F0038302D /* Libavformat in Frameworks */,
-				AC11A8AE2B149C5F0038302D /* Libavfilter in Frameworks */,
+				AC09B5B72B220A4B00FCDB0B /* libmpv in Frameworks */,
+				AC09B5AD2B220A4B00FCDB0B /* Libavutil in Frameworks */,
+				AC09B5AF2B220A4B00FCDB0B /* Libswresample in Frameworks */,
+				AC09B5A72B220A4B00FCDB0B /* Libavcodec in Frameworks */,
+				AC09B5B32B220A4B00FCDB0B /* Openssl in Frameworks */,
+				AC09B5A52B220A4B00FCDB0B /* FFmpegKit in Frameworks */,
+				AC09B5B12B220A4B00FCDB0B /* Libswscale in Frameworks */,
+				AC09B5AB2B220A4B00FCDB0B /* Libavformat in Frameworks */,
+				AC09B5B52B220A4B00FCDB0B /* libass in Frameworks */,
+				AC09B5A92B220A4B00FCDB0B /* Libavfilter in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -118,22 +106,16 @@
 			);
 			name = Demo;
 			packageProductDependencies = (
-				AC11A8A72B149C5F0038302D /* FFmpegKit */,
-				AC11A8A92B149C5F0038302D /* Libass */,
-				AC11A8AB2B149C5F0038302D /* Libavcodec */,
-				AC11A8AD2B149C5F0038302D /* Libavfilter */,
-				AC11A8AF2B149C5F0038302D /* Libavformat */,
-				AC11A8B12B149C5F0038302D /* Libavutil */,
-				AC11A8B32B149C5F0038302D /* Libcrypto */,
-				AC11A8B52B149C5F0038302D /* Libmpv */,
-				AC11A8B72B149C5F0038302D /* Libssl */,
-				AC11A8B92B149C5F0038302D /* Libswresample */,
-				AC11A8BB2B149C5F0038302D /* Libswscale */,
-				AC11A8C42B14A0B70038302D /* FFmpegKit */,
-				AC11A8C62B14A0B70038302D /* Libass */,
-				AC11A8C82B14A0B70038302D /* Libavcodec */,
-				AC11A8CA2B14A0B70038302D /* Libavfilter */,
-				AC11A8CC2B14A0B70038302D /* Libavformat */,
+				AC09B5A42B220A4B00FCDB0B /* FFmpegKit */,
+				AC09B5A62B220A4B00FCDB0B /* Libavcodec */,
+				AC09B5A82B220A4B00FCDB0B /* Libavfilter */,
+				AC09B5AA2B220A4B00FCDB0B /* Libavformat */,
+				AC09B5AC2B220A4B00FCDB0B /* Libavutil */,
+				AC09B5AE2B220A4B00FCDB0B /* Libswresample */,
+				AC09B5B02B220A4B00FCDB0B /* Libswscale */,
+				AC09B5B22B220A4B00FCDB0B /* Openssl */,
+				AC09B5B42B220A4B00FCDB0B /* libass */,
+				AC09B5B62B220A4B00FCDB0B /* libmpv */,
 			);
 			productName = Demo;
 			productReference = AC11A88A2B149AD50038302D /* Demo.app */;
@@ -164,7 +146,7 @@
 			);
 			mainGroup = AC11A8812B149AD50038302D;
 			packageReferences = (
-				AC11A8C32B14A0B70038302D /* XCLocalSwiftPackageReference ".." */,
+				AC09B5A32B220A4B00FCDB0B /* XCLocalSwiftPackageReference ".." */,
 			);
 			productRefGroup = AC11A88B2B149AD50038302D /* Products */;
 			projectDirPath = "";
@@ -416,76 +398,52 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		AC11A8C32B14A0B70038302D /* XCLocalSwiftPackageReference ".." */ = {
+		AC09B5A32B220A4B00FCDB0B /* XCLocalSwiftPackageReference ".." */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = ..;
 		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		AC11A8A72B149C5F0038302D /* FFmpegKit */ = {
+		AC09B5A42B220A4B00FCDB0B /* FFmpegKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FFmpegKit;
 		};
-		AC11A8A92B149C5F0038302D /* Libass */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = Libass;
-		};
-		AC11A8AB2B149C5F0038302D /* Libavcodec */ = {
+		AC09B5A62B220A4B00FCDB0B /* Libavcodec */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Libavcodec;
 		};
-		AC11A8AD2B149C5F0038302D /* Libavfilter */ = {
+		AC09B5A82B220A4B00FCDB0B /* Libavfilter */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Libavfilter;
 		};
-		AC11A8AF2B149C5F0038302D /* Libavformat */ = {
+		AC09B5AA2B220A4B00FCDB0B /* Libavformat */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Libavformat;
 		};
-		AC11A8B12B149C5F0038302D /* Libavutil */ = {
+		AC09B5AC2B220A4B00FCDB0B /* Libavutil */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Libavutil;
 		};
-		AC11A8B32B149C5F0038302D /* Libcrypto */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = Libcrypto;
-		};
-		AC11A8B52B149C5F0038302D /* Libmpv */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = Libmpv;
-		};
-		AC11A8B72B149C5F0038302D /* Libssl */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = Libssl;
-		};
-		AC11A8B92B149C5F0038302D /* Libswresample */ = {
+		AC09B5AE2B220A4B00FCDB0B /* Libswresample */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Libswresample;
 		};
-		AC11A8BB2B149C5F0038302D /* Libswscale */ = {
+		AC09B5B02B220A4B00FCDB0B /* Libswscale */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Libswscale;
 		};
-		AC11A8C42B14A0B70038302D /* FFmpegKit */ = {
+		AC09B5B22B220A4B00FCDB0B /* Openssl */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = FFmpegKit;
+			productName = Openssl;
 		};
-		AC11A8C62B14A0B70038302D /* Libass */ = {
+		AC09B5B42B220A4B00FCDB0B /* libass */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = Libass;
+			productName = libass;
 		};
-		AC11A8C82B14A0B70038302D /* Libavcodec */ = {
+		AC09B5B62B220A4B00FCDB0B /* libmpv */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = Libavcodec;
-		};
-		AC11A8CA2B14A0B70038302D /* Libavfilter */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = Libavfilter;
-		};
-		AC11A8CC2B14A0B70038302D /* Libavformat */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = Libavformat;
+			productName = libmpv;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

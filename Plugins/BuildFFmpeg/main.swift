@@ -93,7 +93,7 @@ extension Build {
         print("""
         Usage: swift package BuildFFmpeg [OPTION]...
         Default Build: swift package --disable-sandbox BuildFFmpeg enable-vulkan enable-libplacebo enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-FFmpeg
-        Build MPV: swift package --disable-sandbox BuildFFmpeg mpv or swift package --disable-sandbox BuildFFmpeg enable-vulkan enable-libplacebo enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-png enable-libfreetype enable-libfribidi enable-libharfbuzz enable-libass enable-FFmpeg enable-mpv
+        Build MPV: swift package --disable-sandbox BuildFFmpeg mpv or swift package --disable-sandbox BuildFFmpeg enable-vulkan enable-libplacebo enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-libfreetype enable-libfribidi enable-libharfbuzz enable-libass enable-FFmpeg enable-mpv
         Build libsmbclient: swift package --disable-sandbox BuildFFmpeg enable-gmp enable-nettle enable-gnutls enbale-readline enable-libsmbclient
 
         Options:
@@ -110,14 +110,14 @@ extension Build {
             enable-openssl      build with openssl
             enable-libzvbi      build with libzvbi
             enable-libsrt       depend enable-openssl
-            enable-libfreetype  depend enable-png [no]
-            enable-libass       depend enable-png enable-libfreetype enable-libfribidi enable-libharfbuzz [no]
+            enable-libfreetype
+            enable-libass       depend enable-libfreetype enable-libfribidi enable-libharfbuzz [no]
             enable-nettle       depend enable-gmp [no]
             enable-gnutls       depend enable-gmp enable-nettle [no]
             enable-libsmbclient depend enable-gmp enable-nettle enable-gnutls enbale-readline [no]
             enable-libharfbuzz  depend enable-libfreetype [no]
             enable-FFmpeg       build with FFmpeg
-            enable-libmpv          depend enable-png enable-libfreetype enable-libfribidi enable-libharfbuzz enable-libass [no]
+            enable-libmpv       depend enable-libfreetype enable-libfribidi enable-libharfbuzz enable-libass [no]
         """)
     }
 }
@@ -176,7 +176,7 @@ private enum Library: String, CaseIterable {
         case .libpng:
             return "https://github.com/glennrp/libpng"
         case .libmpv:
-            return "https://github.com/\(rawValue)-player/\(rawValue)"
+            return "https://github.com/mpv-player/mpv"
         case .libsrt:
             return "https://github.com/Haivision/srt"
         case .libsmbclient:
@@ -1225,8 +1225,9 @@ private class BuildFreetype: BaseBuild {
 
     override func arguments(platform _: PlatformType, arch _: ArchType) -> [String] {
         [
-            "-Dharfbuzz=disabled",
             "-Dbrotli=disabled",
+            "-Dharfbuzz=disabled",
+            "-Dpng=disabled",
         ]
     }
 }

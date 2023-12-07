@@ -18,7 +18,7 @@ let package = Package(
         .library(name: "Libswresample", targets: ["Libswresample"]),
         .library(name: "Libswscale", targets: ["Libswscale"]),
         .library(name: "Openssl", targets: ["libssl", "libcrypto"]),
-        .library(name: "libass", targets: ["libpng", "libfreetype", "libfribidi", "libharfbuzz", "libass"]),
+        .library(name: "libass", targets: ["libfreetype", "libfribidi", "libharfbuzz", "libass"]),
         .library(name: "libmpv", targets: ["FFmpegKit", "libass", "libmpv"]),
         .executable(name: "ffplay", targets: ["ffplay"]),
         .executable(name: "ffmpeg", targets: ["ffmpeg"]),
@@ -38,7 +38,7 @@ let package = Package(
                 .target(name: "libplacebo", condition: .when(platforms: [.macOS, .iOS, .tvOS, .macCatalyst])),
                 "libdav1d",
                 "libssl", "libcrypto", "libsrt",
-                "libpng", "libfreetype", "libfribidi", "libharfbuzz", "libass",
+                "libfreetype", "libfribidi", "libharfbuzz", "libass",
                 "Libavcodec", "Libavfilter", "Libavformat", "Libavutil", "Libswresample", "Libswscale",
             ],
             linkerSettings: [
@@ -46,8 +46,14 @@ let package = Package(
                 .linkedFramework("AVFAudio"),
                 .linkedFramework("CoreVideo"),
                 .linkedFramework("CoreFoundation"),
+                .linkedFramework("CoreGraphics"),
                 .linkedFramework("CoreMedia"),
+                .linkedFramework("Cocoa", .when(platforms: [.macOS])),
+                .linkedFramework("UIKit", .when(platforms: [.iOS, .tvOS, .visionOS, .macCatalyst])),
                 .linkedFramework("Metal"),
+                .linkedFramework("IOKit", .when(platforms: [.macOS, .iOS, .visionOS, .macCatalyst])),
+                .linkedFramework("IOSurface"),
+                .linkedFramework("QuartzCore"),
                 .linkedFramework("VideoToolbox"),
                 .linkedLibrary("bz2"),
                 .linkedLibrary("iconv"),
@@ -164,10 +170,6 @@ let package = Package(
         .binaryTarget(
             name: "libzvbi",
             path: "Sources/libzvbi.xcframework"
-        ),
-        .binaryTarget(
-            name: "libpng",
-            path: "Sources/libpng.xcframework"
         ),
         .binaryTarget(
             name: "libfreetype",

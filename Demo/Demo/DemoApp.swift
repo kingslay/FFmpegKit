@@ -5,7 +5,7 @@
 //  Created by kintan on 11/27/23.
 //
 
-import Libmpv
+import libmpv
 import SwiftUI
 @main
 struct DemoApp: App {
