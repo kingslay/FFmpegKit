@@ -20,8 +20,8 @@ let package = Package(
         .library(name: "Openssl", targets: ["libssl", "libcrypto"]),
         .library(name: "libass", targets: ["libfreetype", "libfribidi", "libharfbuzz", "libass"]),
         .library(name: "libmpv", targets: ["FFmpegKit", "libass", "libmpv"]),
-        .executable(name: "ffplay", targets: ["ffplay"]),
         .executable(name: "ffmpeg", targets: ["ffmpeg"]),
+        .executable(name: "ffplay", targets: ["ffplay"]),
         .executable(name: "ffprobe", targets: ["ffprobe"]),
         .plugin(name: "BuildFFmpeg", targets: ["BuildFFmpeg"]),
     ],
@@ -56,10 +56,10 @@ let package = Package(
                 .linkedFramework("QuartzCore"),
                 .linkedFramework("VideoToolbox"),
                 .linkedLibrary("bz2"),
+                .linkedLibrary("c++"),
                 .linkedLibrary("iconv"),
                 .linkedLibrary("xml2"),
                 .linkedLibrary("z"),
-                .linkedLibrary("c++"),
             ]
         ),
         .executableTarget(

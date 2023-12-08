@@ -82,7 +82,9 @@ extension Build {
         if arguments.isEmpty {
             librarys.append(contentsOf: [.vulkan, .libplacebo, .libdav1d, .openssl, .libsrt, .libzvbi, .FFmpeg])
         } else if arguments == ["mpv"] {
-            librarys.append(contentsOf: [.vulkan, .libplacebo, .libdav1d, .openssl, .libsrt, .libzvbi, .libpng, .libfreetype, .libfribidi, .libharfbuzz, .libass, .FFmpeg, .libmpv])
+            librarys.append(contentsOf: [.vulkan, .libplacebo, .libdav1d, .openssl, .libsrt, .libzvbi, .libfreetype, .libfribidi, .libharfbuzz, .libass, .FFmpeg, .libmpv])
+        } else if arguments == ["smbclient"] {
+            librarys.append(contentsOf: [.gmp, .nettle, .gnutls, .readline, .libsmbclient])
         }
         for library in librarys {
             try library.build.buildALL()
@@ -94,7 +96,7 @@ extension Build {
         Usage: swift package BuildFFmpeg [OPTION]...
         Default Build: swift package --disable-sandbox BuildFFmpeg enable-vulkan enable-libplacebo enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-FFmpeg
         Build MPV: swift package --disable-sandbox BuildFFmpeg mpv or swift package --disable-sandbox BuildFFmpeg enable-vulkan enable-libplacebo enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-libfreetype enable-libfribidi enable-libharfbuzz enable-libass enable-FFmpeg enable-libmpv
-        Build libsmbclient: swift package --disable-sandbox BuildFFmpeg enable-gmp enable-nettle enable-gnutls enbale-readline enable-libsmbclient
+        Build libsmbclient: swift package --disable-sandbox BuildFFmpeg smbclient or swift package --disable-sandbox BuildFFmpeg enable-gmp enable-nettle enable-gnutls enbale-readline enable-libsmbclient
 
         Options:
             h, -h, --help       display this help and exit
@@ -378,16 +380,17 @@ private class BaseBuild {
     }
 
     func environment(platform: PlatformType, arch: ArchType) -> [String: String] {
-        [
+        let cFlags = platform.cFlags(arch: arch).joined(separator: " ")
+        return [
             "LC_CTYPE": "C",
             "CC": "/usr/bin/clang",
             "CXX": "/usr/bin/clang++",
             // "SDKROOT": platform.sdk.lowercased(),
             "CURRENT_ARCH": arch.rawValue,
-            "CFLAGS": platform.cFlags(arch: arch).joined(separator: " "),
+            "CFLAGS": cFlags,
             // makefile can't use CPPFLAGS
-            "CPPFLAGS": platform.cFlags(arch: arch).joined(separator: " "),
-            "CXXFLAGS": platform.cFlags(arch: arch).joined(separator: " "),
+            "CPPFLAGS": cFlags,
+            "CXXFLAGS": cFlags,
             "LDFLAGS": platform.ldFlags(arch: arch).joined(separator: " "),
             "PKG_CONFIG_PATH": platform.pkgConfigPath(arch: arch),
             "PATH": "/usr/local/bin:/opt/homebrew/bin:/usr/local/opt/bison/bin:/usr/bin:/bin:/usr/sbin:/sbin",
@@ -559,8 +562,8 @@ private class BaseBuild {
         system = 'darwin'
         subsystem = '\(platform.rawValue)'
         kernel = 'xnu'
-        cpu_family = '\(arch.cpuFamily())'
-        cpu = '\(arch.targetCpu())'
+        cpu_family = '\(arch.cpuFamily)'
+        cpu = '\(arch.targetCpu)'
         endian = 'little'
 
         [built-in options]
@@ -601,6 +604,7 @@ private class BuildFFMPEG: BaseBuild {
                 let fileNames = try FileManager.default.contentsOfDirectory(atPath: lib.path)
                 for fileName in fileNames {
                     if fileName.hasPrefix("lib"), fileName.hasSuffix(".a") {
+                        // 因为其他库也可能引入libavformat,所以把lib改成大写，这样就可以排在前面，覆盖别的库。
                         frameworks.append("Lib" + fileName.dropFirst(3).dropLast(2))
                     }
                 }
@@ -639,7 +643,7 @@ private class BuildFFMPEG: BaseBuild {
             str = str.replacingOccurrences(of: "kCVPixelBufferIOSurfaceOpenGLTextureCompatibilityKey", with: "kCVPixelBufferMetalCompatibilityKey")
             try str.write(toFile: internalPath.path, atomically: true, encoding: .utf8)
         }
-        if platform == .macos, arch.executable() {
+        if platform == .macos, arch.executable {
             let fftoolsFile = URL.currentDirectory + "../Sources/fftools"
             try? FileManager.default.removeItem(at: fftoolsFile)
             if !FileManager.default.fileExists(atPath: (fftoolsFile + "include/compat").path) {
@@ -715,7 +719,7 @@ private class BuildFFMPEG: BaseBuild {
         var arguments = ["--prefix=\(thinDir(platform: platform, arch: arch).path)"]
         arguments += ffmpegConfiguers
         arguments += Build.ffmpegConfiguers
-        arguments.append("--arch=\(arch.cpuFamily())")
+        arguments.append("--arch=\(arch.cpuFamily)")
         arguments.append("--target-os=darwin")
         // arguments.append(arch.cpu())
         /**
@@ -736,7 +740,7 @@ private class BuildFFMPEG: BaseBuild {
             arguments.append("--enable-filter=scale_vt")
             arguments.append("--enable-filter=transpose_vt")
         }
-        if platform == .macos, arch.executable() {
+        if platform == .macos, arch.executable {
             arguments.append("--enable-ffplay")
             arguments.append("--enable-sdl2")
             arguments.append("--enable-decoder=rawvideo")
@@ -1427,7 +1431,7 @@ private class BuildMPV: BaseBuild {
         var array = [
             "-Dlibmpv=true",
         ]
-        if !(platform == .macos && arch.executable()) {
+        if !(platform == .macos && arch.executable) {
             array.append("-Dcplayer=false")
         }
         if platform == .macos {
@@ -1536,9 +1540,9 @@ private enum PlatformType: String, CaseIterable {
     func host(arch: ArchType) -> String {
         switch self {
         case .macos:
-            return "\(arch.targetCpu())-apple-darwin"
+            return "\(arch.targetCpu)-apple-darwin"
         case .ios, .tvos, .watchos, .xros:
-            return "\(arch.targetCpu())-\(rawValue)-darwin"
+            return "\(arch.targetCpu)-\(rawValue)-darwin"
         case .isimulator, .maccatalyst:
             return PlatformType.ios.host(arch: arch)
         case .tvsimulator:
@@ -1553,9 +1557,9 @@ private enum PlatformType: String, CaseIterable {
     fileprivate func deploymentTarget(arch: ArchType) -> String {
         switch self {
         case .ios, .tvos, .watchos, .macos, .xros:
-            return "\(arch.targetCpu())-apple-\(rawValue)\(minVersion)"
+            return "\(arch.targetCpu)-apple-\(rawValue)\(minVersion)"
         case .maccatalyst:
-            return "\(arch.targetCpu())-apple-ios-macabi"
+            return "\(arch.targetCpu)-apple-ios-macabi"
         case .isimulator:
             return PlatformType.ios.deploymentTarget(arch: arch) + "-simulator"
         case .tvsimulator:
@@ -1671,7 +1675,7 @@ enum ArchType: String, CaseIterable {
     // arm64e 还没ABI。所以第三方库是无法使用的。
     case arm64, x86_64, arm64e
     // swiftlint:enable identifier_name
-    func executable() -> Bool {
+    var executable: Bool {
         guard let architecture = Bundle.main.executableArchitectures?.first?.intValue else {
             return false
         }
@@ -1684,7 +1688,7 @@ enum ArchType: String, CaseIterable {
         return false
     }
 
-    func cpuFamily() -> String {
+    var cpuFamily: String {
         switch self {
         case .arm64, .arm64e:
             return "aarch64"
@@ -1693,7 +1697,7 @@ enum ArchType: String, CaseIterable {
         }
     }
 
-    func targetCpu() -> String {
+    var targetCpu: String {
         switch self {
         case .arm64, .arm64e:
             return "arm64"
