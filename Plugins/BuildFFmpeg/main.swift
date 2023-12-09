@@ -1430,20 +1430,30 @@ private class BuildMPV: BaseBuild {
     override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
         var array = [
             "-Dlibmpv=true",
+            "-Dgl=enabled",
+            "-Dplain-gl=enabled",
+            "-Diconv=enabled",
         ]
         if !(platform == .macos && arch.executable) {
             array.append("-Dcplayer=false")
         }
         if platform == .macos {
             array.append("-Dswift-flags=-sdk \(platform.isysroot) -target \(platform.deploymentTarget(arch: arch))")
+            array.append("-Dcocoa=enabled")
+            array.append("-Dcoreaudio=enabled")
+            array.append("-Dgl-cocoa=enabled")
             array.append("-Dvideotoolbox-gl=enabled")
         } else {
             array.append("-Dvideotoolbox-gl=disabled")
             array.append("-Dswift-build=disabled")
-            array.append("-Dios-gl=disabled")
+            array.append("-Daudiounit=enabled")
             if platform == .maccatalyst {
                 array.append("-Dcocoa=disabled")
                 array.append("-Dcoreaudio=disabled")
+            } else if platform == .xros || platform == .xrsimulator {
+                array.append("-Dios-gl=disabled")
+            } else {
+                array.append("-Dios-gl=enabled")
             }
         }
         return array
