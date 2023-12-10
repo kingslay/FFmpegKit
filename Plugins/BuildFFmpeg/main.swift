@@ -80,8 +80,6 @@ extension Build {
             Build.ffmpegConfiguers.append("--enable-stripping")
         }
         if arguments.isEmpty {
-            librarys.append(contentsOf: [.vulkan, .libplacebo, .libdav1d, .openssl, .libsrt, .libzvbi, .FFmpeg])
-        } else if arguments == ["mpv"] {
             librarys.append(contentsOf: [.vulkan, .libplacebo, .libdav1d, .openssl, .libsrt, .libzvbi, .libfreetype, .libfribidi, .libharfbuzz, .libass, .FFmpeg, .libmpv])
         } else if arguments == ["smbclient"] {
             librarys.append(contentsOf: [.gmp, .nettle, .gnutls, .readline, .libsmbclient])
@@ -94,8 +92,7 @@ extension Build {
     static func printHelp() {
         print("""
         Usage: swift package BuildFFmpeg [OPTION]...
-        Default Build: swift package --disable-sandbox BuildFFmpeg enable-vulkan enable-libplacebo enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-FFmpeg
-        Build MPV: swift package --disable-sandbox BuildFFmpeg mpv or swift package --disable-sandbox BuildFFmpeg enable-vulkan enable-libplacebo enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-libfreetype enable-libfribidi enable-libharfbuzz enable-libass enable-FFmpeg enable-libmpv
+        Default Build: swift package --disable-sandbox BuildFFmpeg enable-libshaderc enable-vulkan enable-libplacebo enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-libfreetype enable-libfribidi enable-libharfbuzz enable-libass enable-FFmpeg enable-libmpv
         Build libsmbclient: swift package --disable-sandbox BuildFFmpeg smbclient or swift package --disable-sandbox BuildFFmpeg enable-gmp enable-nettle enable-gnutls enbale-readline enable-libsmbclient
 
         Options:
@@ -103,29 +100,30 @@ extension Build {
             enable-debug,       build ffmpeg with debug information
             platforms=xros      deployment platform: macos,ios,isimulator,tvos,tvsimulator,maccatalyst,xros,xrsimulator,watchos,watchsimulator
             --xx                add ffmpeg Configuers
-            mpv                 build mpv
+            libsmbclient        build libsmbclient
 
         Libraries:
-            enable-vulkan       build with vulkan
-            enable-libplacebo   build with placebo
-            enable-libdav1d     build with dav1d
+            enable-libshaderc   build with vulkan
+            enable-vulkan       depend enable-libshaderc
+            enable-libplacebo   depend enable-vulkan
+            enable-libdav1d     build with libdav1d
             enable-openssl      build with openssl
             enable-libzvbi      build with libzvbi
             enable-libsrt       depend enable-openssl
-            enable-libfreetype
-            enable-libass       depend enable-libfreetype enable-libfribidi enable-libharfbuzz [no]
+            enable-libfreetype  build with libfreetype
+            enable-libharfbuzz  depend enable-libfreetype
+            enable-libass       depend enable-libfreetype enable-libfribidi enable-libharfbuzz
+            enable-FFmpeg       build with FFmpeg
+            enable-libmpv       depend enable-libass enable-FFmpeg
             enable-nettle       depend enable-gmp [no]
             enable-gnutls       depend enable-gmp enable-nettle [no]
             enable-libsmbclient depend enable-gmp enable-nettle enable-gnutls enbale-readline [no]
-            enable-libharfbuzz  depend enable-libfreetype [no]
-            enable-FFmpeg       build with FFmpeg
-            enable-libmpv       depend enable-libfreetype enable-libfribidi enable-libharfbuzz enable-libass [no]
         """)
     }
 }
 
 private enum Library: String, CaseIterable {
-    case vulkan, libshaderc, libplacebo, libdav1d, libfreetype, libfribidi, libass, openssl, libsrt, libsmbclient, gnutls, gmp, readline, FFmpeg, nettle, libharfbuzz, libpng, libtls, libzvbi, boringssl, libmpv
+    case libshaderc, vulkan, libplacebo, libdav1d, libfreetype, libfribidi, libass, openssl, libsrt, libsmbclient, gnutls, gmp, readline, FFmpeg, nettle, libharfbuzz, libpng, libtls, libzvbi, boringssl, libmpv
     var version: String {
         switch self {
         case .FFmpeg:
