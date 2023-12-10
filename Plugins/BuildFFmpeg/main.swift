@@ -123,7 +123,7 @@ extension Build {
 }
 
 private enum Library: String, CaseIterable {
-    case libshaderc, vulkan, libplacebo, libdav1d, libfreetype, libfribidi, libass, openssl, libsrt, libsmbclient, gnutls, gmp, readline, FFmpeg, nettle, libharfbuzz, libpng, libtls, libzvbi, boringssl, libmpv
+    case libglslang, libshaderc, vulkan, libplacebo, libdav1d, libfreetype, libfribidi, libass, openssl, libsrt, libsmbclient, gnutls, gmp, readline, FFmpeg, nettle, libharfbuzz, libpng, libtls, libzvbi, boringssl, libmpv
     var version: String {
         switch self {
         case .FFmpeg:
@@ -168,6 +168,8 @@ private enum Library: String, CaseIterable {
             return "v2023.7"
         case .readline:
             return "readline-8.2"
+        case .libglslang:
+            return "13.1.1"
         }
     }
 
@@ -201,6 +203,8 @@ private enum Library: String, CaseIterable {
             return "https://github.com/google/shaderc"
         case .readline:
             return "https://git.savannah.gnu.org/git/readline.git"
+        case .libglslang:
+            return "https://github.com/KhronosGroup/glslang"
         default:
             var value = rawValue
             if self != .libass, value.hasPrefix("lib") {
@@ -212,7 +216,7 @@ private enum Library: String, CaseIterable {
 
     var isFFmpegDependentLibrary: Bool {
         switch self {
-        case .vulkan, .libshaderc, .libplacebo, .libdav1d, .openssl, .libsrt, .libsmbclient, .libzvbi:
+        case .vulkan, .libshaderc, .libglslang, .libplacebo, .libdav1d, .openssl, .libsrt, .libsmbclient, .libzvbi:
             return true
         case .gmp, .gnutls:
             return false
@@ -263,6 +267,8 @@ private enum Library: String, CaseIterable {
             return BuildVulkan()
         case .libshaderc:
             return BuildShaderc()
+        case .libglslang:
+            return BuildGlslang()
         case .readline:
             return BuildReadline()
         }
@@ -395,12 +401,7 @@ private class BaseBuild {
         ]
     }
 
-    func arguments(platform: PlatformType, arch: ArchType) -> [String] {
-        [
-            "--prefix=\(thinDir(platform: platform, arch: arch).path)",
-            "--host=\(platform.host(arch: arch))",
-        ]
-    }
+    func arguments(platform _: PlatformType, arch _: ArchType) -> [String] { [] }
 
     func frameworks() throws -> [String] {
         [library.rawValue]
@@ -714,7 +715,9 @@ private class BuildFFMPEG: BaseBuild {
     }
 
     override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
-        var arguments = ["--prefix=\(thinDir(platform: platform, arch: arch).path)"]
+        var arguments = [
+            "--prefix=\(thinDir(platform: platform, arch: arch).path)",
+        ]
         arguments += ffmpegConfiguers
         arguments += Build.ffmpegConfiguers
         arguments.append("--arch=\(arch.cpuFamily)")
@@ -899,9 +902,11 @@ private class BuildOpenSSL: BaseBuild {
     }
 
     override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
-        var array = ["--prefix=\(thinDir(platform: platform, arch: arch).path)",
-                     arch == .x86_64 ? "darwin64-x86_64" : arch == .arm64e ? "iphoneos-cross" : "darwin64-arm64",
-                     "no-async", "no-shared", "no-dso", "no-engine", "no-tests"]
+        var array = [
+            "--prefix=\(thinDir(platform: platform, arch: arch).path)",
+            "no-async", "no-shared", "no-dso", "no-engine", "no-tests",
+            arch == .x86_64 ? "darwin64-x86_64" : arch == .arm64e ? "iphoneos-cross" : "darwin64-arm64",
+        ]
         if [PlatformType.tvos, .tvsimulator, .watchos, .watchsimulator].contains(platform) {
             array.append("-DHAVE_FORK=0")
         }
@@ -915,11 +920,6 @@ private class BuildBoringSSL: BaseBuild {
         if Utility.shell("which go") == nil {
             Utility.shell("brew install go")
         }
-    }
-
-    override func arguments(platform _: PlatformType, arch _: ArchType) -> [String] {
-        []
-//        ["--prefix=\(thinDir(platform: platform, arch: arch).path)"]
     }
 }
 
@@ -1012,7 +1012,7 @@ private class BuildSmbclient: BaseBuild {
     }
 
     override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
-        var arg = super.arguments(platform: platform, arch: arch) +
+        var arg =
             [
                 "--without-cluster-support",
                 "--disable-rpath",
@@ -1046,6 +1046,8 @@ private class BuildSmbclient: BaseBuild {
 //                "--nonshared-binary=ALL",
                 "--with-static-modules=ALL",
                 "--bundled-libraries=ALL",
+                "--host=\(platform.host(arch: arch))",
+                "--prefix=\(thinDir(platform: platform, arch: arch).path)",
             ]
         arg.append("--cross-compile")
         let crossFile = (URL.currentDirectory + "/../Plugins/BuildFFmpeg/crossanswer.txt").path
@@ -1060,11 +1062,12 @@ private class BuildReadline: BaseBuild {
     }
 
     override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
-        super.arguments(platform: platform, arch: arch) +
-            [
-                "--enable-static",
-                "--disable-shared",
-            ]
+        [
+            "--enable-static",
+            "--disable-shared",
+            "--host=\(platform.host(arch: arch))",
+            "--prefix=\(thinDir(platform: platform, arch: arch).path)",
+        ]
     }
 }
 
@@ -1077,15 +1080,16 @@ private class BuildGmp: BaseBuild {
     }
 
     override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
-        super.arguments(platform: platform, arch: arch) +
-            [
-                "--disable-maintainer-mode",
-                "--disable-assembly",
-                "--with-pic",
-                "--enable-static",
-                "--disable-shared",
-                "--disable-fast-install",
-            ]
+        [
+            "--disable-maintainer-mode",
+            "--disable-assembly",
+            "--with-pic",
+            "--enable-static",
+            "--disable-shared",
+            "--disable-fast-install",
+            "--host=\(platform.host(arch: arch))",
+            "--prefix=\(thinDir(platform: platform, arch: arch).path)",
+        ]
     }
 }
 
@@ -1098,19 +1102,21 @@ private class BuildNettle: BaseBuild {
     }
 
     override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
-        super.arguments(platform: platform, arch: arch) +
-            [
-                //                "--disable-mini-gmp",
-                "--disable-assembler",
-                "--disable-openssl",
-                "--disable-gcov",
-                "--disable-documentation",
-                "--enable-pic",
-                "--enable-static",
-                "--disable-shared",
-                "--disable-dependency-tracking",
+        [
+            //                "--disable-mini-gmp",
+            "--disable-assembler",
+            "--disable-openssl",
+            "--disable-gcov",
+            "--disable-documentation",
+            "--enable-pic",
+            "--enable-static",
+            "--disable-shared",
+            "--disable-dependency-tracking",
+            "--host=\(platform.host(arch: arch))",
+            "--prefix=\(thinDir(platform: platform, arch: arch).path)",
+
 //                arch == .arm64 || arch == .arm64e ? "--enable-arm-neon" : "--enable-x86-aesni",
-            ]
+        ]
     }
 }
 
@@ -1141,33 +1147,34 @@ private class BuildGnutls: BaseBuild {
     }
 
     override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
-        super.arguments(platform: platform, arch: arch) +
-            [
-                "--with-included-libtasn1",
-                "--with-included-unistring",
-                "--without-brotli",
-                "--without-idn",
-                "--without-p11-kit",
-                "--without-zlib",
-                "--without-zstd",
-                "--enable-hardware-acceleration",
-                "--disable-openssl-compatibility",
-                "--disable-code-coverage",
-                "--disable-doc",
-                "--disable-guile",
-                "--disable-maintainer-mode",
-                "--disable-manpages",
-                "--disable-nls",
-                "--disable-rpath",
+        [
+            "--with-included-libtasn1",
+            "--with-included-unistring",
+            "--without-brotli",
+            "--without-idn",
+            "--without-p11-kit",
+            "--without-zlib",
+            "--without-zstd",
+            "--enable-hardware-acceleration",
+            "--disable-openssl-compatibility",
+            "--disable-code-coverage",
+            "--disable-doc",
+            "--disable-guile",
+            "--disable-maintainer-mode",
+            "--disable-manpages",
+            "--disable-nls",
+            "--disable-rpath",
 //                "--disable-tests",
-                "--disable-tools",
-                "--disable-full-test-suite",
-                "--with-pic",
-                "--enable-static",
-                "--disable-shared",
-                "--disable-fast-install",
-                "--disable-dependency-tracking",
-            ]
+            "--disable-tools",
+            "--disable-full-test-suite",
+            "--with-pic",
+            "--enable-static",
+            "--disable-shared",
+            "--disable-fast-install",
+            "--disable-dependency-tracking",
+            "--host=\(platform.host(arch: arch))",
+            "--prefix=\(thinDir(platform: platform, arch: arch).path)",
+        ]
     }
 }
 
@@ -1250,7 +1257,7 @@ private class BuildASS: BaseBuild {
     }
 
     override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
-        var result = super.arguments(platform: platform, arch: arch) +
+        var result =
             [
                 "--disable-libtool-lock",
                 "--disable-fontconfig",
@@ -1263,6 +1270,8 @@ private class BuildASS: BaseBuild {
                 "--disable-shared",
                 "--disable-fast-install",
                 "--disable-dependency-tracking",
+                "--host=\(platform.host(arch: arch))",
+                "--prefix=\(thinDir(platform: platform, arch: arch).path)",
             ]
         if arch == .x86_64 {
             result.append("--enable-asm")
@@ -1331,6 +1340,55 @@ private class BuildVulkan: BaseBuild {
     }
 }
 
+private class BuildGlslang: BaseBuild {
+    init() {
+        super.init(library: .libglslang)
+        try? Utility.launch(executableURL: directoryURL + "./update_glslang_sources.py", arguments: [], currentDirectoryURL: directoryURL)
+        var path = directoryURL + "External/spirv-tools/tools/reduce/reduce.cpp"
+        if let data = FileManager.default.contents(atPath: path.path), var str = String(data: data, encoding: .utf8) {
+            str = str.replacingOccurrences(of: """
+              int res = std::system(nullptr);
+              return res != 0;
+            """, with: """
+              FILE* fp = popen(nullptr, "r");
+              return fp == NULL;
+            """)
+            str = str.replacingOccurrences(of: """
+              int status = std::system(command.c_str());
+            """, with: """
+              FILE* fp = popen(command.c_str(), "r");
+            """)
+            str = str.replacingOccurrences(of: """
+              return status == 0;
+            """, with: """
+              return fp != NULL;
+            """)
+            try! str.write(toFile: path.path, atomically: true, encoding: .utf8)
+        }
+        path = directoryURL + "External/spirv-tools/tools/fuzz/fuzz.cpp"
+        if let data = FileManager.default.contents(atPath: path.path), var str = String(data: data, encoding: .utf8) {
+            str = str.replacingOccurrences(of: """
+              int res = std::system(nullptr);
+              return res != 0;
+            """, with: """
+              FILE* fp = popen(nullptr, "r");
+              return fp == NULL;
+            """)
+            str = str.replacingOccurrences(of: """
+              int status = std::system(command.c_str());
+            """, with: """
+              FILE* fp = popen(command.c_str(), "r");
+            """)
+            str = str.replacingOccurrences(of: """
+              return status == 0;
+            """, with: """
+              return fp != NULL;
+            """)
+            try! str.write(toFile: path.path, atomically: true, encoding: .utf8)
+        }
+    }
+}
+
 private class BuildShaderc: BaseBuild {
     init() {
         super.init(library: .libshaderc)
@@ -1377,10 +1435,6 @@ private class BuildShaderc: BaseBuild {
             """)
             try! str.write(toFile: path.path, atomically: true, encoding: .utf8)
         }
-    }
-
-    override func arguments(platform _: PlatformType, arch _: ArchType) -> [String] {
-        []
     }
 
     override func frameworks() throws -> [String] {
