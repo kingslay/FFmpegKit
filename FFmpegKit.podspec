@@ -22,7 +22,7 @@ Pod::Spec.new do |s|
     s.subspec 'FFmpegKit' do |ffmpeg|
         ffmpeg.libraries   = 'bz2', 'z', 'iconv', 'xml2', 'c++'
         ffmpeg.vendored_frameworks = 'Sources/Libavcodec.xcframework','Sources/Libavfilter.xcframework','Sources/Libavformat.xcframework','Sources/Libavutil.xcframework','Sources/Libswresample.xcframework','Sources/Libswscale.xcframework', 
-        'Sources/libshaderc_combined.xcframework','Sources/MoltenVK.xcframework', 'Sources/libplacebo.xcframework', 'Sources/libdav1d.xcframework', 'Sources/libzvbi.xcframework', 'Sources/libsrt.xcframework'
+        'Sources/libshaderc_combined.xcframework','Sources/MoltenVK.xcframework', 'Sources/lcms2.xcframework', 'Sources/libplacebo.xcframework', 'Sources/libdav1d.xcframework', 'Sources/libzvbi.xcframework', 'Sources/libsrt.xcframework'
         ffmpeg.dependency 'OpenSSL'
         ffmpeg.dependency 'Libass'
     end

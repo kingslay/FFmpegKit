@@ -80,7 +80,7 @@ extension Build {
             Build.ffmpegConfiguers.append("--enable-stripping")
         }
         if arguments.isEmpty {
-            librarys.append(contentsOf: [.vulkan, .libplacebo, .libdav1d, .openssl, .libsrt, .libzvbi, .libfreetype, .libfribidi, .libharfbuzz, .libass, .FFmpeg, .libmpv])
+            librarys.append(contentsOf: [.libshaderc, .vulkan, .lcms2, .libplacebo, .libdav1d, .openssl, .libsrt, .libzvbi, .libfreetype, .libfribidi, .libharfbuzz, .libass, .FFmpeg, .libmpv])
         } else if arguments == ["smbclient"] {
             librarys.append(contentsOf: [.gmp, .nettle, .gnutls, .readline, .libsmbclient])
         }
@@ -92,7 +92,7 @@ extension Build {
     static func printHelp() {
         print("""
         Usage: swift package BuildFFmpeg [OPTION]...
-        Default Build: swift package --disable-sandbox BuildFFmpeg enable-libshaderc enable-vulkan enable-libplacebo enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-libfreetype enable-libfribidi enable-libharfbuzz enable-libass enable-FFmpeg enable-libmpv
+        Default Build: swift package --disable-sandbox BuildFFmpeg enable-libshaderc enable-vulkan enable-lcms2 enable-libplacebo enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-libfreetype enable-libfribidi enable-libharfbuzz enable-libass enable-FFmpeg enable-libmpv
         Build libsmbclient: swift package --disable-sandbox BuildFFmpeg smbclient or swift package --disable-sandbox BuildFFmpeg enable-gmp enable-nettle enable-gnutls enbale-readline enable-libsmbclient
 
         Options:
@@ -105,7 +105,7 @@ extension Build {
         Libraries:
             enable-libshaderc   build with vulkan
             enable-vulkan       depend enable-libshaderc
-            enable-libplacebo   depend enable-vulkan
+            enable-libplacebo   depend enable-vulkan enable-lcms2
             enable-libdav1d     build with libdav1d
             enable-openssl      build with openssl
             enable-libzvbi      build with libzvbi
@@ -123,7 +123,7 @@ extension Build {
 }
 
 private enum Library: String, CaseIterable {
-    case libglslang, libshaderc, vulkan, libplacebo, libdav1d, libfreetype, libfribidi, libass, openssl, libsrt, libsmbclient, gnutls, gmp, readline, FFmpeg, nettle, libharfbuzz, libpng, libtls, libzvbi, boringssl, libmpv
+    case libglslang, libshaderc, vulkan, lcms2, libdovi, libplacebo, libdav1d, libfreetype, libfribidi, libass, openssl, libsrt, libsmbclient, gnutls, gmp, readline, FFmpeg, nettle, libharfbuzz, libpng, libtls, libzvbi, boringssl, libmpv
     var version: String {
         switch self {
         case .FFmpeg:
@@ -170,6 +170,10 @@ private enum Library: String, CaseIterable {
             return "readline-8.2"
         case .libglslang:
             return "13.1.1"
+        case .libdovi:
+            return "2.1.0"
+        case .lcms2:
+            return "lcms2.16"
         }
     }
 
@@ -205,6 +209,10 @@ private enum Library: String, CaseIterable {
             return "https://git.savannah.gnu.org/git/readline.git"
         case .libglslang:
             return "https://github.com/KhronosGroup/glslang"
+        case .libdovi:
+            return "https://github.com/quietvoid/dovi_tool"
+        case .lcms2:
+            return "https://github.com/mm2/Little-CMS"
         default:
             var value = rawValue
             if self != .libass, value.hasPrefix("lib") {
@@ -216,7 +224,7 @@ private enum Library: String, CaseIterable {
 
     var isFFmpegDependentLibrary: Bool {
         switch self {
-        case .vulkan, .libshaderc, .libglslang, .libplacebo, .libdav1d, .openssl, .libsrt, .libsmbclient, .libzvbi:
+        case .vulkan, .libshaderc, .libglslang, .lcms2, .libplacebo, .libdav1d, .openssl, .libsrt, .libsmbclient, .libzvbi:
             return true
         case .gmp, .gnutls:
             return false
@@ -271,6 +279,10 @@ private enum Library: String, CaseIterable {
             return BuildGlslang()
         case .readline:
             return BuildReadline()
+        case .libdovi:
+            return BuildDovi()
+        case .lcms2:
+            return BuildLittleCms()
         }
     }
 }
@@ -1439,6 +1451,18 @@ private class BuildShaderc: BaseBuild {
 
     override func frameworks() throws -> [String] {
         ["libshaderc_combined"]
+    }
+}
+
+private class BuildLittleCms: BaseBuild {
+    init() {
+        super.init(library: .lcms2)
+    }
+}
+
+private class BuildDovi: BaseBuild {
+    init() {
+        super.init(library: .libdovi)
     }
 }
 

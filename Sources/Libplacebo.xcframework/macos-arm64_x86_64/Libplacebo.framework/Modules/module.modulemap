@@ -1,4 +1,4 @@
-framework module Libplacebo [system] {
+framework module libplacebo [system] {
     umbrella "."
     export *
 }

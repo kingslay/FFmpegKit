@@ -38,7 +38,7 @@
 #define PL_HAVE_DOVI 1
 #define PL_HAVE_GL_PROC_ADDR 1
 #undef PL_HAVE_GLSLANG
-#undef PL_HAVE_LCMS
+#define PL_HAVE_LCMS 1
 #undef PL_HAVE_LIBDOVI
 #undef PL_HAVE_OPENGL
 #define PL_HAVE_SHADERC 1

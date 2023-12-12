@@ -35,6 +35,7 @@ let package = Package(
                 .target(name: "libzvbi", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS])),
                 .target(name: "MoltenVK", condition: .when(platforms: [.macOS, .iOS, .tvOS, .macCatalyst])),
                 "libshaderc_combined",
+                "lcms2",
                 .target(name: "libplacebo", condition: .when(platforms: [.macOS, .iOS, .tvOS, .macCatalyst])),
                 "libdav1d",
                 "libssl", "libcrypto", "libsrt",
@@ -122,6 +123,11 @@ let package = Package(
         .binaryTarget(
             name: "libshaderc_combined",
             path: "Sources/libshaderc_combined.xcframework"
+        ),
+
+        .binaryTarget(
+            name: "lcms2",
+            path: "Sources/lcms2.xcframework"
         ),
         .binaryTarget(
             name: "libplacebo",
