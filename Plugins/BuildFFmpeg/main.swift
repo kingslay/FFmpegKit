@@ -52,7 +52,9 @@ extension Build {
         var librarys = [Library]()
         var isFFmpegDebug = false
         for argument in arguments {
-            if argument == "enable-debug" {
+            if argument == "notRecompile" {
+                BaseBuild.notRecompile = true
+            } else if argument == "enable-debug" {
                 isFFmpegDebug = true
             } else if argument.hasPrefix("platforms=") {
                 let values = String(argument.suffix(argument.count - "platforms=".count))
@@ -97,6 +99,7 @@ extension Build {
 
         Options:
             h, -h, --help       display this help and exit
+            notRecompile        If there is a library, then there is no need to recompile
             enable-debug,       build ffmpeg with debug information
             platforms=xros      deployment platform: macos,ios,isimulator,tvos,tvsimulator,maccatalyst,xros,xrsimulator,watchos,watchsimulator
             --xx                add ffmpeg Configuers
@@ -293,6 +296,7 @@ private class BaseBuild {
             ![.watchos, .watchsimulator].contains($0)
         }
 
+    static var notRecompile = false
     private let library: Library
     let directoryURL: URL
     init(library: Library) {
@@ -311,6 +315,9 @@ private class BaseBuild {
         for platform in platforms() {
             for arch in platform.architectures {
                 let prefix = thinDir(platform: platform, arch: arch)
+                if FileManager.default.fileExists(atPath: (prefix + "lib").path), BaseBuild.notRecompile {
+                    continue
+                }
                 try? FileManager.default.removeItem(at: prefix)
                 let buildURL = scratch(platform: platform, arch: arch)
                 try? FileManager.default.removeItem(at: buildURL)
@@ -356,6 +363,12 @@ private class BaseBuild {
     func runWafTargets(platform _: PlatformType, arch _: ArchType) throws {}
 
     func configure(buildURL: URL, environ: [String: String], platform: PlatformType, arch: ArchType) throws {
+        let autogen = directoryURL + "autogen.sh"
+        if FileManager.default.fileExists(atPath: autogen.path) {
+            var environ = environ
+            environ["NOCONFIGURE"] = "1"
+            try Utility.launch(executableURL: autogen, arguments: [], currentDirectoryURL: directoryURL, environment: environ)
+        }
         let makeLists = directoryURL + "CMakeLists.txt"
         if FileManager.default.fileExists(atPath: makeLists.path) {
             if Utility.shell("which cmake") == nil {
@@ -375,12 +388,6 @@ private class BaseBuild {
             arguments.append(contentsOf: self.arguments(platform: platform, arch: arch))
             try Utility.launch(path: cmake, arguments: arguments, currentDirectoryURL: buildURL, environment: environ)
         } else {
-            let autogen = directoryURL + "autogen.sh"
-            if FileManager.default.fileExists(atPath: autogen.path) {
-                var environ = environ
-                environ["NOCONFIGURE"] = "1"
-                try Utility.launch(executableURL: autogen, arguments: [], currentDirectoryURL: directoryURL, environment: environ)
-            }
             let configure = directoryURL + "configure"
             if !FileManager.default.fileExists(atPath: configure.path) {
                 var bootstrap = directoryURL + "bootstrap"
@@ -964,6 +971,11 @@ private class BuildZvbi: BaseBuild {
         super.platforms().filter {
             $0 != .maccatalyst
         }
+    }
+
+    override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
+        ["--host=\(platform.host(arch: arch))",
+         "--prefix=\(thinDir(platform: platform, arch: arch).path)"]
     }
 }
 
