@@ -404,6 +404,7 @@ private class BaseBuild {
 
     func environment(platform: PlatformType, arch: ArchType) -> [String: String] {
         let cFlags = platform.cFlags(arch: arch).joined(separator: " ")
+        let pkgConfigPathDefault = Utility.shell("pkg-config --variable pc_path pkg-config", isOutput: true)!
         return [
             "LC_CTYPE": "C",
             "CC": "/usr/bin/clang",
@@ -415,7 +416,7 @@ private class BaseBuild {
             "CPPFLAGS": cFlags,
             "CXXFLAGS": cFlags,
             "LDFLAGS": platform.ldFlags(arch: arch).joined(separator: " "),
-            "PKG_CONFIG_PATH": platform.pkgConfigPath(arch: arch),
+            "PKG_CONFIG_LIBDIR": platform.pkgConfigPath(arch: arch) + pkgConfigPathDefault,
             "PATH": "/usr/local/bin:/opt/homebrew/bin:/usr/local/opt/bison/bin:/usr/bin:/bin:/usr/sbin:/sbin",
         ]
     }
