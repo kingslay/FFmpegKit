@@ -126,7 +126,7 @@ extension Build {
 }
 
 private enum Library: String, CaseIterable {
-    case libglslang, libshaderc, vulkan, lcms2, libdovi, libplacebo, libdav1d, libfreetype, libfribidi, libass, openssl, libsrt, libsmbclient, gnutls, gmp, readline, FFmpeg, nettle, libharfbuzz, libpng, libtls, libzvbi, boringssl, libmpv
+    case libglslang, libshaderc, vulkan, lcms2, libdovi, libplacebo, libdav1d, libfreetype, libfribidi, libass, openssl, libsrt, libsmbclient, gnutls, gmp, readline, FFmpeg, nettle, libharfbuzz, libpng, libtls, libzvbi, boringssl, libmpv, libupnp
     var version: String {
         switch self {
         case .FFmpeg:
@@ -177,6 +177,8 @@ private enum Library: String, CaseIterable {
             return "2.1.0"
         case .lcms2:
             return "lcms2.16"
+        case .libupnp:
+            return "release-1.14.18"
         }
     }
 
@@ -216,6 +218,8 @@ private enum Library: String, CaseIterable {
             return "https://github.com/quietvoid/dovi_tool"
         case .lcms2:
             return "https://github.com/mm2/Little-CMS"
+        case .libupnp:
+            return "https://github.com/pupnp/pupnp"
         default:
             var value = rawValue
             if self != .libass, value.hasPrefix("lib") {
@@ -286,6 +290,8 @@ private enum Library: String, CaseIterable {
             return BuildDovi()
         case .lcms2:
             return BuildLittleCms()
+        case .libupnp:
+            return BuildUPnP()
         }
     }
 }
@@ -304,6 +310,14 @@ private class BaseBuild {
         directoryURL = URL.currentDirectory + "\(library.rawValue)-\(library.version)"
         if !FileManager.default.fileExists(atPath: directoryURL.path) {
             try! Utility.launch(path: "/usr/bin/git", arguments: ["clone", "--recurse-submodules", "--depth", "1", "--branch", library.version, library.url, directoryURL.path])
+        }
+        _ = try? Utility.launch(path: "/usr/bin/git", arguments: ["stash"], currentDirectoryURL: directoryURL)
+        let patch = URL.currentDirectory + "/../Plugins/BuildFFmpeg/patch/\(library.rawValue)"
+        if FileManager.default.fileExists(atPath: patch.path) {
+            let fileNames = try! FileManager.default.contentsOfDirectory(atPath: patch.path).sorted()
+            for fileName in fileNames {
+                _ = try? Utility.launch(path: "/usr/bin/git", arguments: ["apply", "\((patch + fileName).path)"], currentDirectoryURL: directoryURL)
+            }
         }
     }
 
@@ -558,17 +572,15 @@ private class BaseBuild {
         let cFlags = platform.cFlags(arch: arch).map {
             "'" + $0 + "'"
         }.joined(separator: ", ")
-
-//        c = ['/usr/bin/clang', \(cFlags)]
-//        cpp = ['/usr/bin/clang++', \(cFlags)]
-//        objc = ['/usr/bin/clang', \(cFlags)]
-//        objcpp = ['/usr/bin/clang++', \(cFlags)]
+        let ldFlags = platform.ldFlags(arch: arch).map {
+            "'" + $0 + "'"
+        }.joined(separator: ", ")
         let content = """
         [binaries]
+        c = '/usr/bin/clang'
+        cpp = '/usr/bin/clang++'
         objc = '/usr/bin/clang'
-        c_args = [\(cFlags)]
-        cpp_args = [\(cFlags)]
-        objc_args = [\(cFlags)]
+        objcpp = '/usr/bin/clang++'
         ar = '\(platform.xcrunFind(tool: "ar"))'
         strip = '\(platform.xcrunFind(tool: "strip"))'
         pkgconfig = 'pkg-config'
@@ -579,7 +591,7 @@ private class BaseBuild {
 
         [host_machine]
         system = 'darwin'
-        subsystem = '\(platform.rawValue)'
+        subsystem = '\(platform.mesonSubSystem)'
         kernel = 'xnu'
         cpu_family = '\(arch.cpuFamily)'
         cpu = '\(arch.targetCpu)'
@@ -589,6 +601,14 @@ private class BaseBuild {
         default_library = 'static'
         buildtype = 'release'
         prefix = '\(prefix.path)'
+        c_args = [\(cFlags)]
+        cpp_args = [\(cFlags)]
+        objc_args = [\(cFlags)]
+        objcpp_args = [\(cFlags)]
+        c_link_args = [\(ldFlags)]
+        cpp_link_args = [\(ldFlags)]
+        objc_link_args = [\(ldFlags)]
+        objcpp_link_args = [\(ldFlags)]
         """
         FileManager.default.createFile(atPath: crossFile.path, contents: content.data(using: .utf8), attributes: nil)
         return crossFile
@@ -1014,9 +1034,6 @@ private class BuildSmbclient: BaseBuild {
             """)
             try! str.write(toFile: path.path, atomically: true, encoding: .utf8)
         }
-        let patch = URL.currentDirectory + "/../Plugins/BuildFFmpeg/patch/libsmbclient"
-        _ = try? Utility.launch(path: "/usr/bin/git", arguments: ["apply", "\(patch.path)/fix-secure-getenv.patch"], currentDirectoryURL: directoryURL)
-        _ = try? Utility.launch(path: "/usr/bin/git", arguments: ["apply", "\(patch.path)/no-system.patch"], currentDirectoryURL: directoryURL)
     }
 
     override func wafPath() -> String {
@@ -1467,6 +1484,12 @@ private class BuildShaderc: BaseBuild {
     }
 }
 
+private class BuildUPnP: BaseBuild {
+    init() {
+        super.init(library: .libupnp)
+    }
+}
+
 private class BuildLittleCms: BaseBuild {
     init() {
         super.init(library: .lcms2)
@@ -1633,6 +1656,21 @@ private enum PlatformType: String, CaseIterable {
             #endif
         case .maccatalyst:
             return [.arm64, .x86_64]
+        }
+    }
+
+    var mesonSubSystem: String {
+        switch self {
+        case .isimulator:
+            return "ios-simulator"
+        case .tvsimulator:
+            return "tvos-simulator"
+        case .xrsimulator:
+            return "xros-simulator"
+        case .watchsimulator:
+            return "watchos-simulator"
+        default:
+            return rawValue
         }
     }
 
