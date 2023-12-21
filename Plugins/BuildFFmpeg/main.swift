@@ -54,6 +54,8 @@ extension Build {
         for argument in arguments {
             if argument == "notRecompile" {
                 BaseBuild.notRecompile = true
+            } else if argument == "gitCloneAll" {
+                BaseBuild.gitCloneAll = true
             } else if argument == "enable-debug" {
                 isFFmpegDebug = true
             } else if argument.hasPrefix("platforms=") {
@@ -100,6 +102,7 @@ extension Build {
         Options:
             h, -h, --help       display this help and exit
             notRecompile        If there is a library, then there is no need to recompile
+            gitCloneAll         git clone not add --depth 1
             enable-debug,       build ffmpeg with debug information
             platforms=xros      deployment platform: macos,ios,isimulator,tvos,tvsimulator,maccatalyst,xros,xrsimulator,watchos,watchsimulator
             --xx                add ffmpeg Configuers
@@ -231,9 +234,9 @@ private enum Library: String, CaseIterable {
 
     var isFFmpegDependentLibrary: Bool {
         switch self {
-        case .vulkan, .libshaderc, .libglslang, .lcms2, .libplacebo, .libdav1d, .openssl, .libsrt, .libsmbclient, .libzvbi:
+        case .vulkan, .libshaderc, .libglslang, .lcms2, .libplacebo, .libdav1d, .openssl, .libsrt, .libzvbi:
             return true
-        case .gmp, .gnutls:
+        case .gmp, .gnutls, .libsmbclient:
             return false
         default:
             return false
@@ -303,17 +306,23 @@ private class BaseBuild {
         }
 
     static var notRecompile = false
+    static var gitCloneAll = false
     private let library: Library
     let directoryURL: URL
     init(library: Library) {
         self.library = library
         directoryURL = URL.currentDirectory + "\(library.rawValue)-\(library.version)"
         if !FileManager.default.fileExists(atPath: directoryURL.path) {
-            try! Utility.launch(path: "/usr/bin/git", arguments: ["clone", "--recurse-submodules", "--depth", "1", "--branch", library.version, library.url, directoryURL.path])
+            var arguments = ["clone", "--recurse-submodules"]
+            if !BaseBuild.gitCloneAll {
+                arguments.append(contentsOf: ["--depth", "1"])
+            }
+            arguments.append(contentsOf: ["--branch", library.version, library.url, directoryURL.path])
+            try! Utility.launch(path: "/usr/bin/git", arguments: arguments)
         }
-        _ = try? Utility.launch(path: "/usr/bin/git", arguments: ["stash"], currentDirectoryURL: directoryURL)
         let patch = URL.currentDirectory + "/../Plugins/BuildFFmpeg/patch/\(library.rawValue)"
         if FileManager.default.fileExists(atPath: patch.path) {
+            _ = try? Utility.launch(path: "/usr/bin/git", arguments: ["stash"], currentDirectoryURL: directoryURL)
             let fileNames = try! FileManager.default.contentsOfDirectory(atPath: patch.path).sorted()
             for fileName in fileNames {
                 _ = try? Utility.launch(path: "/usr/bin/git", arguments: ["apply", "\((patch + fileName).path)"], currentDirectoryURL: directoryURL)
@@ -431,7 +440,7 @@ private class BaseBuild {
             "CXXFLAGS": cFlags,
             "LDFLAGS": platform.ldFlags(arch: arch).joined(separator: " "),
             "PKG_CONFIG_LIBDIR": platform.pkgConfigPath(arch: arch) + pkgConfigPathDefault,
-            "PATH": "/usr/local/bin:/opt/homebrew/bin:/usr/local/opt/bison/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+            "PATH": "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin:",
         ]
     }
 
@@ -916,7 +925,7 @@ private class BuildFFMPEG: BaseBuild {
         "--enable-filter=equalizer", "--enable-filter=estdif",
         "--enable-filter=firequalizer", "--enable-filter=format", "--enable-filter=fps",
         "--enable-filter=hflip", "--enable-filter=hwdownload", "--enable-filter=hwmap", "--enable-filter=hwupload",
-        "--enable-filter=idet", "--enable-filter=lenscorrection", "--enable-filter=lut_filter", "--enable-filter=negate", "--enable-filter=null",
+        "--enable-filter=idet", "--enable-filter=lenscorrection", "--enable-filter=lut*", "--enable-filter=negate", "--enable-filter=null",
         "--enable-filter=overlay",
         "--enable-filter=palettegen", "--enable-filter=paletteuse", "--enable-filter=pan",
         "--enable-filter=rotate",
@@ -1341,7 +1350,9 @@ private class BuildVulkan: BaseBuild {
         var arguments = platforms().map {
             "--\($0.name)"
         }
-        try Utility.launch(path: (directoryURL + "fetchDependencies").path, arguments: arguments, currentDirectoryURL: directoryURL)
+        if !FileManager.default.fileExists(atPath: (directoryURL + "External/build/Release").path) {
+            try Utility.launch(path: (directoryURL + "fetchDependencies").path, arguments: arguments, currentDirectoryURL: directoryURL)
+        }
         arguments = platforms().map(\.name)
         try Utility.launch(path: "/usr/bin/make", arguments: arguments, currentDirectoryURL: directoryURL)
         try? FileManager.default.removeItem(at: URL.currentDirectory() + "../Sources/MoltenVK.xcframework")
@@ -1385,7 +1396,7 @@ private class BuildVulkan: BaseBuild {
 private class BuildGlslang: BaseBuild {
     init() {
         super.init(library: .libglslang)
-        try? Utility.launch(executableURL: directoryURL + "./update_glslang_sources.py", arguments: [], currentDirectoryURL: directoryURL)
+        _ = try? Utility.launch(executableURL: directoryURL + "./update_glslang_sources.py", arguments: [], currentDirectoryURL: directoryURL)
         var path = directoryURL + "External/spirv-tools/tools/reduce/reduce.cpp"
         if let data = FileManager.default.contents(atPath: path.path), var str = String(data: data, encoding: .utf8) {
             str = str.replacingOccurrences(of: """
@@ -1434,7 +1445,7 @@ private class BuildGlslang: BaseBuild {
 private class BuildShaderc: BaseBuild {
     init() {
         super.init(library: .libshaderc)
-        try? Utility.launch(executableURL: directoryURL + "/utils/git-sync-deps", arguments: [], currentDirectoryURL: directoryURL)
+        _ = try? Utility.launch(executableURL: directoryURL + "/utils/git-sync-deps", arguments: [], currentDirectoryURL: directoryURL)
         var path = directoryURL + "third_party/spirv-tools/tools/reduce/reduce.cpp"
         if let data = FileManager.default.contents(atPath: path.path), var str = String(data: data, encoding: .utf8) {
             str = str.replacingOccurrences(of: """
@@ -1846,7 +1857,7 @@ enum ArchType: String, CaseIterable {
 
 enum Utility {
     @discardableResult
-    static func shell(_ command: String, isOutput: Bool = false, currentDirectoryURL: URL? = nil, environment: [String: String] = ["PATH": "/usr/local/bin:/opt/homebrew/bin:"]) -> String? {
+    static func shell(_ command: String, isOutput: Bool = false, currentDirectoryURL: URL? = nil, environment: [String: String] = [:]) -> String? {
         do {
             return try launch(executableURL: URL(fileURLWithPath: "/bin/zsh"), arguments: ["-c", command], isOutput: isOutput, currentDirectoryURL: currentDirectoryURL, environment: environment)
         } catch {
@@ -1864,6 +1875,10 @@ enum Utility {
     static func launch(executableURL: URL, arguments: [String], isOutput: Bool = false, currentDirectoryURL: URL? = nil, environment: [String: String] = [:]) throws -> String {
         #if os(macOS)
         let task = Process()
+        var environment = environment
+        if environment["PATH"] == nil {
+            environment["PATH"] = "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+        }
         task.environment = environment
         var standardOutput: FileHandle?
         var log = executableURL.path + " " + arguments.joined(separator: " ") + " environment: " + environment.description
