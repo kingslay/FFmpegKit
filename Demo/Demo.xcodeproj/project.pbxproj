@@ -14,7 +14,6 @@
 		AC09B5AD2B220A4B00FCDB0B /* Libavutil in Frameworks */ = {isa = PBXBuildFile; productRef = AC09B5AC2B220A4B00FCDB0B /* Libavutil */; };
 		AC09B5AF2B220A4B00FCDB0B /* Libswresample in Frameworks */ = {isa = PBXBuildFile; productRef = AC09B5AE2B220A4B00FCDB0B /* Libswresample */; };
 		AC09B5B12B220A4B00FCDB0B /* Libswscale in Frameworks */ = {isa = PBXBuildFile; productRef = AC09B5B02B220A4B00FCDB0B /* Libswscale */; };
-		AC09B5B32B220A4B00FCDB0B /* Openssl in Frameworks */ = {isa = PBXBuildFile; productRef = AC09B5B22B220A4B00FCDB0B /* Openssl */; };
 		AC09B5B52B220A4B00FCDB0B /* libass in Frameworks */ = {isa = PBXBuildFile; productRef = AC09B5B42B220A4B00FCDB0B /* libass */; };
 		AC09B5B72B220A4B00FCDB0B /* libmpv in Frameworks */ = {isa = PBXBuildFile; productRef = AC09B5B62B220A4B00FCDB0B /* libmpv */; };
 		AC11A88E2B149AD50038302D /* DemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC11A88D2B149AD50038302D /* DemoApp.swift */; };
@@ -41,7 +40,6 @@
 				AC09B5AD2B220A4B00FCDB0B /* Libavutil in Frameworks */,
 				AC09B5AF2B220A4B00FCDB0B /* Libswresample in Frameworks */,
 				AC09B5A72B220A4B00FCDB0B /* Libavcodec in Frameworks */,
-				AC09B5B32B220A4B00FCDB0B /* Openssl in Frameworks */,
 				AC09B5A52B220A4B00FCDB0B /* FFmpegKit in Frameworks */,
 				AC09B5B12B220A4B00FCDB0B /* Libswscale in Frameworks */,
 				AC09B5AB2B220A4B00FCDB0B /* Libavformat in Frameworks */,
@@ -113,7 +111,6 @@
 				AC09B5AC2B220A4B00FCDB0B /* Libavutil */,
 				AC09B5AE2B220A4B00FCDB0B /* Libswresample */,
 				AC09B5B02B220A4B00FCDB0B /* Libswscale */,
-				AC09B5B22B220A4B00FCDB0B /* Openssl */,
 				AC09B5B42B220A4B00FCDB0B /* libass */,
 				AC09B5B62B220A4B00FCDB0B /* libmpv */,
 			);
@@ -434,10 +431,6 @@
 		AC09B5B02B220A4B00FCDB0B /* Libswscale */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Libswscale;
-		};
-		AC09B5B22B220A4B00FCDB0B /* Openssl */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = Openssl;
 		};
 		AC09B5B42B220A4B00FCDB0B /* libass */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -1,0 +1,4 @@
+framework module nettle [system] {
+    umbrella "."
+    export *
+}

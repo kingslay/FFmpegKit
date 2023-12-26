@@ -1,4 +1,4 @@
-framework module Libsrt [system] {
+framework module libsrt [system] {
     umbrella "."
     export *
 }

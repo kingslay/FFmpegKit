@@ -17,7 +17,6 @@ let package = Package(
         .library(name: "Libavutil", targets: ["Libavutil"]),
         .library(name: "Libswresample", targets: ["Libswresample"]),
         .library(name: "Libswscale", targets: ["Libswscale"]),
-        .library(name: "Openssl", targets: ["libssl", "libcrypto"]),
         .library(name: "libass", targets: ["libfreetype", "libfribidi", "libharfbuzz", "libass"]),
         .library(name: "libmpv", targets: ["FFmpegKit", "libass", "libmpv"]),
         .executable(name: "ffmpeg", targets: ["ffmpeg"]),
@@ -32,14 +31,15 @@ let package = Package(
         .target(
             name: "FFmpegKit",
             dependencies: [
-                .target(name: "libzvbi", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS])),
                 .target(name: "MoltenVK", condition: .when(platforms: [.macOS, .iOS, .tvOS, .macCatalyst])),
                 "libshaderc_combined",
                 "lcms2",
-                .target(name: "libplacebo", condition: .when(platforms: [.macOS, .iOS, .tvOS, .macCatalyst])),
                 "libdav1d",
-                "libssl", "libcrypto", "libsrt",
+                .target(name: "libplacebo", condition: .when(platforms: [.macOS, .iOS, .tvOS, .macCatalyst])),
+                .target(name: "libzvbi", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS])),
+                "libsrt",
                 "libfreetype", "libfribidi", "libharfbuzz", "libass",
+                "gmp", "nettle", "hogweed", "gnutls", "libsmbclient",
                 "Libavcodec", "Libavfilter", "Libavformat", "Libavutil", "Libswresample", "Libswscale",
             ],
             linkerSettings: [
@@ -55,10 +55,12 @@ let package = Package(
                 .linkedFramework("IOKit", .when(platforms: [.macOS, .iOS, .visionOS, .macCatalyst])),
                 .linkedFramework("IOSurface"),
                 .linkedFramework("QuartzCore"),
+                .linkedFramework("Security"),
                 .linkedFramework("VideoToolbox"),
                 .linkedLibrary("bz2"),
                 .linkedLibrary("c++"),
                 .linkedLibrary("iconv"),
+                .linkedLibrary("resolv"),
                 .linkedLibrary("xml2"),
                 .linkedLibrary("z"),
             ]
@@ -196,6 +198,26 @@ let package = Package(
         .binaryTarget(
             name: "libmpv",
             path: "Sources/libmpv.xcframework"
+        ),
+        .binaryTarget(
+            name: "gmp",
+            path: "Sources/gmp.xcframework"
+        ),
+        .binaryTarget(
+            name: "nettle",
+            path: "Sources/nettle.xcframework"
+        ),
+        .binaryTarget(
+            name: "hogweed",
+            path: "Sources/hogweed.xcframework"
+        ),
+        .binaryTarget(
+            name: "gnutls",
+            path: "Sources/gnutls.xcframework"
+        ),
+        .binaryTarget(
+            name: "libsmbclient",
+            path: "Sources/libsmbclient.xcframework"
         ),
     ]
 )

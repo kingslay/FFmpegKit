@@ -1,4 +1,0 @@
-framework module Libsrt [system] {
-    umbrella "."
-    export *
-}

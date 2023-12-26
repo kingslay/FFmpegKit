@@ -1,0 +1,30 @@
+--- a/source3/libsmb/libsmb_stat.c
++++ b/source3/libsmb/libsmb_stat.c
+@@ -29,6 +29,12 @@
+ #include "../libcli/smb/smbXcli_base.h"
+ #include "lib/util/time.h"
+ 
++#if defined(__APPLE__)
++#define st_atim st_atimespec
++#define st_ctim st_ctimespec
++#define st_mtim st_mtimespec
++#endif
++
+ /*
+  * Generate an inode number from file name for those things that need it
+  */
+--- a/source4/torture/libsmbclient/libsmbclient.c
++++ b/source4/torture/libsmbclient/libsmbclient.c
+@@ -30,6 +30,12 @@
+ #include "dynconfig.h"
+ #include "lib/util/time.h"
+ 
++#if defined(__APPLE__)
++#define st_atim st_atimespec
++#define st_ctim st_ctimespec
++#define st_mtim st_mtimespec
++#endif
++
+ /* test string to compare with when debug_callback is called */
+ #define TEST_STRING "smbc_setLogCallback test"
+ 
