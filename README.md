@@ -37,29 +37,31 @@ swift package BuildFFmpeg -h
 ```
 
 ```bash
-Usage: swift package BuildFFmpeg [OPTION]...
-Default Build: swift package --disable-sandbox BuildFFmpeg enable-vulkan enable-libplacebo enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-FFmpeg
-Build MPV: swift package --disable-sandbox BuildFFmpeg mpv or swift package --disable-sandbox BuildFFmpeg enable-vulkan enable-libplacebo enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-png enable-libfreetype enable-libfribidi enable-harfbuzz enable-libass enable-FFmpeg enable-mpv
-Options:
-    h, -h, --help       display this help and exit
-    enable-debug,       build ffmpeg with debug information
-    platforms=xros      deployment platform: macos,ios,isimulator,tvos,tvsimulator,maccatalyst,xros,xrsimulator,watchos,watchsimulator
-    --xx                add ffmpeg Configuers
-    mpv                 build mpv
+        Usage: swift package BuildFFmpeg [OPTION]...
+        Default Build: swift package --disable-sandbox BuildFFmpeg enable-libshaderc enable-vulkan enable-lcms2 enable-libdav1d enable-libplacebo enable-gmp enable-nettle enable-gnutls enbale-readline enable-libsmbclient enable-libsrt enable-libzvbi enable-libfreetype enable-libfribidi enable-libharfbuzz enable-libass enable-FFmpeg enable-libmpv
 
-Libraries:
-    enable-vulkan       build with vulkan
-    enable-libplacebo   build with placebo
-    enable-libdav1d     build with dav1d
-    enable-openssl      build with openssl
-    enable-libzvbi      build with libzvbi
-    enable-libsrt       depend enable-openssl
-    enable-libfreetype  depend enable-png [no]
-    enable-libass       depend enable-png enable-libfreetype enable-libfribidi enable-harfbuzz [no]
-    enable-nettle       depend enable-gmp [no]
-    enable-gnutls       depend enable-gmp enable-nettle [no]
-    enable-libsmbclient depend enable-gmp enable-nettle enable-gnutls [no]
-    enable-harfbuzz     depend enable-libfreetype [no]
-    enable-FFmpeg       build with FFmpeg
-    enable-mpv          depend enable-png enable-libfreetype enable-libfribidi enable-harfbuzz enable-libass [no]
+        Options:
+            h, -h, --help       display this help and exit
+            notRecompile        If there is a library, then there is no need to recompile
+            gitCloneAll         git clone not add --depth 1
+            enable-debug,       build ffmpeg with debug information
+            platforms=xros      deployment platform: macos,ios,isimulator,tvos,tvsimulator,xros,xrsimulator,maccatalyst,watchos,watchsimulator
+            --xx                add ffmpeg Configuers
+
+        Libraries:
+            enable-libshaderc   build with libshaderc
+            enable-vulkan       depend enable-libshaderc
+            enable-libdav1d     build with libdav1d
+            enable-libplacebo   depend enable-libshaderc enable-vulkan enable-lcms2 enable-libdav1d
+            enable-nettle       depend enable-gmp
+            enable-gnutls       depend enable-gmp enable-nettle
+            enable-libsmbclient depend enable-gmp enable-nettle enable-gnutls enbale-readline
+            enable-libsrt       depend enable-openssl or enable-gnutls
+            enable-libfreetype  build with libfreetype
+            enable-libharfbuzz  depend enable-libfreetype
+            enable-libass       depend enable-libfreetype enable-libfribidi enable-libharfbuzz
+            enable-libzvbi      build with libzvbi
+            enable-FFmpeg       build with FFmpeg
+            enable-libmpv       depend enable-libass enable-FFmpeg
+            enable-openssl      build with openssl [no]
 ```

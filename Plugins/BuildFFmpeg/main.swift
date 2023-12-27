@@ -85,8 +85,6 @@ extension Build {
         }
         if arguments.isEmpty {
             librarys.append(contentsOf: [.libshaderc, .vulkan, .lcms2, .libplacebo, .libdav1d, .gmp, .nettle, .gnutls, .readline, .libsmbclient, .libsrt, .libzvbi, .libfreetype, .libfribidi, .libharfbuzz, .libass, .FFmpeg, .libmpv])
-        } else if arguments == ["smbclient"] {
-            librarys.append(contentsOf: [.gmp, .nettle, .gnutls, .readline, .libsmbclient])
         }
         for library in librarys {
             try library.build.buildALL()
@@ -110,7 +108,7 @@ extension Build {
             enable-libshaderc   build with libshaderc
             enable-vulkan       depend enable-libshaderc
             enable-libdav1d     build with libdav1d
-            enable-libplacebo   depend enable-vulkan enable-lcms2 enable-libdav1d
+            enable-libplacebo   depend enable-libshaderc enable-vulkan enable-lcms2 enable-libdav1d
             enable-nettle       depend enable-gmp
             enable-gnutls       depend enable-gmp enable-nettle
             enable-libsmbclient depend enable-gmp enable-nettle enable-gnutls enbale-readline
@@ -392,12 +390,6 @@ class BaseBuild {
     }
 
     func configure(buildURL: URL, environ: [String: String], platform: PlatformType, arch: ArchType) throws {
-        let autogen = directoryURL + "autogen.sh"
-        if FileManager.default.fileExists(atPath: autogen.path) {
-            var environ = environ
-            environ["NOCONFIGURE"] = "1"
-            try Utility.launch(executableURL: autogen, arguments: [], currentDirectoryURL: directoryURL, environment: environ)
-        }
         let makeLists = directoryURL + "CMakeLists.txt"
         if FileManager.default.fileExists(atPath: makeLists.path) {
             if Utility.shell("which cmake") == nil {
@@ -425,6 +417,13 @@ class BaseBuild {
                 }
                 if FileManager.default.fileExists(atPath: bootstrap.path) {
                     try Utility.launch(executableURL: bootstrap, arguments: [], currentDirectoryURL: directoryURL, environment: environ)
+                } else {
+                    let autogen = directoryURL + "autogen.sh"
+                    if FileManager.default.fileExists(atPath: autogen.path) {
+                        var environ = environ
+                        environ["NOCONFIGURE"] = "1"
+                        try Utility.launch(executableURL: autogen, arguments: [], currentDirectoryURL: directoryURL, environment: environ)
+                    }
                 }
             }
             try Utility.launch(executableURL: configure, arguments: arguments(platform: platform, arch: arch), currentDirectoryURL: buildURL, environment: environ)
@@ -444,8 +443,8 @@ class BaseBuild {
             "CURRENT_ARCH": arch.rawValue,
             "CFLAGS": cFlags,
             // makefile can't use CPPFLAGS
-            "CPPFLAGS": cFlags,
-            "CXXFLAGS": cFlags,
+//            "CPPFLAGS": cFlags,
+//            "CXXFLAGS": cFlags,
             "LDFLAGS": ldFlags,
 //            "PKG_CONFIG_PATH": pkgConfigPath,
             "PKG_CONFIG_LIBDIR": pkgConfigPath + pkgConfigPathDefault,
@@ -696,6 +695,12 @@ class BuildZvbi: BaseBuild {
         super.platforms().filter {
             $0 != .maccatalyst
         }
+    }
+
+    override func environment(platform: PlatformType, arch: ArchType) -> [String: String] {
+        var env = super.environment(platform: platform, arch: arch)
+        env["CXXFLAGS"] = env["CFLAGS"]
+        return env
     }
 
     override func arguments(platform: PlatformType, arch: ArchType) -> [String] {

@@ -53,6 +53,12 @@ class BuildFFMPEG: BaseBuild {
         return ldFlags
     }
 
+    override func environment(platform: PlatformType, arch: ArchType) -> [String: String] {
+        var env = super.environment(platform: platform, arch: arch)
+        env["CPPFLAGS"] = env["CFLAGS"]
+        return env
+    }
+
     override func build(platform: PlatformType, arch: ArchType, buildURL: URL) throws {
         try super.build(platform: platform, arch: arch, buildURL: buildURL)
         let prefix = thinDir(platform: platform, arch: arch)
