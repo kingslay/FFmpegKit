@@ -71,7 +71,6 @@ class BuildASS: BaseBuild {
                 "--disable-require-system-font-provider",
                 "--disable-test",
                 "--disable-profile",
-                "--disable-coretext",
                 "--with-pic",
                 "--enable-static",
                 "--disable-shared",
