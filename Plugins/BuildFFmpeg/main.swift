@@ -125,7 +125,7 @@ extension Build {
 }
 
 enum Library: String, CaseIterable {
-    case libglslang, libshaderc, vulkan, lcms2, libdovi, libdav1d, libplacebo, libfreetype, libharfbuzz, libfribidi, libass, gmp, readline, nettle, gnutls, libsmbclient, libsrt, libzvbi, FFmpeg, libmpv, openssl, libtls, boringssl, libpng, libupnp
+    case libglslang, libshaderc, vulkan, lcms2, libdovi, libdav1d, libplacebo, libfreetype, libharfbuzz, libfribidi, libass, gmp, readline, nettle, gnutls, libsmbclient, libsrt, libzvbi, FFmpeg, libmpv, openssl, libtls, boringssl, libpng, libupnp, libnfs
     var version: String {
         switch self {
         case .FFmpeg:
@@ -178,6 +178,8 @@ enum Library: String, CaseIterable {
             return "lcms2.16"
         case .libupnp:
             return "release-1.14.18"
+        case .libnfs:
+            return "libnfs-5.0.2"
         }
     }
 
@@ -219,6 +221,8 @@ enum Library: String, CaseIterable {
             return "https://github.com/mm2/Little-CMS"
         case .libupnp:
             return "https://github.com/pupnp/pupnp"
+        case .libnfs:
+            return "https://github.com/sahlberg/libnfs"
         default:
             var value = rawValue
             if self != .libass, value.hasPrefix("lib") {
@@ -291,6 +295,8 @@ enum Library: String, CaseIterable {
             return BuildLittleCms()
         case .libupnp:
             return BuildUPnP()
+        case .libnfs:
+            return BuildNFS()
         }
     }
 }
@@ -735,6 +741,12 @@ class BuildSRT: BaseBuild {
 class BuildUPnP: BaseBuild {
     init() {
         super.init(library: .libupnp)
+    }
+}
+
+class BuildNFS: BaseBuild {
+    init() {
+        super.init(library: .libnfs)
     }
 }
 
