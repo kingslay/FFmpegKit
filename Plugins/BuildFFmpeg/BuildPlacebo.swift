@@ -173,6 +173,14 @@ class BuildShaderc: BaseBuild {
     override func frameworks() throws -> [String] {
         ["libshaderc_combined"]
     }
+
+    override func build(platform: PlatformType, arch: ArchType, buildURL: URL) throws {
+        try super.build(platform: platform, arch: arch, buildURL: buildURL)
+        let thinDir = thinDir(platform: platform, arch: arch)
+        let pkgconfig = thinDir + "lib/pkgconfig"
+        try FileManager.default.moveItem(at: pkgconfig + "shaderc.pc", to: pkgconfig + "shaderc_shared.pc")
+        try FileManager.default.moveItem(at: pkgconfig + "shaderc_combined.pc", to: pkgconfig + "shaderc.pc")
+    }
 }
 
 class BuildLittleCms: BaseBuild {
