@@ -6,6 +6,7 @@
 //
 
 import Foundation
+
 ///
 /// https://github.com/xbmc/xbmc/blob/8d852242b8fed6fc99132c5428e1c703970f7201/tools/depends/target/samba-gplv3/Makefile
 class BuildSmbclient: BaseBuild {

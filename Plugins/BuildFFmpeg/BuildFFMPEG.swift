@@ -6,6 +6,7 @@
 //
 
 import Foundation
+
 class BuildFFMPEG: BaseBuild {
     init() {
         super.init(library: .FFmpeg)

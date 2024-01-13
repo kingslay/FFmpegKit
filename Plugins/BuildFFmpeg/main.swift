@@ -1,8 +1,10 @@
 import Foundation
+
 @main struct Build {}
 
 #if canImport(PackagePlugin)
 import PackagePlugin
+
 extension Build: CommandPlugin {
     func performCommand(context _: PluginContext, arguments: [String]) throws {
         try Build.performCommand(arguments: arguments)
@@ -11,6 +13,7 @@ extension Build: CommandPlugin {
 
 #if canImport(XcodeProjectPlugin)
 import XcodeProjectPlugin
+
 extension Build: XcodeCommandPlugin {
     func performCommand(context _: XcodePluginContext, arguments: [String]) throws {
         try Build.performCommand(arguments: arguments)
@@ -566,7 +569,7 @@ class BaseBuild {
             umbrella "."
 
         """
-        frameworkExcludeHeaders(framework).forEach { header in
+        for header in frameworkExcludeHeaders(framework) {
             modulemap += """
                 exclude header "\(header).h"
 
@@ -1080,8 +1083,8 @@ extension URL {
 
     static func + (left: URL, right: [String]) -> URL {
         var url = left
-        right.forEach {
-            url.appendPathComponent($0)
+        for item in right {
+            url.appendPathComponent(item)
         }
         return url
     }
