@@ -7,7 +7,7 @@ It includes scripts to build `FFmpeg` native libraries, three executable product
 ### Features
 - Scripts to build FFmpeg native libraries
 - three executable product `ffplay`/`ffmpeg`/`ffprobe` in macos
-- Supports native platforms: `iOS`, `macOS`, `tvOS`, `xrOS`, `visionOS`
+- Supports native platforms: `iOS`, `macOS`, `tvOS`, `visionOS`
 - Build MPV
 
 ### Swift Package Manager
@@ -22,8 +22,6 @@ dependencies: [
 ```bash
 swift package --disable-sandbox BuildFFmpeg
 
-/// build MPV
-swift package --disable-sandbox BuildFFmpeg enable-vulkan enable-libplacebo enable-libdav1d enable-openssl enable-libsrt enable-libzvbi enable-png enable-libfreetype enable-libfribidi enable-harfbuzz enable-libass enable-FFmpeg enable-mpv platforms=macos
 ```
 ## Executable product
 ```bash
@@ -65,3 +63,5 @@ swift package BuildFFmpeg -h
             enable-libmpv       depend enable-libass enable-FFmpeg
             enable-openssl      build with openssl [no]
 ```
+## License
+FFmpegKit defaults to the GPL license. Additionally, there is a paid version that adopts the LGPL license (contact us).  
