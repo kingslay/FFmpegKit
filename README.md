@@ -64,4 +64,6 @@ swift package BuildFFmpeg -h
             enable-openssl      build with openssl [no]
 ```
 ## License
-FFmpegKit defaults to the GPL license. Additionally, there is a paid version that adopts the LGPL license (contact us).  
+Because FFmpegKit includes libsmbclient by default, and the GPL is turned on when compiling FFmepg and mpv. So FFmpegKit uses the GPL license.
+ 
+Additionally, there is a paid version that adopts the LGPL license (contact us).  
