@@ -41,7 +41,7 @@ let package = Package(
                 "libsrt",
                 "libfreetype", "libfribidi", "libharfbuzz", "libass",
                 "gmp", "nettle", "hogweed", "gnutls", 
-                "libsmbclient",
+//                "libsmbclient",
                 "Libavcodec", "Libavfilter", "Libavformat", "Libavutil", "Libswresample", "Libswscale",
             ],
             linkerSettings: [
