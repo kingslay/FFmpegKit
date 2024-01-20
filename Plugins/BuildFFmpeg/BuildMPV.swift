@@ -40,6 +40,9 @@ class BuildMPV: BaseBuild {
             "-Dplain-gl=enabled",
             "-Diconv=enabled",
         ]
+        if BaseBuild.disableGPL {
+            array.append("-Dgpl=false")
+        }
         if !(platform == .macos && arch.executable) {
             array.append("-Dcplayer=false")
         }

@@ -59,6 +59,8 @@ extension Build {
                 BaseBuild.notRecompile = true
             } else if argument == "gitCloneAll" {
                 BaseBuild.gitCloneAll = true
+            } else if argument == "disableGPL" {
+                BaseBuild.disableGPL = true
             } else if argument == "enable-debug" {
                 isFFmpegDebug = true
             } else if argument.hasPrefix("platforms=") {
@@ -85,6 +87,9 @@ extension Build {
         } else {
             Build.ffmpegConfiguers.append("--disable-debug")
             Build.ffmpegConfiguers.append("--enable-stripping")
+        }
+        if !BaseBuild.disableGPL {
+            Build.ffmpegConfiguers.append("--enable-gpl")
         }
         if arguments.isEmpty {
             librarys.append(contentsOf: [.libshaderc, .vulkan, .lcms2, .libplacebo, .libdav1d, .gmp, .nettle, .gnutls, .readline, .libsmbclient, .libsrt, .libzvbi, .libfreetype, .libfribidi, .libharfbuzz, .libass, .FFmpeg, .libmpv])
@@ -312,6 +317,7 @@ class BaseBuild {
 
     static var notRecompile = false
     static var gitCloneAll = false
+    static var disableGPL = false
     let library: Library
     let directoryURL: URL
     init(library: Library) {
