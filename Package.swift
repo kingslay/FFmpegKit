@@ -40,7 +40,7 @@ let package = Package(
                 .target(name: "libzvbi", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS])),
                 "libsrt",
                 "libfreetype", "libfribidi", "libharfbuzz", "libass",
-                "gmp", "nettle", "hogweed", "gnutls", 
+                "gmp", "nettle", "hogweed", "gnutls",
                 "libsmbclient",
                 "Libavcodec", "Libavfilter", "Libavformat", "Libavutil", "Libswresample", "Libswscale",
             ],

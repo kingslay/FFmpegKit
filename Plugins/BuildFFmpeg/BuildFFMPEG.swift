@@ -231,6 +231,10 @@ class BuildFFMPEG: BaseBuild {
         return arguments
     }
 
+    /*
+     boxblur_filter_deps="gpl"
+     delogo_filter_deps="gpl"
+     */
     private let ffmpegConfiguers = [
         // Configuration options:
         "--disable-armv5te", "--disable-armv6", "--disable-armv6t2",
