@@ -91,7 +91,7 @@ extension Build {
         if !BaseBuild.disableGPL {
             Build.ffmpegConfiguers.append("--enable-gpl")
         }
-        if arguments.isEmpty {
+        if librarys.isEmpty {
             librarys.append(contentsOf: [.libshaderc, .vulkan, .lcms2, .libplacebo, .libdav1d, .gmp, .nettle, .gnutls, .readline, .libsmbclient, .libsrt, .libzvbi, .libfreetype, .libfribidi, .libharfbuzz, .libass, .FFmpeg, .libmpv])
         }
         for library in librarys {
@@ -525,8 +525,15 @@ class BaseBuild {
             var arguments = ["-create-xcframework"]
             for platform in PlatformType.allCases {
                 if let frameworkPath = try createFramework(framework: framework, platform: platform) {
-                    arguments.append("-framework")
-                    arguments.append(frameworkPath)
+                    if isFramework {
+                        arguments.append("-framework")
+                        arguments.append(frameworkPath)
+                    } else {
+                        arguments.append("-library")
+                        arguments.append(frameworkPath + "/" + framework + ".a")
+                        arguments.append("-headers")
+                        arguments.append(frameworkPath + "/Headers")
+                    }
                 }
             }
             arguments.append("-output")
@@ -569,7 +576,11 @@ class BaseBuild {
             try? FileManager.default.copyItem(at: headerURL, to: frameworkDir + "Headers")
         }
         arguments.append("-output")
-        arguments.append((frameworkDir + framework).path)
+        var output = (frameworkDir + framework).path
+        if !isFramework {
+            output += ".a"
+        }
+        arguments.append(output)
         try Utility.launch(path: "/usr/bin/lipo", arguments: arguments)
         try FileManager.default.createDirectory(at: frameworkDir + "Modules", withIntermediateDirectories: true, attributes: nil)
         var modulemap = """
@@ -590,6 +601,10 @@ class BaseBuild {
         FileManager.default.createFile(atPath: frameworkDir.path + "/Modules/module.modulemap", contents: modulemap.data(using: .utf8), attributes: nil)
         createPlist(path: frameworkDir.path + "/Info.plist", name: framework, minVersion: platform.minVersion, platform: platform.sdk)
         return frameworkDir.path
+    }
+
+    var isFramework: Bool {
+        true
     }
 
     func thinDir(library: Library, platform: PlatformType, arch: ArchType) -> URL {
@@ -756,6 +771,10 @@ class BuildUPnP: BaseBuild {
 }
 
 class BuildNFS: BaseBuild {
+    override var isFramework: Bool {
+        false
+    }
+
     init() {
         super.init(library: .libnfs)
     }
@@ -1037,7 +1056,7 @@ enum Utility {
         }
         task.environment = environment
         var standardOutput: FileHandle?
-        var log = executableURL.path + " " + arguments.joined(separator: " ") + " environment: " + environment.description
+        var log = executableURL.path + " " + arguments.joined(separator: " ") + "\n environment: " + environment.description
         if isOutput {
             let pipe = Pipe()
             task.standardOutput = pipe
