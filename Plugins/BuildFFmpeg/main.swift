@@ -461,7 +461,8 @@ class BaseBuild {
             "CFLAGS": cFlags,
             // makefile can't use CPPFLAGS
 //            "CPPFLAGS": cFlags,
-//            "CXXFLAGS": cFlags,
+            // 这个要加，不然cmake在编译maccatalyst 会有问题
+            "CXXFLAGS": cFlags,
             "LDFLAGS": ldFlags,
 //            "PKG_CONFIG_PATH": pkgConfigPath,
             "PKG_CONFIG_LIBDIR": pkgConfigPath + pkgConfigPathDefault,
