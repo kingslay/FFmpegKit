@@ -88,11 +88,16 @@ extension Build {
             Build.ffmpegConfiguers.append("--disable-debug")
             Build.ffmpegConfiguers.append("--enable-stripping")
         }
-        if !BaseBuild.disableGPL {
-            Build.ffmpegConfiguers.append("--enable-gpl")
-        }
+
         if librarys.isEmpty {
             librarys.append(contentsOf: [.libshaderc, .vulkan, .lcms2, .libplacebo, .libdav1d, .gmp, .nettle, .gnutls, .readline, .libsmbclient, .libsrt, .libzvbi, .libfreetype, .libfribidi, .libharfbuzz, .libass, .FFmpeg, .libmpv])
+        }
+        if BaseBuild.disableGPL {
+            librarys.removeAll {
+                $0 == .readline || $0 == .libsmbclient
+            }
+        } else {
+            Build.ffmpegConfiguers.append("--enable-gpl")
         }
         for library in librarys {
             try library.build.buildALL()
@@ -157,7 +162,7 @@ enum Library: String, CaseIterable {
         case .libsmbclient:
             return "samba-4.15.13"
         case .gnutls:
-            return "3.8.2"
+            return "3.8.3"
         case .nettle:
             return "nettle_3.9.1_release_20230601"
         case .libdav1d:
@@ -728,12 +733,6 @@ class BuildZvbi: BaseBuild {
         super.platforms().filter {
             $0 != .maccatalyst
         }
-    }
-
-    override func environment(platform: PlatformType, arch: ArchType) -> [String: String] {
-        var env = super.environment(platform: platform, arch: arch)
-        env["CXXFLAGS"] = env["CFLAGS"]
-        return env
     }
 
     override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
