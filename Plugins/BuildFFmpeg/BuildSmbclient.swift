@@ -169,14 +169,24 @@ class BuildGnutls: BaseBuild {
         if Utility.shell("which wget") == nil {
             Utility.shell("brew install wget")
         }
-        if Utility.shell("which bison") == nil {
+        if Utility.shell("brew list bison") == nil {
             Utility.shell("brew install bison")
+        }
+        if Utility.shell("which glibtoolize") == nil {
+            Utility.shell("brew install libtool")
         }
         super.init(library: .gnutls)
     }
 
     override func flagsDependencelibrarys() -> [Library] {
         [.gmp, .nettle]
+    }
+
+    override func environment(platform: PlatformType, arch: ArchType) -> [String: String] {
+        var env = super.environment(platform: platform, arch: arch)
+        // 需要bison的版本大于2.4,系统自带的/usr/bin/bison是 2.3
+        env["PATH"] = "/usr/local/opt/bison/bin:" + (env["PATH"] ?? "")
+        return env
     }
 
     override func configure(buildURL: URL, environ: [String: String], platform: PlatformType, arch: ArchType) throws {

@@ -91,7 +91,7 @@ extension Build {
         if !BaseBuild.disableGPL {
             Build.ffmpegConfiguers.append("--enable-gpl")
         }
-        if arguments.isEmpty {
+        if librarys.isEmpty {
             librarys.append(contentsOf: [.libshaderc, .vulkan, .lcms2, .libplacebo, .libdav1d, .gmp, .nettle, .gnutls, .readline, .libsmbclient, .libsrt, .libzvbi, .libfreetype, .libfribidi, .libharfbuzz, .libass, .FFmpeg, .libmpv])
         }
         for library in librarys {
@@ -157,7 +157,7 @@ enum Library: String, CaseIterable {
         case .libsmbclient:
             return "samba-4.15.13"
         case .gnutls:
-            return "3.8.2"
+            return "3.8.3"
         case .nettle:
             return "nettle_3.9.1_release_20230601"
         case .libdav1d:
@@ -461,7 +461,8 @@ class BaseBuild {
             "CFLAGS": cFlags,
             // makefile can't use CPPFLAGS
 //            "CPPFLAGS": cFlags,
-//            "CXXFLAGS": cFlags,
+            // 这个要加，不然cmake在编译maccatalyst 会有问题
+            "CXXFLAGS": cFlags,
             "LDFLAGS": ldFlags,
 //            "PKG_CONFIG_PATH": pkgConfigPath,
             "PKG_CONFIG_LIBDIR": pkgConfigPath + pkgConfigPathDefault,
@@ -525,8 +526,15 @@ class BaseBuild {
             var arguments = ["-create-xcframework"]
             for platform in PlatformType.allCases {
                 if let frameworkPath = try createFramework(framework: framework, platform: platform) {
-                    arguments.append("-framework")
-                    arguments.append(frameworkPath)
+                    if isFramework {
+                        arguments.append("-framework")
+                        arguments.append(frameworkPath)
+                    } else {
+                        arguments.append("-library")
+                        arguments.append(frameworkPath + "/" + framework + ".a")
+                        arguments.append("-headers")
+                        arguments.append(frameworkPath + "/Headers")
+                    }
                 }
             }
             arguments.append("-output")
@@ -569,7 +577,11 @@ class BaseBuild {
             try? FileManager.default.copyItem(at: headerURL, to: frameworkDir + "Headers")
         }
         arguments.append("-output")
-        arguments.append((frameworkDir + framework).path)
+        var output = (frameworkDir + framework).path
+        if !isFramework {
+            output += ".a"
+        }
+        arguments.append(output)
         try Utility.launch(path: "/usr/bin/lipo", arguments: arguments)
         try FileManager.default.createDirectory(at: frameworkDir + "Modules", withIntermediateDirectories: true, attributes: nil)
         var modulemap = """
@@ -590,6 +602,10 @@ class BaseBuild {
         FileManager.default.createFile(atPath: frameworkDir.path + "/Modules/module.modulemap", contents: modulemap.data(using: .utf8), attributes: nil)
         createPlist(path: frameworkDir.path + "/Info.plist", name: framework, minVersion: platform.minVersion, platform: platform.sdk)
         return frameworkDir.path
+    }
+
+    var isFramework: Bool {
+        true
     }
 
     func thinDir(library: Library, platform: PlatformType, arch: ArchType) -> URL {
@@ -714,12 +730,6 @@ class BuildZvbi: BaseBuild {
         }
     }
 
-    override func environment(platform: PlatformType, arch: ArchType) -> [String: String] {
-        var env = super.environment(platform: platform, arch: arch)
-        env["CXXFLAGS"] = env["CFLAGS"]
-        return env
-    }
-
     override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
         ["--host=\(platform.host(arch: arch))",
          "--prefix=\(thinDir(platform: platform, arch: arch).path)"]
@@ -756,6 +766,10 @@ class BuildUPnP: BaseBuild {
 }
 
 class BuildNFS: BaseBuild {
+    override var isFramework: Bool {
+        false
+    }
+
     init() {
         super.init(library: .libnfs)
     }
@@ -1037,7 +1051,7 @@ enum Utility {
         }
         task.environment = environment
         var standardOutput: FileHandle?
-        var log = executableURL.path + " " + arguments.joined(separator: " ") + " environment: " + environment.description
+        var log = executableURL.path + " " + arguments.joined(separator: " ") + "\n environment: " + environment.description
         if isOutput {
             let pipe = Pipe()
             task.standardOutput = pipe

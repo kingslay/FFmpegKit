@@ -17,6 +17,12 @@ class BuildPlacebo: BaseBuild {
         }
     }
 
+    override func platforms() -> [PlatformType] {
+        super.platforms().filter {
+            ![.maccatalyst].contains($0)
+        }
+    }
+
     override func arguments(platform _: PlatformType, arch _: ArchType) -> [String] {
         ["-Dxxhash=disabled", "-Dopengl=disabled"]
     }
