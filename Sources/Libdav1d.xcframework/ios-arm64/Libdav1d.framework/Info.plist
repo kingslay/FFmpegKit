@@ -5,13 +5,13 @@
 <key>CFBundleDevelopmentRegion</key>
 <string>en</string>
 <key>CFBundleExecutable</key>
-<string>Libdav1d</string>
+<string>libdav1d</string>
 <key>CFBundleIdentifier</key>
-<string>com.kintan.ksplayer.Libdav1d</string>
+<string>com.kintan.ksplayer.libdav1d</string>
 <key>CFBundleInfoDictionaryVersion</key>
 <string>6.0</string>
 <key>CFBundleName</key>
-<string>Libdav1d</string>
+<string>libdav1d</string>
 <key>CFBundlePackageType</key>
 <string>FMWK</string>
 <key>CFBundleShortVersionString</key>

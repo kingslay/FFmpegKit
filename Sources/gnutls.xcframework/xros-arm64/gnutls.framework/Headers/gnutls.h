@@ -49,14 +49,14 @@
 extern "C" {
 #endif
 
-#define GNUTLS_VERSION "3.8.2"
+#define GNUTLS_VERSION "3.8.3"
 
 /* clang-format off */
 #define GNUTLS_VERSION_MAJOR 3
 #define GNUTLS_VERSION_MINOR 8
-#define GNUTLS_VERSION_PATCH 2
+#define GNUTLS_VERSION_PATCH 3
 
-#define GNUTLS_VERSION_NUMBER 0x030802
+#define GNUTLS_VERSION_NUMBER 0x030803
 /* clang-format on */
 
 #define GNUTLS_CIPHER_RIJNDAEL_128_CBC GNUTLS_CIPHER_AES_128_CBC

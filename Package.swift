@@ -218,9 +218,9 @@ let package = Package(
             name: "gnutls",
             path: "Sources/gnutls.xcframework"
         ),
-        .binaryTarget(
-            name: "libsmbclient",
-            path: "Sources/libsmbclient.xcframework"
-        ),
+//        .binaryTarget(
+//            name: "libsmbclient",
+//            path: "Sources/libsmbclient.xcframework"
+//        ),
     ]
 )
