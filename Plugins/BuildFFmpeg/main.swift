@@ -88,11 +88,16 @@ extension Build {
             Build.ffmpegConfiguers.append("--disable-debug")
             Build.ffmpegConfiguers.append("--enable-stripping")
         }
-        if !BaseBuild.disableGPL {
-            Build.ffmpegConfiguers.append("--enable-gpl")
-        }
+
         if librarys.isEmpty {
             librarys.append(contentsOf: [.libshaderc, .vulkan, .lcms2, .libplacebo, .libdav1d, .gmp, .nettle, .gnutls, .readline, .libsmbclient, .libsrt, .libzvbi, .libfreetype, .libfribidi, .libharfbuzz, .libass, .FFmpeg, .libmpv])
+        }
+        if BaseBuild.disableGPL {
+            librarys.removeAll {
+                $0 == .readline || $0 == .libsmbclient
+            }
+        } else {
+            Build.ffmpegConfiguers.append("--enable-gpl")
         }
         for library in librarys {
             try library.build.buildALL()
