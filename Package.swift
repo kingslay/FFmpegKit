@@ -36,7 +36,7 @@ let package = Package(
                 "libshaderc_combined",
                 "lcms2",
                 "libdav1d",
-                .target(name: "libplacebo", condition: .when(platforms: [.macOS, .iOS, .tvOS, .macCatalyst])),
+                .target(name: "libplacebo", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS])),
                 .target(name: "libzvbi", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS])),
                 "libsrt",
                 "libfreetype", "libfribidi", "libharfbuzz", "libass",
