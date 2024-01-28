@@ -93,6 +93,11 @@ class BuildReadline: BaseBuild {
         super.init(library: .readline)
     }
 
+    // readline 只是在编译的时候需要用到。外面不需要用到
+    override func frameworks() throws -> [String] {
+        []
+    }
+
     override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
         [
             "--enable-static",
