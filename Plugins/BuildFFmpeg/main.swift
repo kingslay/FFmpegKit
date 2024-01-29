@@ -176,9 +176,9 @@ enum Library: String, CaseIterable {
         case .boringssl:
             return "master"
         case .libplacebo:
-            return "v6.338.1"
+            return "v6.338.2"
         case .vulkan:
-            return "v1.2.6"
+            return "v1.2.7"
         case .libshaderc:
             return "v2023.7"
         case .readline:
