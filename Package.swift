@@ -41,6 +41,8 @@ let package = Package(
                 "libsrt",
                 "libfreetype", "libfribidi", "libharfbuzz", "libass",
                 "gmp", "nettle", "hogweed", "gnutls",
+                "libfontconfig",
+                .target(name: "libbluray", condition: .when(platforms: [.macOS])),
 //                "libsmbclient",
                 "Libavcodec", "Libavfilter", "Libavformat", "Libavutil", "Libswresample", "Libswscale",
             ],
@@ -62,6 +64,7 @@ let package = Package(
                 .linkedFramework("VideoToolbox"),
                 .linkedLibrary("bz2"),
                 .linkedLibrary("c++"),
+                .linkedLibrary("expat"),
                 .linkedLibrary("iconv"),
                 .linkedLibrary("resolv"),
                 .linkedLibrary("xml2"),
@@ -213,6 +216,14 @@ let package = Package(
         .binaryTarget(
             name: "hogweed",
             path: "Sources/hogweed.xcframework"
+        ),
+        .binaryTarget(
+            name: "libfontconfig",
+            path: "Sources/libfontconfig.xcframework"
+        ),
+        .binaryTarget(
+            name: "libbluray",
+            path: "Sources/libbluray.xcframework"
         ),
         .binaryTarget(
             name: "gnutls",

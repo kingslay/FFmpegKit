@@ -129,6 +129,8 @@ extension Build {
             enable-libfreetype  build with libfreetype
             enable-libharfbuzz  depend enable-libfreetype
             enable-libass       depend enable-libfreetype enable-libfribidi enable-libharfbuzz
+            enable-libfontconfig depend enable-libfreetype
+            enable-libbluray    depend enable-libfreetype enable-libfontconfig
             enable-libzvbi      build with libzvbi
             enable-FFmpeg       build with FFmpeg
             enable-libmpv       depend enable-libass enable-FFmpeg
@@ -138,7 +140,7 @@ extension Build {
 }
 
 enum Library: String, CaseIterable {
-    case libglslang, libshaderc, vulkan, lcms2, libdovi, libdav1d, libplacebo, libfreetype, libharfbuzz, libfribidi, libass, gmp, readline, nettle, gnutls, libsmbclient, libsrt, libzvbi, FFmpeg, libmpv, openssl, libtls, boringssl, libpng, libupnp, libnfs
+    case libglslang, libshaderc, vulkan, lcms2, libdovi, libdav1d, libplacebo, libfreetype, libharfbuzz, libfribidi, libass, gmp, readline, nettle, gnutls, libsmbclient, libsrt, libzvbi, libfontconfig, libbluray, FFmpeg, libmpv, openssl, libtls, boringssl, libpng, libupnp, libnfs
     var version: String {
         switch self {
         case .FFmpeg:
@@ -193,6 +195,10 @@ enum Library: String, CaseIterable {
             return "release-1.14.18"
         case .libnfs:
             return "libnfs-5.0.2"
+        case .libbluray:
+            return "1.3.4"
+        case .libfontconfig:
+            return "2.14.2"
         }
     }
 
@@ -236,6 +242,10 @@ enum Library: String, CaseIterable {
             return "https://github.com/pupnp/pupnp"
         case .libnfs:
             return "https://github.com/sahlberg/libnfs"
+        case .libbluray:
+            return "https://code.videolan.org/videolan/libbluray"
+        case .libfontconfig:
+            return "https://gitlab.freedesktop.org/fontconfig/fontconfig"
         default:
             var value = rawValue
             if self != .libass, value.hasPrefix("lib") {
@@ -247,7 +257,7 @@ enum Library: String, CaseIterable {
 
     var isFFmpegDependentLibrary: Bool {
         switch self {
-        case .vulkan, .libshaderc, .libglslang, .lcms2, .libplacebo, .libdav1d, .gmp, .gnutls, .libsrt, .libzvbi:
+        case .vulkan, .libshaderc, .libglslang, .lcms2, .libplacebo, .libdav1d, .gmp, .gnutls, .libsrt, .libzvbi, .libfontconfig, .libbluray:
             return true
         case .openssl:
             return false
@@ -312,6 +322,10 @@ enum Library: String, CaseIterable {
             return BuildUPnP()
         case .libnfs:
             return BuildNFS()
+        case .libfontconfig:
+            return BuildFontconfig()
+        case .libbluray:
+            return BuildBluray()
         }
     }
 }
@@ -777,6 +791,40 @@ class BuildNFS: BaseBuild {
 
     init() {
         super.init(library: .libnfs)
+    }
+}
+
+class BuildFontconfig: BaseBuild {
+    init() {
+        super.init(library: .libfontconfig)
+    }
+
+    override func arguments(platform _: PlatformType, arch _: ArchType) -> [String] {
+        [
+            "-Ddoc=disabled",
+            "-Dtests=disabled",
+        ]
+    }
+}
+
+class BuildBluray: BaseBuild {
+    init() {
+        super.init(library: .libbluray)
+    }
+
+    // 只有macos支持mount
+    override func platforms() -> [PlatformType] {
+        [.macos]
+    }
+
+    override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
+        [
+            "--disable-bdjava-jar",
+            "--disable-silent-rules",
+            "--disable-dependency-tracking",
+            "--host=\(platform.host(arch: arch))",
+            "--prefix=\(thinDir(platform: platform, arch: arch).path)",
+        ]
     }
 }
 
