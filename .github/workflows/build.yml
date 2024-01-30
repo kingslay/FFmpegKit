@@ -23,7 +23,8 @@ jobs:
         run: |
           cd Demo
           pod install
-          swift build -v
+          swift package BuildFFmpeg  -h
+          swift run ffmpeg -h
           xcodebuild -workspace Demo.xcworkspace -scheme macOS
           xcodebuild -workspace Demo.xcworkspace -scheme iOS -sdk iphonesimulator
           # xcodebuild -workspace Demo.xcworkspace -scheme tvOS -sdk appletvsimulator
