@@ -54,6 +54,7 @@ let package = Package(
                 .linkedFramework("CoreGraphics"),
                 .linkedFramework("CoreMedia"),
                 .linkedFramework("Cocoa", .when(platforms: [.macOS])),
+                .linkedFramework("DiskArbitration", .when(platforms: [.macOS])),
                 .linkedFramework("Foundation"),
                 .linkedFramework("Metal"),
                 .linkedFramework("IOKit", .when(platforms: [.macOS, .iOS, .visionOS, .macCatalyst])),

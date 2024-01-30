@@ -1,0 +1,34 @@
+PODS:
+  - FFmpegKit (6.1.0):
+    - FFmpegKit/FFmpegKit (= 6.1.0)
+  - FFmpegKit/FFmpegKit (6.1.0):
+    - Libass
+  - Libass (0.17.1):
+    - Libass/Libass (= 0.17.1)
+  - Libass/Libass (0.17.1)
+  - Libmpv (0.37.0):
+    - Libmpv/Libmpv (= 0.37.0)
+  - Libmpv/Libmpv (0.37.0):
+    - FFmpegKit
+
+DEPENDENCIES:
+  - FFmpegKit (from `../`)
+  - Libass (from `../`)
+  - Libmpv (from `../`)
+
+EXTERNAL SOURCES:
+  FFmpegKit:
+    :path: "../"
+  Libass:
+    :path: "../"
+  Libmpv:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  FFmpegKit: cf3c18026eacbdee82444a08917ed75a1c6a9366
+  Libass: e88af2324e1217e3a4c8bdc675f6f23a9dfc7677
+  Libmpv: f221c4019c71818458578aa3d3777c9d3a2eca88
+
+PODFILE CHECKSUM: faba0bcc57c58483d2732aa968709a5a5c4777df
+
+COCOAPODS: 1.14.3
