@@ -113,15 +113,14 @@ let package = Package(
 //            path: "Plugins/BuildFFmpeg"
 //        ),
         .plugin(
-            name: "BuildFFmpeg",
-            capability: .command(
+            name: "BuildFFmpeg", capability: .command(
                 intent: .custom(
                     verb: "BuildFFmpeg",
                     description: "You can customize FFmpeg and then compile FFmpeg"
                 ),
                 permissions: [
-                    .writeToPackageDirectory(reason: "This command compile FFmpeg and generate xcframework. compile FFmpeg need brew install nasm sdl2 cmake. So you need add --allow-writing-to-directory /usr/local/ --allow-writing-to-directory ~/Library/ or add --disable-sandbox"),
-                    .allowNetworkConnections(scope: .all(), reason: "The plugin must connect to a remote server to brew install nasm sdl2 cmake"),
+                    //                    .writeToPackageDirectory(reason: "This command compile FFmpeg and generate xcframework. compile FFmpeg need brew install nasm sdl2 cmake. So you need add --allow-writing-to-directory /usr/local/ --allow-writing-to-directory ~/Library/ or add --disable-sandbox"),
+//                    .allowNetworkConnections(scope: .all(), reason: "The plugin must connect to a remote server to brew install nasm sdl2 cmake"),
                 ]
             )
         ),
