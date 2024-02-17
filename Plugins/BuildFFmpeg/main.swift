@@ -839,7 +839,7 @@ enum PlatformType: String, CaseIterable {
         case .macos:
             return "10.15"
         case .maccatalyst:
-            return "13.0"
+            return "14.0"
         case .watchos, .watchsimulator:
             return "6.0"
         case .xros, .xrsimulator:
@@ -951,7 +951,7 @@ enum PlatformType: String, CaseIterable {
         case .ios, .tvos, .watchos, .macos, .xros:
             return "\(arch.targetCpu)-apple-\(rawValue)\(minVersion)"
         case .maccatalyst:
-            return "\(arch.targetCpu)-apple-ios-macabi"
+            return "\(arch.targetCpu)-apple-ios\(minVersion)-macabi"
         case .isimulator:
             return PlatformType.ios.deploymentTarget(arch: arch) + "-simulator"
         case .tvsimulator:

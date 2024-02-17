@@ -44,11 +44,13 @@ let package = Package(
                 .target(name: "libbluray", condition: .when(platforms: [.macOS])),
                 "gmp", "nettle", "hogweed", "gnutls",
 //                "libsmbclient",
-                "Libavcodec", "Libavfilter", "Libavformat", "Libavutil", "Libswresample", "Libswscale",
+                "Libavcodec", "Libavdevice", "Libavfilter", "Libavformat", "Libavutil", "Libswresample", "Libswscale",
             ],
             linkerSettings: [
                 .linkedFramework("AudioToolbox"),
                 .linkedFramework("AVFAudio"),
+                .linkedFramework("AVFoundation"),
+                .linkedFramework("CoreAudio"),
                 .linkedFramework("CoreVideo"),
                 .linkedFramework("CoreFoundation"),
                 .linkedFramework("CoreGraphics"),
@@ -148,6 +150,10 @@ let package = Package(
         .binaryTarget(
             name: "Libavcodec",
             path: "Sources/Libavcodec.xcframework"
+        ),
+        .binaryTarget(
+            name: "Libavdevice",
+            path: "Sources/Libavdevice.xcframework"
         ),
         .binaryTarget(
             name: "Libavfilter",

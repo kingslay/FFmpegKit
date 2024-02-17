@@ -196,17 +196,22 @@ class BuildFFMPEG: BaseBuild {
             arguments.append("--enable-filter=color")
             arguments.append("--enable-filter=lut")
             arguments.append("--enable-filter=testsrc")
-            arguments.append("--disable-avdevice")
             // debug
             arguments.append("--enable-debug")
             arguments.append("--enable-debug=3")
             arguments.append("--disable-stripping")
-            //            arguments.append("--enable-avdevice")
-            //            arguments.append("--enable-indev=lavfi")
         } else {
-            arguments.append("--disable-avdevice")
             arguments.append("--disable-programs")
         }
+        if platform == .macos {
+            arguments.append("--enable-outdev=audiotoolbox")
+        }
+        if !([PlatformType.tvos, .tvsimulator, .xros, .xrsimulator].contains(platform)) {
+            // tvos17才支持AVCaptureDeviceInput
+//            'defaultDeviceWithMediaType:' is unavailable: not available on visionOS
+            arguments.append("--enable-indev=avfoundation")
+        }
+        arguments.append("--enable-indev=lavfi")
         //        if platform == .isimulator || platform == .tvsimulator {
         //            arguments.append("--assert-level=1")
         //        }
