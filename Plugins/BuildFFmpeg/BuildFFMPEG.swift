@@ -211,7 +211,6 @@ class BuildFFMPEG: BaseBuild {
 //            'defaultDeviceWithMediaType:' is unavailable: not available on visionOS
             arguments.append("--enable-indev=avfoundation")
         }
-        arguments.append("--enable-indev=lavfi")
         //        if platform == .isimulator || platform == .tvsimulator {
         //            arguments.append("--assert-level=1")
         //        }
@@ -253,6 +252,7 @@ class BuildFFMPEG: BaseBuild {
         // Component options:
         "--enable-avcodec", "--enable-avformat", "--enable-avutil", "--enable-network", "--enable-swresample", "--enable-swscale",
         "--disable-devices", "--disable-outdevs", "--disable-indevs", "--disable-postproc",
+        "--enable-indev=lavfi",
         // ,"--disable-pthreads"
         // ,"--disable-w32threads"
         // ,"--disable-os2threads"
@@ -320,7 +320,7 @@ class BuildFFMPEG: BaseBuild {
         "--enable-decoder=dca", "--enable-decoder=dolby_e", "--enable-decoder=eac3*", "--enable-decoder=flac",
         "--enable-decoder=mp1*", "--enable-decoder=mp2*", "--enable-decoder=mp3*", "--enable-decoder=opus",
         "--enable-decoder=pcm*", "--enable-decoder=sonic",
-        "--enable-decoder=truehd", "--enable-decoder=tta", "--enable-decoder=vorbis", "--enable-decoder=wma*",
+        "--enable-decoder=truehd", "--enable-decoder=tta", "--enable-decoder=vorbis", "--enable-decoder=wma*", "--enable-decoder=wrapped_avframe",
         // 字幕
         "--enable-decoder=ass", "--enable-decoder=ccaption", "--enable-decoder=dvbsub", "--enable-decoder=dvdsub",
         "--enable-decoder=mpl2", "--enable-decoder=movtext",
