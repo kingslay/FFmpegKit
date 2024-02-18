@@ -27,13 +27,6 @@ class BuildVulkan: BaseBuild {
         super.init(library: .vulkan)
     }
 
-    override func platforms() -> [PlatformType] {
-        // Placebo编译maccatalyst的时候，vulkan会报找不到UIKit的问题，所以要先屏蔽。
-        super.platforms().filter {
-            ![.maccatalyst].contains($0)
-        }
-    }
-
     override func buildALL() throws {
         var arguments = platforms().map {
             "--\($0.name)"
@@ -200,6 +193,9 @@ class BuildLittleCms: BaseBuild {
 class BuildDav1d: BaseBuild {
     init() {
         super.init(library: .libdav1d)
+        if Utility.shell("which nasm") == nil {
+            Utility.shell("brew install nasm")
+        }
     }
 
     override func arguments(platform _: PlatformType, arch _: ArchType) -> [String] {

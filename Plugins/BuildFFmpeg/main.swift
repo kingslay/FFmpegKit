@@ -90,7 +90,7 @@ extension Build {
         }
 
         if librarys.isEmpty {
-            librarys.append(contentsOf: [.libshaderc, .vulkan, .lcms2, .libplacebo, .libdav1d, .gmp, .nettle, .gnutls, .readline, .libsmbclient, .libsrt, .libzvbi, .libfreetype, .libfribidi, .libharfbuzz, .libass, .FFmpeg, .libmpv])
+            librarys.append(contentsOf: [.libshaderc, .vulkan, .lcms2, .libplacebo, .libdav1d, .gmp, .nettle, .gnutls, .readline, .libsmbclient, .libsrt, .libzvbi, .libfreetype, .libfribidi, .libharfbuzz, .libass, .libfontconfig, .libbluray, .FFmpeg, .libmpv])
         }
         if BaseBuild.disableGPL {
             librarys.removeAll {
@@ -1005,7 +1005,12 @@ enum PlatformType: String, CaseIterable {
 
     func ldFlags(arch: ArchType) -> [String] {
         // ldFlags的关键参数要跟cFlags保持一致，不然会在ld的时候不通过。
-        ["-arch", arch.rawValue, "-isysroot", isysroot, "-target", deploymentTarget(arch: arch)]
+        var ldFlags = ["-arch", arch.rawValue, "-isysroot", isysroot, "-target", deploymentTarget(arch: arch)]
+        if self == .maccatalyst {
+            ldFlags.append("-iframework")
+            ldFlags.append("\(isysroot)/System/iOSSupport/System/Library/Frameworks")
+        }
+        return ldFlags
     }
 
     func cFlags(arch: ArchType) -> [String] {
@@ -1016,7 +1021,8 @@ enum PlatformType: String, CaseIterable {
         cflags.append("-fno-common")
 //        }
         if self == .maccatalyst {
-            cflags.append("-iframework \(isysroot)/System/iOSSupport/System/Library/Frameworks")
+            cflags.append("-iframework")
+            cflags.append("\(isysroot)/System/iOSSupport/System/Library/Frameworks")
         }
         return cflags
     }
