@@ -351,3 +351,83 @@ class BuildFFMPEG: BaseBuild {
         "--enable-filter=vflip_vulkan", "--enable-filter=xfade_vulkan",
     ]
 }
+
+class BuildZvbi: BaseBuild {
+    init() {
+        super.init(library: .libzvbi)
+        let path = directoryURL + "configure.ac"
+        if let data = FileManager.default.contents(atPath: path.path), var str = String(data: data, encoding: .utf8) {
+            str = str.replacingOccurrences(of: "AC_FUNC_MALLOC", with: "")
+            str = str.replacingOccurrences(of: "AC_FUNC_REALLOC", with: "")
+            try! str.write(toFile: path.path, atomically: true, encoding: .utf8)
+        }
+    }
+
+    override func platforms() -> [PlatformType] {
+        super.platforms().filter {
+            $0 != .maccatalyst
+        }
+    }
+
+    override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
+        ["--host=\(platform.host(arch: arch))",
+         "--prefix=\(thinDir(platform: platform, arch: arch).path)"]
+    }
+}
+
+class BuildSRT: BaseBuild {
+    init() {
+        super.init(library: .libsrt)
+    }
+
+    override func arguments(platform: PlatformType, arch _: ArchType) -> [String] {
+        [
+            "-Wno-dev",
+//            "-DUSE_ENCLIB=openssl",
+            "-DUSE_ENCLIB=gnutls",
+            "-DENABLE_STDCXX_SYNC=1",
+            "-DENABLE_CXX11=1",
+            "-DUSE_OPENSSL_PC=1",
+            "-DENABLE_DEBUG=0",
+            "-DENABLE_LOGGING=0",
+            "-DENABLE_HEAVY_LOGGING=0",
+            "-DENABLE_APPS=0",
+            "-DENABLE_SHARED=0",
+            platform == .maccatalyst ? "-DENABLE_MONOTONIC_CLOCK=0" : "-DENABLE_MONOTONIC_CLOCK=1",
+        ]
+    }
+}
+
+class BuildFontconfig: BaseBuild {
+    init() {
+        super.init(library: .libfontconfig)
+    }
+
+    override func arguments(platform _: PlatformType, arch _: ArchType) -> [String] {
+        [
+            "-Ddoc=disabled",
+            "-Dtests=disabled",
+        ]
+    }
+}
+
+class BuildBluray: BaseBuild {
+    init() {
+        super.init(library: .libbluray)
+    }
+
+    // 只有macos支持mount
+    override func platforms() -> [PlatformType] {
+        [.macos]
+    }
+
+    override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
+        [
+            "--disable-bdjava-jar",
+            "--disable-silent-rules",
+            "--disable-dependency-tracking",
+            "--host=\(platform.host(arch: arch))",
+            "--prefix=\(thinDir(platform: platform, arch: arch).path)",
+        ]
+    }
+}
