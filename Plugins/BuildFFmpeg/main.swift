@@ -342,7 +342,7 @@ enum Library: String, CaseIterable {
 class BaseBuild {
     static var platforms = PlatformType.allCases
         .filter {
-            ![.watchos, .watchsimulator].contains($0)
+            ![.watchos, .watchsimulator, .android].contains($0)
         }
 
     static var notRecompile = false
@@ -480,10 +480,14 @@ class BaseBuild {
         let ldFlags = ldFlags(platform: platform, arch: arch).joined(separator: " ")
         let pkgConfigPath = platform.pkgConfigPath(arch: arch)
         let pkgConfigPathDefault = Utility.shell("pkg-config --variable pc_path pkg-config", isOutput: true)!
+        var path = "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin:"
+        if platform == .android {
+            path = platform.androidToolchainPath + "/bin:" + path
+        }
         return [
             "LC_CTYPE": "C",
-            "CC": "/usr/bin/clang",
-            "CXX": "/usr/bin/clang++",
+            "CC": platform.cc,
+            "CXX": platform.cc + "++",
             // "SDKROOT": platform.sdk.lowercased(),
             "CURRENT_ARCH": arch.rawValue,
             "CFLAGS": cFlags,
@@ -494,7 +498,7 @@ class BaseBuild {
             "LDFLAGS": ldFlags,
 //            "PKG_CONFIG_PATH": pkgConfigPath,
             "PKG_CONFIG_LIBDIR": pkgConfigPath + pkgConfigPathDefault,
-            "PATH": "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin:",
+            "PATH": path,
         ]
     }
 
@@ -742,7 +746,7 @@ class BaseBuild {
 }
 
 enum PlatformType: String, CaseIterable {
-    case macos, ios, isimulator, tvos, tvsimulator, xros, xrsimulator, maccatalyst, watchos, watchsimulator
+    case macos, ios, isimulator, tvos, tvsimulator, xros, xrsimulator, maccatalyst, watchos, watchsimulator, android
     var minVersion: String {
         switch self {
         case .ios, .isimulator:
@@ -757,12 +761,14 @@ enum PlatformType: String, CaseIterable {
             return "6.0"
         case .xros, .xrsimulator:
             return "1.0"
+        case .android:
+            return "24"
         }
     }
 
     var name: String {
         switch self {
-        case .ios, .tvos, .macos:
+        case .ios, .tvos, .macos, .android:
             return rawValue
         case .tvsimulator:
             return "tvossim"
@@ -803,12 +809,14 @@ enum PlatformType: String, CaseIterable {
             return "xros-arm64"
         case .xrsimulator:
             return "xros-arm64_x86_64-simulator"
+        case .android:
+            return "android"
         }
     }
 
     var architectures: [ArchType] {
         switch self {
-        case .ios, .xros, .watchos:
+        case .ios, .xros, .watchos, .android:
             return [.arm64]
         case .tvos:
             return [.arm64, .arm64e]
@@ -842,6 +850,14 @@ enum PlatformType: String, CaseIterable {
         }
     }
 
+    var cc: String {
+        if self == .android {
+            return "aarch64-linux-android\(minVersion)-clang"
+        } else {
+            return "/usr/bin/clang"
+        }
+    }
+
     func host(arch: ArchType) -> String {
         switch self {
         case .macos:
@@ -856,6 +872,8 @@ enum PlatformType: String, CaseIterable {
             return PlatformType.watchos.host(arch: arch)
         case .xrsimulator:
             return PlatformType.xros.host(arch: arch)
+        case .android:
+            return "aarch64-linux-android"
         }
     }
 
@@ -873,6 +891,8 @@ enum PlatformType: String, CaseIterable {
             return PlatformType.watchos.deploymentTarget(arch: arch) + "-simulator"
         case .xrsimulator:
             return PlatformType.xros.deploymentTarget(arch: arch) + "-simulator"
+        case .android:
+            return ""
         }
     }
 
@@ -888,7 +908,7 @@ enum PlatformType: String, CaseIterable {
             return "-mtvos-simulator-version-min=\(minVersion)"
         case .watchsimulator:
             return "-mwatchos-simulator-version-min=\(minVersion)"
-        case .maccatalyst, .xros, .xrsimulator:
+        case .maccatalyst, .xros, .xrsimulator, .android:
             return ""
         }
     }
@@ -913,11 +933,22 @@ enum PlatformType: String, CaseIterable {
             return "XRSimulator"
         case .macos, .maccatalyst:
             return "MacOSX"
+        case .android:
+            return ""
         }
     }
 
     func ldFlags(arch: ArchType) -> [String] {
         // ldFlags的关键参数要跟cFlags保持一致，不然会在ld的时候不通过。
+        if self == .android {
+            let toolchainPath = androidToolchainPath
+            return [
+                //                "-march=armv8-a",
+//                    "-L\(toolchainPath)/sysroot/usr/lib/\(host(arch: arch))/\(minVersion)",
+//                    "-L\(toolchainPath)/lib",
+            ]
+        }
+        let isysroot = isysroot
         var ldFlags = ["-arch", arch.rawValue, "-isysroot", isysroot, "-target", deploymentTarget(arch: arch)]
         if self == .maccatalyst {
             ldFlags.append("-iframework")
@@ -927,21 +958,32 @@ enum PlatformType: String, CaseIterable {
     }
 
     func cFlags(arch: ArchType) -> [String] {
-        let isysroot = isysroot
-        var cflags = ["-arch", arch.rawValue, "-isysroot", isysroot, "-target", deploymentTarget(arch: arch), osVersionMin]
-//        if self == .macos || self == .maccatalyst {
+        var cflags = ldFlags(arch: arch)
+        cflags.append(osVersionMin)
         // 不能同时有强符合和弱符号出现
         cflags.append("-fno-common")
+//        if self == .android {
+//            cflags.append("-fstrict-aliasing")
+//            cflags.append("-DANDROID_NDK")
+//            cflags.append("-fPIC")
+//            cflags.append("-DANDROID")
 //        }
-        if self == .maccatalyst {
-            cflags.append("-iframework")
-            cflags.append("\(isysroot)/System/iOSSupport/System/Library/Frameworks")
-        }
         return cflags
     }
 
     var isysroot: String {
-        xcrunFind(tool: "--show-sdk-path")
+        if self == .android {
+            return androidToolchainPath + "/sysroot"
+        }
+        return xcrunFind(tool: "--show-sdk-path")
+    }
+
+    var androidToolchainPath: String {
+        let root = ProcessInfo.processInfo.environment["ANDROID_NDK_HOME"] ?? ""
+//        let toolchain = "darwin-arm64"
+        let toolchain = "darwin-x86_64"
+        let toolchainPath = "\(root)/toolchains/llvm/prebuilt/\(toolchain)"
+        return toolchainPath
     }
 
     func xcrunFind(tool: String) -> String {

@@ -169,7 +169,17 @@ class BuildFFMPEG: BaseBuild {
         arguments += ffmpegConfiguers
         arguments += Build.ffmpegConfiguers
         arguments.append("--arch=\(arch.cpuFamily)")
-        arguments.append("--target-os=darwin")
+        if platform == .android {
+            arguments.append("--target-os=android")
+            // 这些参数apple不加也可以编译通过，android一定要加
+            arguments.append("--cc=\(platform.cc)")
+            arguments.append("--cxx=\(platform.cc)++")
+//            arguments.append("--cross-prefix=\(platform.host(arch: arch))-")
+//            arguments.append("--sysroot=\(platform.isysroot)")
+        } else {
+            arguments.append("--target-os=darwin")
+            arguments.append("--enable-libxml2")
+        }
         // arguments.append(arch.cpu())
         /**
          aacpsdsp.o), building for Mac Catalyst, but linking in object file built for
@@ -182,12 +192,16 @@ class BuildFFMPEG: BaseBuild {
             arguments.append("--enable-neon")
             arguments.append("--enable-asm")
         }
-        if ![.watchsimulator, .watchos].contains(platform) {
+        if ![.watchsimulator, .watchos, .android].contains(platform) {
             arguments.append("--enable-videotoolbox")
             arguments.append("--enable-audiotoolbox")
             arguments.append("--enable-filter=yadif_videotoolbox")
             arguments.append("--enable-filter=scale_vt")
             arguments.append("--enable-filter=transpose_vt")
+        } else {
+            arguments.append("--enable-encoder=h264_videotoolbox")
+            arguments.append("--enable-encoder=hevc_videotoolbox")
+            arguments.append("--enable-encoder=prores_videotoolbox")
         }
         if platform == .macos, arch.executable {
             arguments.append("--enable-ffplay")
@@ -244,7 +258,7 @@ class BuildFFMPEG: BaseBuild {
         "--disable-armv5te", "--disable-armv6", "--disable-armv6t2",
         "--disable-bzlib", "--disable-gray", "--disable-iconv", "--disable-linux-perf",
         "--disable-shared", "--disable-small", "--disable-swscale-alpha", "--disable-symver", "--disable-xlib",
-        "--enable-cross-compile", "--enable-libxml2",
+        "--enable-cross-compile",
         "--enable-optimizations", "--enable-pic", "--enable-runtime-cpudetect", "--enable-static", "--enable-thumb", "--enable-version3",
         "--pkg-config-flags=--static",
         // Documentation options:
@@ -276,8 +290,7 @@ class BuildFFMPEG: BaseBuild {
         // ./configure --list-encoders
         "--disable-encoders",
         "--enable-encoder=aac", "--enable-encoder=alac", "--enable-encoder=flac", "--enable-encoder=pcm*",
-        "--enable-encoder=movtext", "--enable-encoder=mpeg4", "--enable-encoder=h264_videotoolbox",
-        "--enable-encoder=hevc_videotoolbox", "--enable-encoder=prores", "--enable-encoder=prores_videotoolbox",
+        "--enable-encoder=movtext", "--enable-encoder=mpeg4", "--enable-encoder=prores",
         // ./configure --list-protocols
         "--enable-protocols",
         // ./configure --list-demuxers
