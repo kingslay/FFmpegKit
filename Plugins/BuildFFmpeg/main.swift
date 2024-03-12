@@ -480,10 +480,7 @@ class BaseBuild {
         let ldFlags = ldFlags(platform: platform, arch: arch).joined(separator: " ")
         let pkgConfigPath = platform.pkgConfigPath(arch: arch)
         let pkgConfigPathDefault = Utility.shell("pkg-config --variable pc_path pkg-config", isOutput: true)!
-        var path = "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin:"
-        if platform == .android {
-            path = platform.androidToolchainPath + "/bin:" + path
-        }
+        let path = "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin:"
         return [
             "LC_CTYPE": "C",
             "CC": platform.cc,
@@ -852,7 +849,7 @@ enum PlatformType: String, CaseIterable {
 
     var cc: String {
         if self == .android {
-            return "aarch64-linux-android\(minVersion)-clang"
+            return androidToolchainPath + "/bin/aarch64-linux-android\(minVersion)-clang"
         } else {
             return "/usr/bin/clang"
         }
@@ -941,7 +938,6 @@ enum PlatformType: String, CaseIterable {
     func ldFlags(arch: ArchType) -> [String] {
         // ldFlags的关键参数要跟cFlags保持一致，不然会在ld的时候不通过。
         if self == .android {
-            let toolchainPath = androidToolchainPath
             return [
                 //                "-march=armv8-a",
 //                    "-L\(toolchainPath)/sysroot/usr/lib/\(host(arch: arch))/\(minVersion)",
