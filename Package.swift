@@ -67,7 +67,7 @@ let package = Package(
                 .linkedFramework("VideoToolbox"),
                 .linkedLibrary("bz2"),
                 .linkedLibrary("c++"),
-//                .linkedLibrary("expat"),
+                .linkedLibrary("expat", .when(platforms: [.macOS])),
                 .linkedLibrary("iconv"),
                 .linkedLibrary("resolv"),
                 .linkedLibrary("xml2"),
