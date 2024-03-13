@@ -793,28 +793,44 @@ PL_LIBAV_API void pl_frame_from_avframe(struct pl_frame *out,
     }
 }
 
+#if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(60, 15, 100)
+PL_LIBAV_API const uint8_t *pl_av_stream_get_side_data(const AVStream *st,
+                                                 enum AVPacketSideDataType type)
+{
+    const AVPacketSideData *sd;
+    sd = av_packet_side_data_get(st->codecpar->coded_side_data,
+                                 st->codecpar->nb_coded_side_data,
+                                 type);
+    return sd ? sd->data : NULL;
+}
+#else
+# define pl_av_stream_get_side_data(st, type) av_stream_get_side_data(st, type, NULL)
+#endif
+
 PL_LIBAV_API void pl_frame_copy_stream_props(struct pl_frame *out,
-                                                 const AVStream *stream)
+                                             const AVStream *stream)
 {
     const uint8_t *sd;
-    if ((sd = av_stream_get_side_data(stream, AV_PKT_DATA_DISPLAYMATRIX, NULL))) {
+    if ((sd = pl_av_stream_get_side_data(stream, AV_PKT_DATA_DISPLAYMATRIX))) {
         double rot = av_display_rotation_get((const int32_t *) sd);
         out->rotation = pl_rotation_normalize(4.5 - rot / 90.0);
     }
 
 #ifdef PL_HAVE_LAV_HDR
     pl_map_hdr_metadata(&out->color.hdr, &(struct pl_av_hdr_metadata) {
-        .mdm = (void *) av_stream_get_side_data(stream,
-                        AV_PKT_DATA_MASTERING_DISPLAY_METADATA, NULL),
-        .clm = (void *) av_stream_get_side_data(stream,
-                        AV_PKT_DATA_CONTENT_LIGHT_LEVEL, NULL),
+        .mdm = (void *) pl_av_stream_get_side_data(stream,
+                        AV_PKT_DATA_MASTERING_DISPLAY_METADATA),
+        .clm = (void *) pl_av_stream_get_side_data(stream,
+                        AV_PKT_DATA_CONTENT_LIGHT_LEVEL),
 # if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(59, 2, 100)
-        .dhp = (void *) av_stream_get_side_data(stream,
-                        AV_PKT_DATA_DYNAMIC_HDR10_PLUS, NULL),
+        .dhp = (void *) pl_av_stream_get_side_data(stream,
+                        AV_PKT_DATA_DYNAMIC_HDR10_PLUS),
 # endif
     });
 #endif
 }
+
+#undef pl_av_stream_get_side_data
 
 #ifdef PL_HAVE_LAV_DOLBY_VISION
 PL_LIBAV_API void pl_map_dovi_metadata(struct pl_dovi_metadata *out,
@@ -1121,8 +1137,8 @@ static bool pl_map_avframe_vulkan(pl_gpu gpu, struct pl_frame *out,
 
         plane->texture = pl_vulkan_wrap(gpu, pl_vulkan_wrap_params(
             .image  = vkf->img[n],
-            .width  = AV_CEIL_RSHIFT(frame->width, chroma ? desc->log2_chroma_w : 0),
-            .height = AV_CEIL_RSHIFT(frame->height, chroma ? desc->log2_chroma_h : 0),
+            .width  = AV_CEIL_RSHIFT(hwfc->width, chroma ? desc->log2_chroma_w : 0),
+            .height = AV_CEIL_RSHIFT(hwfc->height, chroma ? desc->log2_chroma_h : 0),
             .format = vk_fmt[n],
             .usage  = vkfc->usage,
         ));
@@ -1341,8 +1357,10 @@ PL_LIBAV_API bool pl_download_avframe(pl_gpu gpu,
     return true;
 }
 
-#define PL_ALIGN2(x, align) (((x) + (align) - 1) & ~((align) - 1))
+#define PL_DIV_UP(x, y) (((x) + (y) - 1) / (y))
+#define PL_ALIGN(x, align) ((align) ? PL_DIV_UP(x, align) * (align) : (x))
 #define PL_MAX(x, y) ((x) > (y) ? (x) : (y))
+#define PL_LCM(x, y) ((x) * ((y) / av_gcd(x, y)))
 
 static inline void pl_avalloc_free(void *opaque, uint8_t *data)
 {
@@ -1388,10 +1406,11 @@ PL_LIBAV_API int pl_get_buffer2(AVCodecContext *avctx, AVFrame *pic, int flags)
     if ((ret = av_image_fill_linesizes(pic->linesize, pic->format, width)))
         return ret;
 
-    for (int p = 0; p < 4; p++) {
-        alignment[p] = PL_ALIGN2(alignment[p], gpu->limits.align_tex_xfer_pitch);
-        alignment[p] = PL_ALIGN2(alignment[p], gpu->limits.align_tex_xfer_offset);
-        pic->linesize[p] = PL_ALIGN2(pic->linesize[p], alignment[p]);
+    for (int p = 0; p < planes; p++) {
+        alignment[p] = PL_LCM(alignment[p], gpu->limits.align_tex_xfer_pitch);
+        alignment[p] = PL_LCM(alignment[p], gpu->limits.align_tex_xfer_offset);
+        alignment[p] = PL_LCM(alignment[p], data[p].pixel_stride);
+        pic->linesize[p] = PL_ALIGN(pic->linesize[p], alignment[p]);
     }
 
 #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(56, 56, 100)
@@ -1439,7 +1458,7 @@ PL_LIBAV_API int pl_get_buffer2(AVCodecContext *avctx, AVFrame *pic, int flags)
             return AVERROR(ENOMEM);
         }
 
-        pic->data[p] = (uint8_t *) PL_ALIGN2((uintptr_t) alloc->buf->data, alignment[p]);
+        pic->data[p] = (uint8_t *) PL_ALIGN((uintptr_t) alloc->buf->data, alignment[p]);
         pic->buf[p] = av_buffer_create(alloc->buf->data, buf_size, pl_avalloc_free, alloc, 0);
         if (!pic->buf[p]) {
             pl_buf_destroy(gpu, &alloc->buf);

@@ -75,6 +75,9 @@ extension Build {
                 let value = String(argument.suffix(argument.count - "enable-".count))
                 if let library = Library(rawValue: value) {
                     librarys.append(library)
+                } else {
+                    print("argument \(argument) wrong")
+                    return
                 }
             } else if argument.hasPrefix("--"), argument != "--disable-sandbox", argument != "--allow-writing-to-directory" {
                 Build.ffmpegConfiguers.append(argument)
@@ -90,7 +93,7 @@ extension Build {
         }
 
         if librarys.isEmpty {
-            librarys.append(contentsOf: [.libshaderc, .vulkan, .lcms2, .libplacebo, .libdav1d, .gmp, .nettle, .gnutls, .readline, .libsmbclient, .libsrt, .libzvbi, .libfreetype, .libfribidi, .libharfbuzz, .libass, .FFmpeg, .libmpv])
+            librarys.append(contentsOf: [.libshaderc, .vulkan, .lcms2, .libplacebo, .libdav1d, .gmp, .nettle, .gnutls, .readline, .libsmbclient, .libsrt, .libzvbi, .libfreetype, .libfribidi, .libharfbuzz, .libass, .libfontconfig, .libbluray, .FFmpeg, .libmpv])
         }
         if BaseBuild.disableGPL {
             librarys.removeAll {
@@ -129,6 +132,8 @@ extension Build {
             enable-libfreetype  build with libfreetype
             enable-libharfbuzz  depend enable-libfreetype
             enable-libass       depend enable-libfreetype enable-libfribidi enable-libharfbuzz
+            enable-libfontconfig depend enable-libfreetype
+            enable-libbluray    depend enable-libfreetype enable-libfontconfig
             enable-libzvbi      build with libzvbi
             enable-FFmpeg       build with FFmpeg
             enable-libmpv       depend enable-libass enable-FFmpeg
@@ -138,11 +143,11 @@ extension Build {
 }
 
 enum Library: String, CaseIterable {
-    case libglslang, libshaderc, vulkan, lcms2, libdovi, libdav1d, libplacebo, libfreetype, libharfbuzz, libfribidi, libass, gmp, readline, nettle, gnutls, libsmbclient, libsrt, libzvbi, FFmpeg, libmpv, openssl, libtls, boringssl, libpng, libupnp, libnfs
+    case libglslang, libshaderc, vulkan, lcms2, libdovi, libdav1d, libplacebo, libfreetype, libharfbuzz, libfribidi, libass, gmp, readline, nettle, gnutls, libsmbclient, libsrt, libzvbi, libfontconfig, libbluray, FFmpeg, libmpv, openssl, libtls, boringssl, libpng, libupnp, libnfs, libsmb2
     var version: String {
         switch self {
         case .FFmpeg:
-            return "n6.1.1"
+            return "n6.1"
         case .libfreetype:
             return "VER-2-12-1"
         case .libfribidi:
@@ -176,9 +181,9 @@ enum Library: String, CaseIterable {
         case .boringssl:
             return "master"
         case .libplacebo:
-            return "v6.338.1"
+            return "v6.338.2"
         case .vulkan:
-            return "v1.2.6"
+            return "v1.2.7"
         case .libshaderc:
             return "v2023.7"
         case .readline:
@@ -193,6 +198,12 @@ enum Library: String, CaseIterable {
             return "release-1.14.18"
         case .libnfs:
             return "libnfs-5.0.2"
+        case .libbluray:
+            return "1.3.4"
+        case .libfontconfig:
+            return "2.14.2"
+        case .libsmb2:
+            return "master"
         }
     }
 
@@ -236,6 +247,12 @@ enum Library: String, CaseIterable {
             return "https://github.com/pupnp/pupnp"
         case .libnfs:
             return "https://github.com/sahlberg/libnfs"
+        case .libbluray:
+            return "https://code.videolan.org/videolan/libbluray"
+        case .libfontconfig:
+            return "https://gitlab.freedesktop.org/fontconfig/fontconfig"
+        case .libsmb2:
+            return "https://github.com/sahlberg/libsmb2"
         default:
             var value = rawValue
             if self != .libass, value.hasPrefix("lib") {
@@ -247,7 +264,7 @@ enum Library: String, CaseIterable {
 
     var isFFmpegDependentLibrary: Bool {
         switch self {
-        case .vulkan, .libshaderc, .libglslang, .lcms2, .libplacebo, .libdav1d, .gmp, .gnutls, .libsrt, .libzvbi:
+        case .vulkan, .libshaderc, .libglslang, .lcms2, .libplacebo, .libdav1d, .gmp, .gnutls, .libsrt, .libzvbi, .libfontconfig, .libbluray:
             return true
         case .openssl:
             return false
@@ -312,6 +329,12 @@ enum Library: String, CaseIterable {
             return BuildUPnP()
         case .libnfs:
             return BuildNFS()
+        case .libfontconfig:
+            return BuildFontconfig()
+        case .libbluray:
+            return BuildBluray()
+        case .libsmb2:
+            return BuildSMB2()
         }
     }
 }
@@ -319,7 +342,7 @@ enum Library: String, CaseIterable {
 class BaseBuild {
     static var platforms = PlatformType.allCases
         .filter {
-            ![.watchos, .watchsimulator].contains($0)
+            ![.watchos, .watchsimulator, .android].contains($0)
         }
 
     static var notRecompile = false
@@ -457,10 +480,11 @@ class BaseBuild {
         let ldFlags = ldFlags(platform: platform, arch: arch).joined(separator: " ")
         let pkgConfigPath = platform.pkgConfigPath(arch: arch)
         let pkgConfigPathDefault = Utility.shell("pkg-config --variable pc_path pkg-config", isOutput: true)!
+        let path = "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin:"
         return [
             "LC_CTYPE": "C",
-            "CC": "/usr/bin/clang",
-            "CXX": "/usr/bin/clang++",
+            "CC": platform.cc,
+            "CXX": platform.cc + "++",
             // "SDKROOT": platform.sdk.lowercased(),
             "CURRENT_ARCH": arch.rawValue,
             "CFLAGS": cFlags,
@@ -471,7 +495,7 @@ class BaseBuild {
             "LDFLAGS": ldFlags,
 //            "PKG_CONFIG_PATH": pkgConfigPath,
             "PKG_CONFIG_LIBDIR": pkgConfigPath + pkgConfigPathDefault,
-            "PATH": "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin:",
+            "PATH": path,
         ]
     }
 
@@ -718,70 +742,8 @@ class BaseBuild {
     }
 }
 
-class BuildZvbi: BaseBuild {
-    init() {
-        super.init(library: .libzvbi)
-        let path = directoryURL + "configure.ac"
-        if let data = FileManager.default.contents(atPath: path.path), var str = String(data: data, encoding: .utf8) {
-            str = str.replacingOccurrences(of: "AC_FUNC_MALLOC", with: "")
-            str = str.replacingOccurrences(of: "AC_FUNC_REALLOC", with: "")
-            try! str.write(toFile: path.path, atomically: true, encoding: .utf8)
-        }
-    }
-
-    override func platforms() -> [PlatformType] {
-        super.platforms().filter {
-            $0 != .maccatalyst
-        }
-    }
-
-    override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
-        ["--host=\(platform.host(arch: arch))",
-         "--prefix=\(thinDir(platform: platform, arch: arch).path)"]
-    }
-}
-
-class BuildSRT: BaseBuild {
-    init() {
-        super.init(library: .libsrt)
-    }
-
-    override func arguments(platform: PlatformType, arch _: ArchType) -> [String] {
-        [
-            "-Wno-dev",
-//            "-DUSE_ENCLIB=openssl",
-            "-DUSE_ENCLIB=gnutls",
-            "-DENABLE_STDCXX_SYNC=1",
-            "-DENABLE_CXX11=1",
-            "-DUSE_OPENSSL_PC=1",
-            "-DENABLE_DEBUG=0",
-            "-DENABLE_LOGGING=0",
-            "-DENABLE_HEAVY_LOGGING=0",
-            "-DENABLE_APPS=0",
-            "-DENABLE_SHARED=0",
-            platform == .maccatalyst ? "-DENABLE_MONOTONIC_CLOCK=0" : "-DENABLE_MONOTONIC_CLOCK=1",
-        ]
-    }
-}
-
-class BuildUPnP: BaseBuild {
-    init() {
-        super.init(library: .libupnp)
-    }
-}
-
-class BuildNFS: BaseBuild {
-    override var isFramework: Bool {
-        false
-    }
-
-    init() {
-        super.init(library: .libnfs)
-    }
-}
-
 enum PlatformType: String, CaseIterable {
-    case macos, ios, isimulator, tvos, tvsimulator, xros, xrsimulator, maccatalyst, watchos, watchsimulator
+    case macos, ios, isimulator, tvos, tvsimulator, xros, xrsimulator, maccatalyst, watchos, watchsimulator, android
     var minVersion: String {
         switch self {
         case .ios, .isimulator:
@@ -791,17 +753,19 @@ enum PlatformType: String, CaseIterable {
         case .macos:
             return "10.15"
         case .maccatalyst:
-            return "13.0"
+            return "14.0"
         case .watchos, .watchsimulator:
             return "6.0"
         case .xros, .xrsimulator:
             return "1.0"
+        case .android:
+            return "24"
         }
     }
 
     var name: String {
         switch self {
-        case .ios, .tvos, .macos:
+        case .ios, .tvos, .macos, .android:
             return rawValue
         case .tvsimulator:
             return "tvossim"
@@ -842,12 +806,14 @@ enum PlatformType: String, CaseIterable {
             return "xros-arm64"
         case .xrsimulator:
             return "xros-arm64_x86_64-simulator"
+        case .android:
+            return "android"
         }
     }
 
     var architectures: [ArchType] {
         switch self {
-        case .ios, .xros, .watchos:
+        case .ios, .xros, .watchos, .android:
             return [.arm64]
         case .tvos:
             return [.arm64, .arm64e]
@@ -881,6 +847,14 @@ enum PlatformType: String, CaseIterable {
         }
     }
 
+    var cc: String {
+        if self == .android {
+            return androidToolchainPath + "/bin/aarch64-linux-android\(minVersion)-clang"
+        } else {
+            return "/usr/bin/clang"
+        }
+    }
+
     func host(arch: ArchType) -> String {
         switch self {
         case .macos:
@@ -895,6 +869,8 @@ enum PlatformType: String, CaseIterable {
             return PlatformType.watchos.host(arch: arch)
         case .xrsimulator:
             return PlatformType.xros.host(arch: arch)
+        case .android:
+            return "aarch64-linux-android"
         }
     }
 
@@ -903,7 +879,7 @@ enum PlatformType: String, CaseIterable {
         case .ios, .tvos, .watchos, .macos, .xros:
             return "\(arch.targetCpu)-apple-\(rawValue)\(minVersion)"
         case .maccatalyst:
-            return "\(arch.targetCpu)-apple-ios-macabi"
+            return "\(arch.targetCpu)-apple-ios\(minVersion)-macabi"
         case .isimulator:
             return PlatformType.ios.deploymentTarget(arch: arch) + "-simulator"
         case .tvsimulator:
@@ -912,6 +888,8 @@ enum PlatformType: String, CaseIterable {
             return PlatformType.watchos.deploymentTarget(arch: arch) + "-simulator"
         case .xrsimulator:
             return PlatformType.xros.deploymentTarget(arch: arch) + "-simulator"
+        case .android:
+            return ""
         }
     }
 
@@ -927,7 +905,7 @@ enum PlatformType: String, CaseIterable {
             return "-mtvos-simulator-version-min=\(minVersion)"
         case .watchsimulator:
             return "-mwatchos-simulator-version-min=\(minVersion)"
-        case .maccatalyst, .xros, .xrsimulator:
+        case .maccatalyst, .xros, .xrsimulator, .android:
             return ""
         }
     }
@@ -952,29 +930,56 @@ enum PlatformType: String, CaseIterable {
             return "XRSimulator"
         case .macos, .maccatalyst:
             return "MacOSX"
+        case .android:
+            return ""
         }
     }
 
     func ldFlags(arch: ArchType) -> [String] {
         // ldFlags的关键参数要跟cFlags保持一致，不然会在ld的时候不通过。
-        ["-arch", arch.rawValue, "-isysroot", isysroot, "-target", deploymentTarget(arch: arch)]
+        if self == .android {
+            return [
+                //                "-march=armv8-a",
+//                    "-L\(toolchainPath)/sysroot/usr/lib/\(host(arch: arch))/\(minVersion)",
+//                    "-L\(toolchainPath)/lib",
+            ]
+        }
+        let isysroot = isysroot
+        var ldFlags = ["-arch", arch.rawValue, "-isysroot", isysroot, "-target", deploymentTarget(arch: arch)]
+        if self == .maccatalyst {
+            ldFlags.append("-iframework")
+            ldFlags.append("\(isysroot)/System/iOSSupport/System/Library/Frameworks")
+        }
+        return ldFlags
     }
 
     func cFlags(arch: ArchType) -> [String] {
-        let isysroot = isysroot
-        var cflags = ["-arch", arch.rawValue, "-isysroot", isysroot, "-target", deploymentTarget(arch: arch), osVersionMin]
-//        if self == .macos || self == .maccatalyst {
+        var cflags = ldFlags(arch: arch)
+        cflags.append(osVersionMin)
         // 不能同时有强符合和弱符号出现
         cflags.append("-fno-common")
+//        if self == .android {
+//            cflags.append("-fstrict-aliasing")
+//            cflags.append("-DANDROID_NDK")
+//            cflags.append("-fPIC")
+//            cflags.append("-DANDROID")
 //        }
-        if self == .maccatalyst {
-            cflags.append("-iframework \(isysroot)/System/iOSSupport/System/Library/Frameworks")
-        }
         return cflags
     }
 
     var isysroot: String {
-        xcrunFind(tool: "--show-sdk-path")
+        if self == .android {
+            return androidToolchainPath + "/sysroot"
+        }
+        return xcrunFind(tool: "--show-sdk-path")
+    }
+
+    var androidToolchainPath: String {
+        let root = ProcessInfo.processInfo.environment["ANDROID_NDK_HOME"] ?? ""
+//        let toolchain = "darwin-arm64"
+        let toolchain = "darwin-x86_64"
+        let toolchainPath = "\(root)/toolchains/llvm/prebuilt/\(toolchain)"
+        return toolchainPath
     }
 
     func xcrunFind(tool: String) -> String {
@@ -1114,5 +1119,31 @@ extension URL {
             url.appendPathComponent(item)
         }
         return url
+    }
+}
+
+class BuildUPnP: BaseBuild {
+    init() {
+        super.init(library: .libupnp)
+    }
+}
+
+class BuildNFS: BaseBuild {
+    override var isFramework: Bool {
+        false
+    }
+
+    init() {
+        super.init(library: .libnfs)
+    }
+}
+
+class BuildSMB2: BaseBuild {
+    override var isFramework: Bool {
+        false
+    }
+
+    init() {
+        super.init(library: .libsmb2)
     }
 }

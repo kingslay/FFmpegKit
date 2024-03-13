@@ -169,7 +169,17 @@ class BuildFFMPEG: BaseBuild {
         arguments += ffmpegConfiguers
         arguments += Build.ffmpegConfiguers
         arguments.append("--arch=\(arch.cpuFamily)")
-        arguments.append("--target-os=darwin")
+        if platform == .android {
+            arguments.append("--target-os=android")
+            // 这些参数apple不加也可以编译通过，android一定要加
+            arguments.append("--cc=\(platform.cc)")
+            arguments.append("--cxx=\(platform.cc)++")
+//            arguments.append("--cross-prefix=\(platform.host(arch: arch))-")
+//            arguments.append("--sysroot=\(platform.isysroot)")
+        } else {
+            arguments.append("--target-os=darwin")
+            arguments.append("--enable-libxml2")
+        }
         // arguments.append(arch.cpu())
         /**
          aacpsdsp.o), building for Mac Catalyst, but linking in object file built for
@@ -182,12 +192,16 @@ class BuildFFMPEG: BaseBuild {
             arguments.append("--enable-neon")
             arguments.append("--enable-asm")
         }
-        if ![.watchsimulator, .watchos].contains(platform) {
+        if ![.watchsimulator, .watchos, .android].contains(platform) {
             arguments.append("--enable-videotoolbox")
             arguments.append("--enable-audiotoolbox")
             arguments.append("--enable-filter=yadif_videotoolbox")
             arguments.append("--enable-filter=scale_vt")
             arguments.append("--enable-filter=transpose_vt")
+        } else {
+            arguments.append("--enable-encoder=h264_videotoolbox")
+            arguments.append("--enable-encoder=hevc_videotoolbox")
+            arguments.append("--enable-encoder=prores_videotoolbox")
         }
         if platform == .macos, arch.executable {
             arguments.append("--enable-ffplay")
@@ -196,16 +210,20 @@ class BuildFFMPEG: BaseBuild {
             arguments.append("--enable-filter=color")
             arguments.append("--enable-filter=lut")
             arguments.append("--enable-filter=testsrc")
-            arguments.append("--disable-avdevice")
             // debug
             arguments.append("--enable-debug")
             arguments.append("--enable-debug=3")
             arguments.append("--disable-stripping")
-            //            arguments.append("--enable-avdevice")
-            //            arguments.append("--enable-indev=lavfi")
         } else {
-            arguments.append("--disable-avdevice")
             arguments.append("--disable-programs")
+        }
+        if platform == .macos {
+            arguments.append("--enable-outdev=audiotoolbox")
+        }
+        if !([PlatformType.tvos, .tvsimulator, .xros, .xrsimulator].contains(platform)) {
+            // tvos17才支持AVCaptureDeviceInput
+//            'defaultDeviceWithMediaType:' is unavailable: not available on visionOS
+            arguments.append("--enable-indev=avfoundation")
         }
         //        if platform == .isimulator || platform == .tvsimulator {
         //            arguments.append("--assert-level=1")
@@ -240,7 +258,7 @@ class BuildFFMPEG: BaseBuild {
         "--disable-armv5te", "--disable-armv6", "--disable-armv6t2",
         "--disable-bzlib", "--disable-gray", "--disable-iconv", "--disable-linux-perf",
         "--disable-shared", "--disable-small", "--disable-swscale-alpha", "--disable-symver", "--disable-xlib",
-        "--enable-cross-compile", "--enable-libxml2",
+        "--enable-cross-compile",
         "--enable-optimizations", "--enable-pic", "--enable-runtime-cpudetect", "--enable-static", "--enable-thumb", "--enable-version3",
         "--pkg-config-flags=--static",
         // Documentation options:
@@ -248,6 +266,7 @@ class BuildFFMPEG: BaseBuild {
         // Component options:
         "--enable-avcodec", "--enable-avformat", "--enable-avutil", "--enable-network", "--enable-swresample", "--enable-swscale",
         "--disable-devices", "--disable-outdevs", "--disable-indevs", "--disable-postproc",
+        "--enable-indev=lavfi",
         // ,"--disable-pthreads"
         // ,"--disable-w32threads"
         // ,"--disable-os2threads"
@@ -271,8 +290,7 @@ class BuildFFMPEG: BaseBuild {
         // ./configure --list-encoders
         "--disable-encoders",
         "--enable-encoder=aac", "--enable-encoder=alac", "--enable-encoder=flac", "--enable-encoder=pcm*",
-        "--enable-encoder=movtext", "--enable-encoder=mpeg4", "--enable-encoder=h264_videotoolbox",
-        "--enable-encoder=hevc_videotoolbox", "--enable-encoder=prores", "--enable-encoder=prores_videotoolbox",
+        "--enable-encoder=movtext", "--enable-encoder=mpeg4", "--enable-encoder=prores",
         // ./configure --list-protocols
         "--enable-protocols",
         // ./configure --list-demuxers
@@ -315,7 +333,7 @@ class BuildFFMPEG: BaseBuild {
         "--enable-decoder=dca", "--enable-decoder=dolby_e", "--enable-decoder=eac3*", "--enable-decoder=flac",
         "--enable-decoder=mp1*", "--enable-decoder=mp2*", "--enable-decoder=mp3*", "--enable-decoder=opus",
         "--enable-decoder=pcm*", "--enable-decoder=sonic",
-        "--enable-decoder=truehd", "--enable-decoder=tta", "--enable-decoder=vorbis", "--enable-decoder=wma*",
+        "--enable-decoder=truehd", "--enable-decoder=tta", "--enable-decoder=vorbis", "--enable-decoder=wma*", "--enable-decoder=wrapped_avframe",
         // 字幕
         "--enable-decoder=ass", "--enable-decoder=ccaption", "--enable-decoder=dvbsub", "--enable-decoder=dvdsub",
         "--enable-decoder=mpl2", "--enable-decoder=movtext",
@@ -345,4 +363,84 @@ class BuildFFMPEG: BaseBuild {
         "--enable-filter=hflip_vulkan", "--enable-filter=nlmeans_vulkan", "--enable-filter=overlay_vulkan",
         "--enable-filter=vflip_vulkan", "--enable-filter=xfade_vulkan",
     ]
+}
+
+class BuildZvbi: BaseBuild {
+    init() {
+        super.init(library: .libzvbi)
+        let path = directoryURL + "configure.ac"
+        if let data = FileManager.default.contents(atPath: path.path), var str = String(data: data, encoding: .utf8) {
+            str = str.replacingOccurrences(of: "AC_FUNC_MALLOC", with: "")
+            str = str.replacingOccurrences(of: "AC_FUNC_REALLOC", with: "")
+            try! str.write(toFile: path.path, atomically: true, encoding: .utf8)
+        }
+    }
+
+    override func platforms() -> [PlatformType] {
+        super.platforms().filter {
+            $0 != .maccatalyst
+        }
+    }
+
+    override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
+        ["--host=\(platform.host(arch: arch))",
+         "--prefix=\(thinDir(platform: platform, arch: arch).path)"]
+    }
+}
+
+class BuildSRT: BaseBuild {
+    init() {
+        super.init(library: .libsrt)
+    }
+
+    override func arguments(platform: PlatformType, arch _: ArchType) -> [String] {
+        [
+            "-Wno-dev",
+//            "-DUSE_ENCLIB=openssl",
+            "-DUSE_ENCLIB=gnutls",
+            "-DENABLE_STDCXX_SYNC=1",
+            "-DENABLE_CXX11=1",
+            "-DUSE_OPENSSL_PC=1",
+            "-DENABLE_DEBUG=0",
+            "-DENABLE_LOGGING=0",
+            "-DENABLE_HEAVY_LOGGING=0",
+            "-DENABLE_APPS=0",
+            "-DENABLE_SHARED=0",
+            platform == .maccatalyst ? "-DENABLE_MONOTONIC_CLOCK=0" : "-DENABLE_MONOTONIC_CLOCK=1",
+        ]
+    }
+}
+
+class BuildFontconfig: BaseBuild {
+    init() {
+        super.init(library: .libfontconfig)
+    }
+
+    override func arguments(platform _: PlatformType, arch _: ArchType) -> [String] {
+        [
+            "-Ddoc=disabled",
+            "-Dtests=disabled",
+        ]
+    }
+}
+
+class BuildBluray: BaseBuild {
+    init() {
+        super.init(library: .libbluray)
+    }
+
+    // 只有macos支持mount
+    override func platforms() -> [PlatformType] {
+        [.macos]
+    }
+
+    override func arguments(platform: PlatformType, arch: ArchType) -> [String] {
+        [
+            "--disable-bdjava-jar",
+            "--disable-silent-rules",
+            "--disable-dependency-tracking",
+            "--host=\(platform.host(arch: arch))",
+            "--prefix=\(thinDir(platform: platform, arch: arch).path)",
+        ]
+    }
 }

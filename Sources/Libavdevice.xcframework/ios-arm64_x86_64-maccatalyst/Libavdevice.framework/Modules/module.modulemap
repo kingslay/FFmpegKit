@@ -1,0 +1,4 @@
+framework module Libavdevice [system] {
+    umbrella "."
+    export *
+}

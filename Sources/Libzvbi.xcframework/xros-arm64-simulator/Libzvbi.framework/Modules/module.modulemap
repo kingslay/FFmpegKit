@@ -1,4 +1,4 @@
-framework module Libzvbi [system] {
+framework module libzvbi [system] {
     umbrella "."
     export *
 }

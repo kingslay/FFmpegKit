@@ -199,6 +199,9 @@ class BuildLittleCms: BaseBuild {
 class BuildDav1d: BaseBuild {
     init() {
         super.init(library: .libdav1d)
+        if Utility.shell("which nasm") == nil {
+            Utility.shell("brew install nasm")
+        }
     }
 
     override func arguments(platform _: PlatformType, arch _: ArchType) -> [String] {

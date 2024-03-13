@@ -1,0 +1,26 @@
+use_frameworks! :linkage => :static
+workspace 'Demo.xcworkspace'
+install! 'cocoapods', :generate_multiple_pod_projects => true
+def common
+  pod 'Libass', :path => '../'
+  pod 'Libmpv', :path => '../'
+  pod 'FFmpegKit', :path => '../'
+#  pod 'Libass',:git => 'https://github.com/kingslay/FFmpegKit.git', :branch => 'main'
+#  pod 'FFmpegKit',:git => 'https://github.com/kingslay/FFmpegKit.git', :branch => 'main'
+#  pod 'Libmpv',:git => 'https://github.com/kingslay/FFmpegKit.git', :branch => 'main'
+end
+target 'iOS' do
+  project 'Demo.xcodeproj'
+  platform :ios, 13.0
+  common
+end
+target 'macOS' do
+  project 'Demo.xcodeproj'
+  platform :osx, 10.15
+  common
+end
+target 'tvOS' do
+  project 'Demo.xcodeproj'
+  platform :tvos, 13.0
+  common
+end

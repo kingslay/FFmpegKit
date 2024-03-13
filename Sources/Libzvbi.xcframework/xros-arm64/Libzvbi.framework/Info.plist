@@ -5,13 +5,13 @@
 <key>CFBundleDevelopmentRegion</key>
 <string>en</string>
 <key>CFBundleExecutable</key>
-<string>Libzvbi</string>
+<string>libzvbi</string>
 <key>CFBundleIdentifier</key>
-<string>com.kintan.ksplayer.Libzvbi</string>
+<string>com.kintan.ksplayer.libzvbi</string>
 <key>CFBundleInfoDictionaryVersion</key>
 <string>6.0</string>
 <key>CFBundleName</key>
-<string>Libzvbi</string>
+<string>libzvbi</string>
 <key>CFBundlePackageType</key>
 <string>FMWK</string>
 <key>CFBundleShortVersionString</key>

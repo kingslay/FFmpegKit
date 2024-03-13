@@ -2324,7 +2324,7 @@ enum
 
 /* Define CC and CFLAGS which were used to build this version of GMP */
 #define __GMP_CC "/usr/bin/clang"
-#define __GMP_CFLAGS "-arch arm64 -isysroot /Users/kintan/Downloads/Xcode-beta.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator17.2.sdk -target arm64-apple-ios13.0-simulator -mios-simulator-version-min=13.0 -fno-common"
+#define __GMP_CFLAGS "-arch arm64 -isysroot /Applications/Xcode15.2.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator17.2.sdk -target arm64-apple-ios13.0-simulator -mios-simulator-version-min=13.0 -fno-common"
 
 /* Major version number is the value of __GNU_MP__ too, above. */
 #define __GNU_MP_VERSION            6

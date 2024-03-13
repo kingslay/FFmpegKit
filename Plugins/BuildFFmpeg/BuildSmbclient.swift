@@ -180,6 +180,9 @@ class BuildGnutls: BaseBuild {
         if Utility.shell("which glibtoolize") == nil {
             Utility.shell("brew install libtool")
         }
+        if Utility.shell("which asn1Parser") == nil {
+            Utility.shell("brew install libtasn1")
+        }
         super.init(library: .gnutls)
     }
 
@@ -190,7 +193,7 @@ class BuildGnutls: BaseBuild {
     override func environment(platform: PlatformType, arch: ArchType) -> [String: String] {
         var env = super.environment(platform: platform, arch: arch)
         // 需要bison的版本大于2.4,系统自带的/usr/bin/bison是 2.3
-        env["PATH"] = "/usr/local/opt/bison/bin:" + (env["PATH"] ?? "")
+        env["PATH"] = "/usr/local/opt/bison/bin:/opt/homebrew/opt/bison/bin:" + (env["PATH"] ?? "")
         return env
     }
 

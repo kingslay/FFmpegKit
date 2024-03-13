@@ -32,7 +32,7 @@ let package = Package(
         .target(
             name: "FFmpegKit",
             dependencies: [
-                .target(name: "MoltenVK", condition: .when(platforms: [.macOS, .iOS, .tvOS])),
+                "MoltenVK",
                 "libshaderc_combined",
                 "lcms2",
                 "libdav1d",
@@ -40,18 +40,23 @@ let package = Package(
                 .target(name: "libzvbi", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS])),
                 "libsrt",
                 "libfreetype", "libfribidi", "libharfbuzz", "libass",
+                "libfontconfig",
+                .target(name: "libbluray", condition: .when(platforms: [.macOS])),
                 "gmp", "nettle", "hogweed", "gnutls",
                 "libsmbclient",
-                "Libavcodec", "Libavfilter", "Libavformat", "Libavutil", "Libswresample", "Libswscale",
+                "Libavcodec", "Libavdevice", "Libavfilter", "Libavformat", "Libavutil", "Libswresample", "Libswscale",
             ],
             linkerSettings: [
                 .linkedFramework("AudioToolbox"),
                 .linkedFramework("AVFAudio"),
+                .linkedFramework("AVFoundation"),
+                .linkedFramework("CoreAudio"),
                 .linkedFramework("CoreVideo"),
                 .linkedFramework("CoreFoundation"),
                 .linkedFramework("CoreGraphics"),
                 .linkedFramework("CoreMedia"),
                 .linkedFramework("Cocoa", .when(platforms: [.macOS])),
+                .linkedFramework("DiskArbitration", .when(platforms: [.macOS])),
                 .linkedFramework("Foundation"),
                 .linkedFramework("Metal"),
                 .linkedFramework("IOKit", .when(platforms: [.macOS, .iOS, .visionOS, .macCatalyst])),
@@ -62,6 +67,7 @@ let package = Package(
                 .linkedFramework("VideoToolbox"),
                 .linkedLibrary("bz2"),
                 .linkedLibrary("c++"),
+                .linkedLibrary("expat", .when(platforms: [.macOS])),
                 .linkedLibrary("iconv"),
                 .linkedLibrary("resolv"),
                 .linkedLibrary("xml2"),
@@ -109,15 +115,14 @@ let package = Package(
 //            path: "Plugins/BuildFFmpeg"
 //        ),
         .plugin(
-            name: "BuildFFmpeg",
-            capability: .command(
+            name: "BuildFFmpeg", capability: .command(
                 intent: .custom(
                     verb: "BuildFFmpeg",
                     description: "You can customize FFmpeg and then compile FFmpeg"
                 ),
                 permissions: [
-                    .writeToPackageDirectory(reason: "This command compile FFmpeg and generate xcframework. compile FFmpeg need brew install nasm sdl2 cmake. So you need add --allow-writing-to-directory /usr/local/ --allow-writing-to-directory ~/Library/ or add --disable-sandbox"),
-                    .allowNetworkConnections(scope: .all(), reason: "The plugin must connect to a remote server to brew install nasm sdl2 cmake"),
+                    //                    .writeToPackageDirectory(reason: "This command compile FFmpeg and generate xcframework. compile FFmpeg need brew install nasm sdl2 cmake. So you need add --allow-writing-to-directory /usr/local/ --allow-writing-to-directory ~/Library/ or add --disable-sandbox"),
+//                    .allowNetworkConnections(scope: .all(), reason: "The plugin must connect to a remote server to brew install nasm sdl2 cmake"),
                 ]
             )
         ),
@@ -145,6 +150,10 @@ let package = Package(
         .binaryTarget(
             name: "Libavcodec",
             path: "Sources/Libavcodec.xcframework"
+        ),
+        .binaryTarget(
+            name: "Libavdevice",
+            path: "Sources/Libavdevice.xcframework"
         ),
         .binaryTarget(
             name: "Libavfilter",
@@ -213,6 +222,14 @@ let package = Package(
         .binaryTarget(
             name: "hogweed",
             path: "Sources/hogweed.xcframework"
+        ),
+        .binaryTarget(
+            name: "libfontconfig",
+            path: "Sources/libfontconfig.xcframework"
+        ),
+        .binaryTarget(
+            name: "libbluray",
+            path: "Sources/libbluray.xcframework"
         ),
         .binaryTarget(
             name: "gnutls",
