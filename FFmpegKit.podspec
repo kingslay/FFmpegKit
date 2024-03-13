@@ -26,7 +26,7 @@ Pod::Spec.new do |s|
         'Sources/libshaderc_combined.xcframework','Sources/MoltenVK.xcframework', 'Sources/lcms2.xcframework', 'Sources/libdav1d.xcframework', 'Sources/libplacebo.xcframework',
         'Sources/libfontconfig.xcframework',
         'Sources/gmp.xcframework', 'Sources/nettle.xcframework', 'Sources/hogweed.xcframework', 'Sources/gnutls.xcframework', 
-        # 'Sources/libsmbclient.xcframework',
+        'Sources/libsmbclient.xcframework',
         'Sources/libzvbi.xcframework', 'Sources/libsrt.xcframework'
         ffmpeg.osx.vendored_frameworks = 'Sources/libbluray.xcframework'
         ffmpeg.dependency 'Libass'
