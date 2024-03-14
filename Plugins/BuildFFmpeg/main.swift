@@ -149,7 +149,7 @@ enum Library: String, CaseIterable {
         case .FFmpeg:
             return "n6.1"
         case .libfreetype:
-            return "VER-2-12-2"
+            return "VER-2-13-2"
         case .libfribidi:
             return "v1.0.12"
         case .libharfbuzz:

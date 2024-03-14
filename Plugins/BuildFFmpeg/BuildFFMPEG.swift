@@ -279,6 +279,8 @@ class BuildFFMPEG: BaseBuild {
         // ,"--disable-fft"
         // Hardware accelerators:
         "--disable-d3d11va", "--disable-dxva2", "--disable-vaapi", "--disable-vdpau",
+        // todo ffmpeg的编译脚本有问题，没有加入libavcodec/vulkan_video_codec_av1std.h
+        "--disable-hwaccel=av1_vulkan,hevc_vulkan,h264_vulkan",
         // Individual component options:
         // ,"--disable-everything"
         // ./configure --list-muxers
@@ -323,7 +325,7 @@ class BuildFFMPEG: BaseBuild {
         "--enable-decoder=prores",
         "--enable-decoder=rv10", "--enable-decoder=rv20", "--enable-decoder=rv30", "--enable-decoder=rv40",
         "--enable-decoder=snow", "--enable-decoder=svq3",
-        "--enable-decoder=tscc", "--enable-decoder=txd",
+        "--enable-decoder=tscc", "--enable-decoder=tscc2", "--enable-decoder=txd",
         "--enable-decoder=wmv1", "--enable-decoder=wmv2", "--enable-decoder=wmv3",
         "--enable-decoder=vc1", "--enable-decoder=vp6", "--enable-decoder=vp6a", "--enable-decoder=vp6f",
         "--enable-decoder=vp7", "--enable-decoder=vp8", "--enable-decoder=vp9",
