@@ -1,0 +1,4 @@
+framework module gmp [system] {
+    umbrella "."
+    export *
+}
