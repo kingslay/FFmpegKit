@@ -25,7 +25,7 @@ EXTERNAL SOURCES:
     :path: "../"
 
 SPEC CHECKSUMS:
-  FFmpegKit: 27da2cafe0cc98766dc62eb1d1d7d9bd54cde65d
+  FFmpegKit: 52025e11903a6f3364af5c9e0ae45f7cf04ca20c
   Libass: e88af2324e1217e3a4c8bdc675f6f23a9dfc7677
   Libmpv: f221c4019c71818458578aa3d3777c9d3a2eca88
 

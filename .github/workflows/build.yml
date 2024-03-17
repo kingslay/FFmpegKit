@@ -27,5 +27,6 @@ jobs:
           swift run ffmpeg -h
           xcodebuild -workspace Demo.xcworkspace -scheme macOS
           xcodebuild -workspace Demo.xcworkspace -scheme iOS -sdk iphonesimulator
+          # xcodebuild -workspace Demo.xcworkspace -scheme visonOS -sdk XRSimulator
           # xcodebuild -workspace Demo.xcworkspace -scheme tvOS -sdk appletvsimulator
           
