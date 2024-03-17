@@ -1,4 +1,0 @@
-framework module lcms2 [system] {
-    umbrella "."
-    export *
-}

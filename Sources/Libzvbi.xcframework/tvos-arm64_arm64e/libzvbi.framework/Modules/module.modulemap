@@ -1,4 +1,0 @@
-framework module libzvbi [system] {
-    umbrella "."
-    export *
-}
