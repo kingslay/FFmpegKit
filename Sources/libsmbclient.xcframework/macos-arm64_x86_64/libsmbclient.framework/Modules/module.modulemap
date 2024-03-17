@@ -1,0 +1,4 @@
+framework module libsmbclient [system] {
+    umbrella "."
+    export *
+}
