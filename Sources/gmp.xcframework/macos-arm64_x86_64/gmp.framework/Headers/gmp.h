@@ -2324,7 +2324,7 @@ enum
 
 /* Define CC and CFLAGS which were used to build this version of GMP */
 #define __GMP_CC "/usr/bin/clang"
-#define __GMP_CFLAGS "-arch x86_64 -isysroot /Applications/Xcode15.2.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.2.sdk -target x86_64-apple-macos10.15 -mmacosx-version-min=10.15 -fno-common"
+#define __GMP_CFLAGS "-arch x86_64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.2.sdk -target x86_64-apple-macos10.15 -mmacosx-version-min=10.15 -fno-common"
 
 /* Major version number is the value of __GNU_MP__ too, above. */
 #define __GNU_MP_VERSION            6

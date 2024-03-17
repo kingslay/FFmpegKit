@@ -149,7 +149,7 @@ enum Library: String, CaseIterable {
         case .FFmpeg:
             return "n6.1"
         case .libfreetype:
-            return "VER-2-12-1"
+            return "VER-2-13-2"
         case .libfribidi:
             return "v1.0.12"
         case .libharfbuzz:
@@ -157,13 +157,13 @@ enum Library: String, CaseIterable {
         case .libass:
             return "0.17.1-branch"
         case .libpng:
-            return "v1.6.40"
+            return "v1.6.43"
         case .libmpv:
             return "v0.37.0"
         case .openssl:
-            return "openssl-3.2.0"
+            return "openssl-3.2.1"
         case .libsrt:
-            return "v1.5.1"
+            return "v1.5.3"
         case .libsmbclient:
             return "samba-4.15.13"
         case .gnutls:
@@ -183,9 +183,9 @@ enum Library: String, CaseIterable {
         case .libplacebo:
             return "v6.338.2"
         case .vulkan:
-            return "v1.2.7"
+            return "v1.2.8"
         case .libshaderc:
-            return "v2023.7"
+            return "v2024.0"
         case .readline:
             return "readline-8.2"
         case .libglslang:

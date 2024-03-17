@@ -41,9 +41,11 @@ class BuildVulkan: BaseBuild {
             try Utility.launch(path: (directoryURL + "fetchDependencies").path, arguments: arguments, currentDirectoryURL: directoryURL)
         }
         arguments = platforms().map(\.name)
-        try Utility.launch(path: "/usr/bin/make", arguments: arguments, currentDirectoryURL: directoryURL)
+        if !FileManager.default.fileExists(atPath: (directoryURL + "Package/Release/MoltenVK/static/MoltenVK.xcframework").path) || !BaseBuild.notRecompile {
+            try Utility.launch(path: "/usr/bin/make", arguments: arguments, currentDirectoryURL: directoryURL)
+        }
         try? FileManager.default.removeItem(at: URL.currentDirectory() + "../Sources/MoltenVK.xcframework")
-        try? FileManager.default.copyItem(at: directoryURL + "Package/Release/MoltenVK/MoltenVK.xcframework", to: URL.currentDirectory() + "../Sources/MoltenVK.xcframework")
+        try? FileManager.default.copyItem(at: directoryURL + "Package/Release/MoltenVK/static/MoltenVK.xcframework", to: URL.currentDirectory() + "../Sources/MoltenVK.xcframework")
         for platform in platforms() {
             var frameworks = ["CoreFoundation", "CoreGraphics", "Foundation", "IOSurface", "Metal", "QuartzCore"]
             if platform == .macos {
@@ -66,7 +68,7 @@ class BuildVulkan: BaseBuild {
                 let content = """
                 prefix=\((directoryURL + "Package/Release/MoltenVK").path)
                 includedir=${prefix}/include
-                libdir=${prefix}/MoltenVK.xcframework/\(platform.frameworkName)
+                libdir=${prefix}/static/MoltenVK.xcframework/\(platform.frameworkName)
 
                 Name: Vulkan-Loader
                 Description: Vulkan Loader

@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "FFmpegKit",
     defaultLocalization: "en",
-    platforms: [.macOS(.v10_15), .macCatalyst(.v13), .iOS(.v13), .tvOS(.v13),
+    platforms: [.macOS(.v10_15), .macCatalyst(.v14), .iOS(.v13), .tvOS(.v13),
                 .visionOS(.v1)],
     products: [
         .library(
@@ -176,14 +176,6 @@ let package = Package(
             path: "Sources/Libswscale.xcframework"
         ),
         .binaryTarget(
-            name: "libssl",
-            path: "Sources/libssl.xcframework"
-        ),
-        .binaryTarget(
-            name: "libcrypto",
-            path: "Sources/libcrypto.xcframework"
-        ),
-        .binaryTarget(
             name: "libsrt",
             path: "Sources/libsrt.xcframework"
         ),
@@ -239,5 +231,13 @@ let package = Package(
             name: "libsmbclient",
             path: "Sources/libsmbclient.xcframework"
         ),
+//        .binaryTarget(
+//            name: "libssl",
+//            path: "Sources/libssl.xcframework"
+//        ),
+//        .binaryTarget(
+//            name: "libcrypto",
+//            path: "Sources/libcrypto.xcframework"
+//        ),
     ]
 )
