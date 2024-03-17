@@ -21,7 +21,7 @@
 <key>CFBundleSignature</key>
 <string>????</string>
 <key>MinimumOSVersion</key>
-<string>13.0</string>
+<string>14.0</string>
 <key>CFBundleSupportedPlatforms</key>
 <array>
 <string>MacOSX</string>
