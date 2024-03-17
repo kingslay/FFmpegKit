@@ -176,14 +176,6 @@ let package = Package(
             path: "Sources/Libswscale.xcframework"
         ),
         .binaryTarget(
-            name: "libssl",
-            path: "Sources/libssl.xcframework"
-        ),
-        .binaryTarget(
-            name: "libcrypto",
-            path: "Sources/libcrypto.xcframework"
-        ),
-        .binaryTarget(
             name: "libsrt",
             path: "Sources/libsrt.xcframework"
         ),
@@ -238,6 +230,14 @@ let package = Package(
 //        .binaryTarget(
 //            name: "libsmbclient",
 //            path: "Sources/libsmbclient.xcframework"
+//        ),
+//        .binaryTarget(
+//            name: "libssl",
+//            path: "Sources/libssl.xcframework"
+//        ),
+//        .binaryTarget(
+//            name: "libcrypto",
+//            path: "Sources/libcrypto.xcframework"
 //        ),
     ]
 )
