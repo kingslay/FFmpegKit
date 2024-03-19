@@ -1,0 +1,4 @@
+framework module libfontconfig [system] {
+    umbrella "."
+    export *
+}
