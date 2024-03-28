@@ -26,6 +26,7 @@ class BuildVulkan: BaseBuild {
     init() {
         super.init(library: .vulkan)
     }
+
     override func platforms() -> [PlatformType] {
         // Placebo编译maccatalyst的时候，vulkan会报找不到UIKit的问题，所以要先屏蔽。
         super.platforms().filter {

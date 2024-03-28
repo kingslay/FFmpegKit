@@ -20,7 +20,7 @@ Pod::Spec.new do |s|
     s.static_framework = true
     s.source_files = 'Sources/FFmpegKit/**/*.{h,c,m}'
     s.subspec 'FFmpegKit' do |ffmpeg|
-        ffmpeg.libraries   = 'bz2', 'c++','expat', 'iconv', 'resolv', 'xml2', 'z'
+        ffmpeg.libraries   = 'bz2', 'c++', 'iconv', 'resolv', 'xml2', 'z'
         ffmpeg.frameworks  = 'AudioToolbox', 'AVFoundation', 'CoreMedia', 'VideoToolbox'
         ffmpeg.vendored_frameworks = 'Sources/Libavcodec.xcframework','Sources/Libavfilter.xcframework','Sources/Libavformat.xcframework','Sources/Libavutil.xcframework','Sources/Libswresample.xcframework','Sources/Libswscale.xcframework','Sources/Libavdevice.xcframework',
         'Sources/libshaderc_combined.xcframework','Sources/MoltenVK.xcframework', 'Sources/lcms2.xcframework', 'Sources/libdav1d.xcframework', 'Sources/libplacebo.xcframework',
