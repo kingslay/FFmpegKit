@@ -23,12 +23,30 @@ dependencies: [
 swift package --disable-sandbox BuildFFmpeg
 
 ```
+
+## Run ffmpeg ffprobe in code(Features of the lgpl version)
+
+```swift
+var arguments = ["ffmpeg", "-i", "file1.mp4", "-c:v", "mpeg4", "file2.mp4"]
+var argv = arguments.map {
+    UnsafeMutablePointer(mutating: ($0 as NSString).utf8String)
+}
+ffmpeg_execute(Int32(arguments.count), &argv)
+
+arguments = ["ffprobe", "-h"]
+argv = arguments.map {
+    UnsafeMutablePointer(mutating: ($0 as NSString).utf8String)
+}
+ffprobe_execute(Int32(arguments.count), &argv)
+```
+
 ## Executable product
 ```bash
 swift run ffplay
 swift run ffmpeg
 swift run ffprobe
 ```
+
 ## Help 
 ```bash
 swift package BuildFFmpeg -h
