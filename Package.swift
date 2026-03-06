@@ -12,17 +12,14 @@ let package = Package(
 //            type: .static,
             targets: ["FFmpegKit"]
         ),
-        .library(name: "Libavcodec", targets: ["Libavcodec"]),
-        .library(name: "Libavfilter", targets: ["Libavfilter"]),
-        .library(name: "Libavformat", targets: ["Libavformat"]),
-        .library(name: "Libavutil", targets: ["Libavutil"]),
-        .library(name: "Libswresample", targets: ["Libswresample"]),
-        .library(name: "Libswscale", targets: ["Libswscale"]),
-        .library(name: "libass", targets: ["libfreetype", "libfribidi", "libharfbuzz", "libass"]),
-        .library(name: "libmpv", targets: ["FFmpegKit", "libass", "libmpv"]),
-        .executable(name: "ffmpeg", targets: ["ffmpeg"]),
-        .executable(name: "ffplay", targets: ["ffplay"]),
-        .executable(name: "ffprobe", targets: ["ffprobe"]),
+        .library(name: "KSPFFLibavcodec", targets: ["KSPFFLibavcodec"]),
+        .library(name: "KSPFFLibavfilter", targets: ["KSPFFLibavfilter"]),
+        .library(name: "KSPFFLibavformat", targets: ["KSPFFLibavformat"]),
+        .library(name: "KSPFFLibavutil", targets: ["KSPFFLibavutil"]),
+        .library(name: "KSPFFLibswresample", targets: ["KSPFFLibswresample"]),
+        .library(name: "KSPFFLibswscale", targets: ["KSPFFLibswscale"]),
+        .library(name: "KSPFFlibass", targets: ["KSPFFlibfreetype", "KSPFFlibfribidi", "KSPFFlibharfbuzz", "KSPFFlibass"]),
+        .library(name: "KSPFFlibmpv", targets: ["FFmpegKit", "KSPFFlibass", "KSPFFlibmpv"]),
         .plugin(name: "BuildFFmpeg", targets: ["BuildFFmpeg"]),
     ],
     dependencies: [
@@ -32,19 +29,19 @@ let package = Package(
         .target(
             name: "FFmpegKit",
             dependencies: [
-                "MoltenVK",
-                "libshaderc_combined",
-                "lcms2",
-                "libdav1d",
-                "libplacebo",
-                .target(name: "libzvbi", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS])),
-                "libsrt",
-                "libfreetype", "libfribidi", "libharfbuzz", "libass",
-                "libfontconfig",
-                .target(name: "libbluray", condition: .when(platforms: [.macOS])),
-                "gmp", "nettle", "hogweed", "gnutls",
-                "libsmbclient",
-                "Libavcodec", "Libavdevice", "Libavfilter", "Libavformat", "Libavutil", "Libswresample", "Libswscale",
+                "KSPFFMoltenVK",
+                "KSPFFlibshaderc_combined",
+                "KSPFFlcms2",
+                "KSPFFlibdav1d",
+                "KSPFFlibplacebo",
+                .target(name: "KSPFFlibzvbi", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS])),
+                "KSPFFlibsrt",
+                "KSPFFlibfreetype", "KSPFFlibfribidi", "KSPFFlibharfbuzz", "KSPFFlibass",
+                "KSPFFlibfontconfig",
+                .target(name: "KSPFFlibbluray", condition: .when(platforms: [.macOS])),
+                "KSPFFgmp", "KSPFFnettle", "KSPFFhogweed", "KSPFFgnutls",
+                "KSPFFlibsmbclient",
+                "KSPFFLibavcodec", "KSPFFLibavdevice", "KSPFFLibavfilter", "KSPFFLibavformat", "KSPFFLibavutil", "KSPFFLibswresample", "KSPFFLibswscale",
             ],
             linkerSettings: [
                 .linkedFramework("AudioToolbox"),
@@ -74,38 +71,6 @@ let package = Package(
                 .linkedLibrary("z"),
             ]
         ),
-        .executableTarget(
-            name: "ffplay",
-            dependencies: [
-                "fftools",
-                "SDL2",
-            ]
-        ),
-        .executableTarget(
-            name: "ffprobe",
-            dependencies: [
-                "fftools",
-            ]
-        ),
-        .executableTarget(
-            name: "ffmpeg",
-            dependencies: [
-                "fftools",
-            ]
-        ),
-        .target(
-            name: "fftools",
-            dependencies: [
-                "FFmpegKit",
-            ]
-        ),
-        .systemLibrary(
-            name: "SDL2",
-            pkgConfig: "sdl2",
-            providers: [
-                .brew(["sdl2"]),
-            ]
-        ),
 //        .target(
 //            name: "libavutil",
 //            cSettings: [.headerSearchPath("../")]
@@ -127,108 +92,108 @@ let package = Package(
             )
         ),
         .binaryTarget(
-            name: "MoltenVK",
+            name: "KSPFFMoltenVK",
             path: "Sources/MoltenVK.xcframework"
         ),
         .binaryTarget(
-            name: "libshaderc_combined",
+            name: "KSPFFlibshaderc_combined",
             path: "Sources/libshaderc_combined.xcframework"
         ),
 
         .binaryTarget(
-            name: "lcms2",
+            name: "KSPFFlcms2",
             path: "Sources/lcms2.xcframework"
         ),
         .binaryTarget(
-            name: "libplacebo",
+            name: "KSPFFlibplacebo",
             path: "Sources/libplacebo.xcframework"
         ),
         .binaryTarget(
-            name: "libdav1d",
+            name: "KSPFFlibdav1d",
             path: "Sources/libdav1d.xcframework"
         ),
         .binaryTarget(
-            name: "Libavcodec",
+            name: "KSPFFLibavcodec",
             path: "Sources/Libavcodec.xcframework"
         ),
         .binaryTarget(
-            name: "Libavdevice",
+            name: "KSPFFLibavdevice",
             path: "Sources/Libavdevice.xcframework"
         ),
         .binaryTarget(
-            name: "Libavfilter",
+            name: "KSPFFLibavfilter",
             path: "Sources/Libavfilter.xcframework"
         ),
         .binaryTarget(
-            name: "Libavformat",
+            name: "KSPFFLibavformat",
             path: "Sources/Libavformat.xcframework"
         ),
         .binaryTarget(
-            name: "Libavutil",
+            name: "KSPFFLibavutil",
             path: "Sources/Libavutil.xcframework"
         ),
         .binaryTarget(
-            name: "Libswresample",
+            name: "KSPFFLibswresample",
             path: "Sources/Libswresample.xcframework"
         ),
         .binaryTarget(
-            name: "Libswscale",
+            name: "KSPFFLibswscale",
             path: "Sources/Libswscale.xcframework"
         ),
         .binaryTarget(
-            name: "libsrt",
+            name: "KSPFFlibsrt",
             path: "Sources/libsrt.xcframework"
         ),
         .binaryTarget(
-            name: "libzvbi",
+            name: "KSPFFlibzvbi",
             path: "Sources/libzvbi.xcframework"
         ),
         .binaryTarget(
-            name: "libfreetype",
+            name: "KSPFFlibfreetype",
             path: "Sources/libfreetype.xcframework"
         ),
         .binaryTarget(
-            name: "libfribidi",
+            name: "KSPFFlibfribidi",
             path: "Sources/libfribidi.xcframework"
         ),
         .binaryTarget(
-            name: "libharfbuzz",
+            name: "KSPFFlibharfbuzz",
             path: "Sources/libharfbuzz.xcframework"
         ),
         .binaryTarget(
-            name: "libass",
+            name: "KSPFFlibass",
             path: "Sources/libass.xcframework"
         ),
         .binaryTarget(
-            name: "libmpv",
+            name: "KSPFFlibmpv",
             path: "Sources/libmpv.xcframework"
         ),
         .binaryTarget(
-            name: "gmp",
+            name: "KSPFFgmp",
             path: "Sources/gmp.xcframework"
         ),
         .binaryTarget(
-            name: "nettle",
+            name: "KSPFFnettle",
             path: "Sources/nettle.xcframework"
         ),
         .binaryTarget(
-            name: "hogweed",
+            name: "KSPFFhogweed",
             path: "Sources/hogweed.xcframework"
         ),
         .binaryTarget(
-            name: "libfontconfig",
+            name: "KSPFFlibfontconfig",
             path: "Sources/libfontconfig.xcframework"
         ),
         .binaryTarget(
-            name: "libbluray",
+            name: "KSPFFlibbluray",
             path: "Sources/libbluray.xcframework"
         ),
         .binaryTarget(
-            name: "gnutls",
+            name: "KSPFFgnutls",
             path: "Sources/gnutls.xcframework"
         ),
         .binaryTarget(
-            name: "libsmbclient",
+            name: "KSPFFlibsmbclient",
             path: "Sources/libsmbclient.xcframework"
         ),
 //        .binaryTarget(
