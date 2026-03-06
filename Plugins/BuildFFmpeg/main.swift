@@ -54,6 +54,7 @@ extension Build {
         FileManager.default.changeCurrentDirectoryPath(path.path)
         var librarys = [Library]()
         var isFFmpegDebug = false
+        var presetKSPlayer = false
         for argument in arguments {
             if argument == "notRecompile" {
                 BaseBuild.notRecompile = true
@@ -61,6 +62,8 @@ extension Build {
                 BaseBuild.gitCloneAll = true
             } else if argument == "disableGPL" {
                 BaseBuild.disableGPL = true
+            } else if argument == "preset=ksplayer" || argument == "preset-ksplayer" || argument == "ksplayer" {
+                presetKSPlayer = true
             } else if argument == "enable-debug" {
                 isFFmpegDebug = true
             } else if argument.hasPrefix("platforms=") {
@@ -82,6 +85,19 @@ extension Build {
             } else if argument.hasPrefix("--"), argument != "--disable-sandbox", argument != "--allow-writing-to-directory" {
                 Build.ffmpegConfiguers.append(argument)
             }
+        }
+        if presetKSPlayer {
+            // KSPlayer preset: keep Libav + rendering deps, avoid gnutls/libsmbclient/libsrt/readline/libmpv stack.
+            let ksplayerLibraries: [Library] = [
+                .libshaderc, .vulkan, .lcms2, .libdav1d, .libplacebo,
+                .gmp, .nettle,
+                .libzvbi,
+                .libfreetype, .libfribidi, .libharfbuzz, .libass, .libfontconfig,
+                .FFmpeg,
+            ]
+            librarys = ksplayerLibraries
+            // Also force GPL on, because libass is part of the preset.
+            BaseBuild.disableGPL = false
         }
         if isFFmpegDebug {
             Build.ffmpegConfiguers.append("--enable-debug")
@@ -118,6 +134,7 @@ extension Build {
             gitCloneAll         git clone not add --depth 1
             enable-debug,       build ffmpeg with debug information
             platforms=xros      deployment platform: macos,ios,isimulator,tvos,tvsimulator,xros,xrsimulator,maccatalyst,watchos,watchsimulator
+            preset=ksplayer     build only KSPlayer-required libs (no gnutls/libsmbclient/libsrt/libmpv)
             --xx                add ffmpeg Configuers
 
         Libraries:
