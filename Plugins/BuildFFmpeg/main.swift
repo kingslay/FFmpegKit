@@ -603,15 +603,14 @@ class BaseBuild {
     private func createFramework(sourceFramework: String, outputFramework: String, platform: PlatformType) throws -> String? {
         let frameworkDir = URL.currentDirectory + [library.rawValue, platform.rawValue, "\(outputFramework).framework"]
         if !platforms().contains(platform) {
-            if FileManager.default.fileExists(atPath: frameworkDir.path) {
-                return frameworkDir.path
-            } else {
-                return nil
-            }
+            // Do not reuse stale frameworks from previous runs/platforms.
+            // Including them can produce duplicate identifiers in -create-xcframework.
+            return nil
         }
         try? FileManager.default.removeItem(at: frameworkDir)
         try FileManager.default.createDirectory(at: frameworkDir, withIntermediateDirectories: true, attributes: nil)
-        var arguments = ["-create"]
+        var lipoInputs = [String]()
+        var seenArchToInput = [String: String]()
         for arch in platform.architectures {
             let prefix = thinDir(platform: platform, arch: arch)
             if !FileManager.default.fileExists(atPath: prefix.path) {
@@ -622,13 +621,38 @@ class BaseBuild {
             if !FileManager.default.fileExists(atPath: libPath.path) {
                 libPath = prefix + ["lib", "\(libname).dylib"]
             }
-            arguments.append(libPath.path)
+            let libPathString = libPath.path
+            var actualArchs = [arch.rawValue]
+            if let archsOutput = try? Utility.launch(path: "/usr/bin/lipo", arguments: ["-archs", libPathString], isOutput: true) {
+                let parsed = archsOutput.split(whereSeparator: \.isWhitespace).map(String.init)
+                if !parsed.isEmpty {
+                    actualArchs = parsed
+                }
+            }
+            var hasCollision = false
+            for actual in actualArchs {
+                if let existing = seenArchToInput[actual], existing != libPathString {
+                    print("Warning: duplicate architecture \(actual) for \(sourceFramework) on \(platform.rawValue): keeping \(existing), skipping \(libPathString)")
+                    hasCollision = true
+                    break
+                }
+            }
+            if !hasCollision {
+                lipoInputs.append(libPathString)
+                for actual in actualArchs {
+                    seenArchToInput[actual] = libPathString
+                }
+            }
             var headerURL: URL = prefix + "include" + sourceFramework
             if !FileManager.default.fileExists(atPath: headerURL.path) {
                 headerURL = prefix + "include"
             }
             try? FileManager.default.copyItem(at: headerURL, to: frameworkDir + "Headers")
         }
+        if lipoInputs.isEmpty {
+            return nil
+        }
+        var arguments = ["-create"] + lipoInputs
         arguments.append("-output")
         var output = (frameworkDir + outputFramework).path
         if !isFramework {
@@ -778,7 +802,7 @@ enum PlatformType: String, CaseIterable {
     var minVersion: String {
         switch self {
         case .ios, .isimulator:
-            return "13.0"
+            return "16.0"
         case .tvos, .tvsimulator:
             return "13.0"
         case .macos:

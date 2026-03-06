@@ -17,7 +17,7 @@ func prefixedPath(_ name: String) -> String {
 let package = Package(
     name: "FFmpegKit",
     defaultLocalization: "en",
-    platforms: [.macOS(.v10_15), .macCatalyst(.v14), .iOS(.v13), .tvOS(.v13),
+    platforms: [.macOS(.v10_15), .macCatalyst(.v14), .iOS(.v16), .tvOS(.v13),
                 .visionOS(.v1)],
     products: [
         .library(
