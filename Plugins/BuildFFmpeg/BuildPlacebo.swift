@@ -15,6 +15,12 @@ class BuildPlacebo: BaseBuild {
             str = str.replacingOccurrences(of: "if sdl.found()", with: "if false")
             try! str.write(toFile: path.path, atomically: true, encoding: .utf8)
         }
+        // Python 3.14 became stricter about ElementTree init; pass root element.
+        let utilsPath = directoryURL + "src/vulkan/utils_gen.py"
+        if let data = FileManager.default.contents(atPath: utilsPath.path), var str = String(data: data, encoding: .utf8) {
+            str = str.replacingOccurrences(of: "registry = VkXML(ET.parse(xmlfile))", with: "registry = VkXML(ET.parse(xmlfile).getroot())")
+            try! str.write(toFile: utilsPath.path, atomically: true, encoding: .utf8)
+        }
     }
 
     override func arguments(platform _: PlatformType, arch _: ArchType) -> [String] {
