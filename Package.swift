@@ -3,15 +3,19 @@ import Foundation
 import PackageDescription
 
 func prefixedPath(_ name: String) -> String {
-    let prefixed = "Sources/\(name).xcframework"
+    let packageRoot = URL(fileURLWithPath: #filePath).deletingLastPathComponent().path
+    let prefixed = "\(packageRoot)/Sources/\(name).xcframework"
     if FileManager.default.fileExists(atPath: prefixed) {
-        return prefixed
+        return "Sources/\(name).xcframework"
     }
     if name.hasPrefix("KSPFF") {
         let fallback = String(name.dropFirst("KSPFF".count))
-        return "Sources/\(fallback).xcframework"
+        let fallbackPath = "\(packageRoot)/Sources/\(fallback).xcframework"
+        if FileManager.default.fileExists(atPath: fallbackPath) {
+            return "Sources/\(fallback).xcframework"
+        }
     }
-    return prefixed
+    return "Sources/\(name).xcframework"
 }
 
 let package = Package(
@@ -42,7 +46,6 @@ let package = Package(
         .target(
             name: "FFmpegKit",
             dependencies: [
-                "KSPFFMoltenVK",
                 "KSPFFlibshaderc_combined",
                 "KSPFFlcms2",
                 "KSPFFlibdav1d",
@@ -52,7 +55,7 @@ let package = Package(
                 "KSPFFlibfreetype", "KSPFFlibfribidi", "KSPFFlibharfbuzz", "KSPFFlibass",
                 "KSPFFlibfontconfig",
                 .target(name: "KSPFFlibbluray", condition: .when(platforms: [.macOS])),
-                "KSPFFgmp", "KSPFFnettle", "KSPFFhogweed", "KSPFFgnutls",
+                "KSPFFgmp", "KSPFFnettle", "KSPFFhogweed",
                 "KSPFFlibsmbclient",
                 "KSPFFLibavcodec", "KSPFFLibavdevice", "KSPFFLibavfilter", "KSPFFLibavformat", "KSPFFLibavutil", "KSPFFLibswresample", "KSPFFLibswscale",
             ],
