@@ -1,0 +1,4 @@
+framework module KSPFFlcms2 [system] {
+    umbrella "."
+    export *
+}

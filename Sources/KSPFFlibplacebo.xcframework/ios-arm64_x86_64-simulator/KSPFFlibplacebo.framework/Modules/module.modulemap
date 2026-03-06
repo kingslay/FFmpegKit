@@ -1,0 +1,4 @@
+framework module KSPFFlibplacebo [system] {
+    umbrella "."
+    export *
+}

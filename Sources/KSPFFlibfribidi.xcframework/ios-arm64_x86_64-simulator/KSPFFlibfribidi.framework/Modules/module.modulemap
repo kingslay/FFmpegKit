@@ -1,0 +1,4 @@
+framework module KSPFFlibfribidi [system] {
+    umbrella "."
+    export *
+}

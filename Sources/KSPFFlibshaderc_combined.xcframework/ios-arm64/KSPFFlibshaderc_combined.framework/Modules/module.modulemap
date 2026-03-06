@@ -1,0 +1,4 @@
+framework module KSPFFlibshaderc_combined [system] {
+    umbrella "."
+    export *
+}

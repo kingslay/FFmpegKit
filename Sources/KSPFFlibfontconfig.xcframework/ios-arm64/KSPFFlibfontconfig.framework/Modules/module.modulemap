@@ -1,0 +1,4 @@
+framework module KSPFFlibfontconfig [system] {
+    umbrella "."
+    export *
+}

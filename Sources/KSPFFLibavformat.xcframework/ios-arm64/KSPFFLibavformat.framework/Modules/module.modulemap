@@ -1,0 +1,5 @@
+framework module KSPFFLibavformat [system] {
+    umbrella "."
+    exclude header "os_support.h"
+    export *
+}

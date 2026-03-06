@@ -1,0 +1,4 @@
+framework module KSPFFgmp [system] {
+    umbrella "."
+    export *
+}

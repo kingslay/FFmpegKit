@@ -1,0 +1,4 @@
+framework module KSPFFLibswscale [system] {
+    umbrella "."
+    export *
+}

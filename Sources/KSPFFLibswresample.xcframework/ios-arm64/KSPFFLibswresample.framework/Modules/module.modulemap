@@ -1,0 +1,4 @@
+framework module KSPFFLibswresample [system] {
+    umbrella "."
+    export *
+}
