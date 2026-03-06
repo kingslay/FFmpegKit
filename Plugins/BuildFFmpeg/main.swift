@@ -462,7 +462,12 @@ class BaseBuild {
                     bootstrap = directoryURL + ".bootstrap"
                 }
                 if FileManager.default.fileExists(atPath: bootstrap.path) {
-                    try Utility.launch(executableURL: bootstrap, arguments: [], currentDirectoryURL: directoryURL, environment: environ)
+                    var bootstrapArgs: [String] = []
+                    if library == .gnutls {
+                        // Avoid unnecessary translation sync during bootstrap.
+                        bootstrapArgs = ["--skip-po"]
+                    }
+                    try Utility.launch(executableURL: bootstrap, arguments: bootstrapArgs, currentDirectoryURL: directoryURL, environment: environ)
                 } else {
                     let autogen = directoryURL + "autogen.sh"
                     if FileManager.default.fileExists(atPath: autogen.path) {
