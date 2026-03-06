@@ -348,6 +348,7 @@ class BaseBuild {
     static var notRecompile = false
     static var gitCloneAll = false
     static var disableGPL = false
+    static let binaryPrefix = "KSPFF"
     let library: Library
     let directoryURL: URL
     init(library: Library) {
@@ -552,22 +553,23 @@ class BaseBuild {
     private func createXCFramework() throws {
         let frameworks = try frameworks()
         for framework in frameworks {
+            let outputFramework = prefixedFrameworkName(framework)
             var arguments = ["-create-xcframework"]
             for platform in PlatformType.allCases {
-                if let frameworkPath = try createFramework(framework: framework, platform: platform) {
+                if let frameworkPath = try createFramework(sourceFramework: framework, outputFramework: outputFramework, platform: platform) {
                     if isFramework {
                         arguments.append("-framework")
                         arguments.append(frameworkPath)
                     } else {
                         arguments.append("-library")
-                        arguments.append(frameworkPath + "/" + framework + ".a")
+                        arguments.append(frameworkPath + "/" + outputFramework + ".a")
                         arguments.append("-headers")
                         arguments.append(frameworkPath + "/Headers")
                     }
                 }
             }
             arguments.append("-output")
-            let XCFrameworkFile = URL.currentDirectory + ["../Sources", framework + ".xcframework"]
+            let XCFrameworkFile = URL.currentDirectory + ["../Sources", outputFramework + ".xcframework"]
             arguments.append(XCFrameworkFile.path)
             if FileManager.default.fileExists(atPath: XCFrameworkFile.path) {
                 try FileManager.default.removeItem(at: XCFrameworkFile)
@@ -576,8 +578,8 @@ class BaseBuild {
         }
     }
 
-    private func createFramework(framework: String, platform: PlatformType) throws -> String? {
-        let frameworkDir = URL.currentDirectory + [library.rawValue, platform.rawValue, "\(framework).framework"]
+    private func createFramework(sourceFramework: String, outputFramework: String, platform: PlatformType) throws -> String? {
+        let frameworkDir = URL.currentDirectory + [library.rawValue, platform.rawValue, "\(outputFramework).framework"]
         if !platforms().contains(platform) {
             if FileManager.default.fileExists(atPath: frameworkDir.path) {
                 return frameworkDir.path
@@ -593,20 +595,20 @@ class BaseBuild {
             if !FileManager.default.fileExists(atPath: prefix.path) {
                 return nil
             }
-            let libname = framework.hasPrefix("lib") || framework.hasPrefix("Lib") ? framework : "lib" + framework
+            let libname = sourceFramework.hasPrefix("lib") || sourceFramework.hasPrefix("Lib") ? sourceFramework : "lib" + sourceFramework
             var libPath = prefix + ["lib", "\(libname).a"]
             if !FileManager.default.fileExists(atPath: libPath.path) {
                 libPath = prefix + ["lib", "\(libname).dylib"]
             }
             arguments.append(libPath.path)
-            var headerURL: URL = prefix + "include" + framework
+            var headerURL: URL = prefix + "include" + sourceFramework
             if !FileManager.default.fileExists(atPath: headerURL.path) {
                 headerURL = prefix + "include"
             }
             try? FileManager.default.copyItem(at: headerURL, to: frameworkDir + "Headers")
         }
         arguments.append("-output")
-        var output = (frameworkDir + framework).path
+        var output = (frameworkDir + outputFramework).path
         if !isFramework {
             output += ".a"
         }
@@ -614,11 +616,11 @@ class BaseBuild {
         try Utility.launch(path: "/usr/bin/lipo", arguments: arguments)
         try FileManager.default.createDirectory(at: frameworkDir + "Modules", withIntermediateDirectories: true, attributes: nil)
         var modulemap = """
-        framework module \(framework) [system] {
+        framework module \(outputFramework) [system] {
             umbrella "."
 
         """
-        for header in frameworkExcludeHeaders(framework) {
+        for header in frameworkExcludeHeaders(sourceFramework) {
             modulemap += """
                 exclude header "\(header).h"
 
@@ -629,8 +631,15 @@ class BaseBuild {
         }
         """
         FileManager.default.createFile(atPath: frameworkDir.path + "/Modules/module.modulemap", contents: modulemap.data(using: .utf8), attributes: nil)
-        createPlist(path: frameworkDir.path + "/Info.plist", name: framework, minVersion: platform.minVersion, platform: platform.sdk)
+        createPlist(path: frameworkDir.path + "/Info.plist", name: outputFramework, minVersion: platform.minVersion, platform: platform.sdk)
         return frameworkDir.path
+    }
+
+    private func prefixedFrameworkName(_ framework: String) -> String {
+        if framework.hasPrefix(BaseBuild.binaryPrefix) {
+            return framework
+        }
+        return BaseBuild.binaryPrefix + framework
     }
 
     var isFramework: Bool {

@@ -1,5 +1,18 @@
 // swift-tools-version:5.9
+import Foundation
 import PackageDescription
+
+func prefixedPath(_ name: String) -> String {
+    let prefixed = "Sources/\(name).xcframework"
+    if FileManager.default.fileExists(atPath: prefixed) {
+        return prefixed
+    }
+    if name.hasPrefix("KSPFF") {
+        let fallback = String(name.dropFirst("KSPFF".count))
+        return "Sources/\(fallback).xcframework"
+    }
+    return prefixed
+}
 
 let package = Package(
     name: "FFmpegKit",
@@ -93,108 +106,108 @@ let package = Package(
         ),
         .binaryTarget(
             name: "KSPFFMoltenVK",
-            path: "Sources/MoltenVK.xcframework"
+            path: prefixedPath("KSPFFMoltenVK")
         ),
         .binaryTarget(
             name: "KSPFFlibshaderc_combined",
-            path: "Sources/libshaderc_combined.xcframework"
+            path: prefixedPath("KSPFFlibshaderc_combined")
         ),
 
         .binaryTarget(
             name: "KSPFFlcms2",
-            path: "Sources/lcms2.xcframework"
+            path: prefixedPath("KSPFFlcms2")
         ),
         .binaryTarget(
             name: "KSPFFlibplacebo",
-            path: "Sources/libplacebo.xcframework"
+            path: prefixedPath("KSPFFlibplacebo")
         ),
         .binaryTarget(
             name: "KSPFFlibdav1d",
-            path: "Sources/libdav1d.xcframework"
+            path: prefixedPath("KSPFFlibdav1d")
         ),
         .binaryTarget(
             name: "KSPFFLibavcodec",
-            path: "Sources/Libavcodec.xcframework"
+            path: prefixedPath("KSPFFLibavcodec")
         ),
         .binaryTarget(
             name: "KSPFFLibavdevice",
-            path: "Sources/Libavdevice.xcframework"
+            path: prefixedPath("KSPFFLibavdevice")
         ),
         .binaryTarget(
             name: "KSPFFLibavfilter",
-            path: "Sources/Libavfilter.xcframework"
+            path: prefixedPath("KSPFFLibavfilter")
         ),
         .binaryTarget(
             name: "KSPFFLibavformat",
-            path: "Sources/Libavformat.xcframework"
+            path: prefixedPath("KSPFFLibavformat")
         ),
         .binaryTarget(
             name: "KSPFFLibavutil",
-            path: "Sources/Libavutil.xcframework"
+            path: prefixedPath("KSPFFLibavutil")
         ),
         .binaryTarget(
             name: "KSPFFLibswresample",
-            path: "Sources/Libswresample.xcframework"
+            path: prefixedPath("KSPFFLibswresample")
         ),
         .binaryTarget(
             name: "KSPFFLibswscale",
-            path: "Sources/Libswscale.xcframework"
+            path: prefixedPath("KSPFFLibswscale")
         ),
         .binaryTarget(
             name: "KSPFFlibsrt",
-            path: "Sources/libsrt.xcframework"
+            path: prefixedPath("KSPFFlibsrt")
         ),
         .binaryTarget(
             name: "KSPFFlibzvbi",
-            path: "Sources/libzvbi.xcframework"
+            path: prefixedPath("KSPFFlibzvbi")
         ),
         .binaryTarget(
             name: "KSPFFlibfreetype",
-            path: "Sources/libfreetype.xcframework"
+            path: prefixedPath("KSPFFlibfreetype")
         ),
         .binaryTarget(
             name: "KSPFFlibfribidi",
-            path: "Sources/libfribidi.xcframework"
+            path: prefixedPath("KSPFFlibfribidi")
         ),
         .binaryTarget(
             name: "KSPFFlibharfbuzz",
-            path: "Sources/libharfbuzz.xcframework"
+            path: prefixedPath("KSPFFlibharfbuzz")
         ),
         .binaryTarget(
             name: "KSPFFlibass",
-            path: "Sources/libass.xcframework"
+            path: prefixedPath("KSPFFlibass")
         ),
         .binaryTarget(
             name: "KSPFFlibmpv",
-            path: "Sources/libmpv.xcframework"
+            path: prefixedPath("KSPFFlibmpv")
         ),
         .binaryTarget(
             name: "KSPFFgmp",
-            path: "Sources/gmp.xcframework"
+            path: prefixedPath("KSPFFgmp")
         ),
         .binaryTarget(
             name: "KSPFFnettle",
-            path: "Sources/nettle.xcframework"
+            path: prefixedPath("KSPFFnettle")
         ),
         .binaryTarget(
             name: "KSPFFhogweed",
-            path: "Sources/hogweed.xcframework"
+            path: prefixedPath("KSPFFhogweed")
         ),
         .binaryTarget(
             name: "KSPFFlibfontconfig",
-            path: "Sources/libfontconfig.xcframework"
+            path: prefixedPath("KSPFFlibfontconfig")
         ),
         .binaryTarget(
             name: "KSPFFlibbluray",
-            path: "Sources/libbluray.xcframework"
+            path: prefixedPath("KSPFFlibbluray")
         ),
         .binaryTarget(
             name: "KSPFFgnutls",
-            path: "Sources/gnutls.xcframework"
+            path: prefixedPath("KSPFFgnutls")
         ),
         .binaryTarget(
             name: "KSPFFlibsmbclient",
-            path: "Sources/libsmbclient.xcframework"
+            path: prefixedPath("KSPFFlibsmbclient")
         ),
 //        .binaryTarget(
 //            name: "libssl",
