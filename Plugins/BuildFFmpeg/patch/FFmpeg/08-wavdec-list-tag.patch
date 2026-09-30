@@ -1,0 +1,13 @@
+diff --git forkSrcPrefix/libavformat/wavdec.c forkDstPrefix/libavformat/wavdec.c
+index ae6ff0e022701af931c0a46639d7032e1ed9a699..e4895b95667ab154c6e9e5864eca1cbecaeaac78 100644
+--- forkSrcPrefix/libavformat/wavdec.c
++++ forkDstPrefix/libavformat/wavdec.c
+@@ -526,7 +526,7 @@ static int wav_read_header(AVFormatContext *s)
+             goto break_loop;
+         case MKTAG('L', 'I', 'S', 'T'):
+         case MKTAG('l', 'i', 's', 't'):
+-            if (size < 4) {
++            if (size != 0 && size < 4) {
+                 av_log(s, AV_LOG_ERROR, "too short LIST tag\n");
+                 return AVERROR_INVALIDDATA;
+             }

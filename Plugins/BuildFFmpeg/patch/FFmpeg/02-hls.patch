@@ -1,0 +1,34 @@
+diff --git forkSrcPrefix/libavformat/hls.c forkDstPrefix/libavformat/hls.c
+index 28c883097af649161aad563727fde72397b85fc0..9b5d86dc2ec4b684c660e7071da77248963d5e30 100644
+--- forkSrcPrefix/libavformat/hls.c
++++ forkDstPrefix/libavformat/hls.c
+@@ -2528,7 +2528,7 @@ static int hls_read_packet(AVFormatContext *s, AVPacket *pkt)
+         struct playlist *pls = c->playlists[i];
+         /* Make sure we've got one buffered packet from each open playlist
+          * stream */
+-        if (pls->needed && !pls->pkt->data) {
++        if (pls->needed && !pls->pkt->data && pls->ctx) {
+             while (1) {
+                 int64_t ts_diff;
+                 AVRational tb;
+@@ -2780,13 +2780,13 @@ static int hls_probe(const AVProbeData *p)
+             av_strcasecmp(p->mime_type, "application/x-mpegurl")
+             );
+ 
+-        if (!mime_ok &&
+-            !mime_x &&
+-            !av_match_ext    (p->filename, "m3u8,m3u") &&
+-             ff_match_url_ext(p->filename, "m3u8,m3u") <= 0) {
+-            av_log(NULL, AV_LOG_ERROR, "Not detecting m3u8/hls with non standard extension and non standard mime type\n");
+-            return 0;
+-        }
++        // if (!mime_ok &&
++        //     !mime_x &&
++        //     !av_match_ext    (p->filename, "m3u8,m3u") &&
++        //      ff_match_url_ext(p->filename, "m3u8,m3u") <= 0) {
++        //     av_log(NULL, AV_LOG_ERROR, "Not detecting m3u8/hls with non standard extension and non standard mime type\n");
++        //     return 0;
++        // }
+         if (mime_x)
+             av_log(NULL, AV_LOG_WARNING, "mime type is not rfc8216 compliant\n");
+ 

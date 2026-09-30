@@ -1,0 +1,36 @@
+diff --git forkSrcPrefix/libavformat/libavformat.v forkDstPrefix/libavformat/libavformat.v
+index 47d5ddcdb13e351d04e96636842c89960b564a3e..297567585478dc57ba615fe73405e6eb244576f4 100644
+--- forkSrcPrefix/libavformat/libavformat.v
++++ forkDstPrefix/libavformat/libavformat.v
+@@ -1,6 +1,15 @@
+ LIBAVFORMAT_MAJOR {
+     global:
+         av*;
++        ff_isom_write_vpcc;
++        ff_isom_write_avcc;
++        ff_isom_write_hvcc;
++        ff_isom_write_av1c;
++        ffurl_closep;
++        ffurl_open_whitelist;
++        ffurl_read2;
++        ffurl_read_complete;
++        ffurl_seek2;
+     local:
+         *;
+ };
+diff --git forkSrcPrefix/libavcodec/libavcodec.v forkDstPrefix/libavcodec/libavcodec.v
+index d863e056a573d0ddcb1be9e408ca08717f4882b3..e77a59f3397a59102f604d2eea1b691318e09634 100644
+--- forkSrcPrefix/libavcodec/libavcodec.v
++++ forkDstPrefix/libavcodec/libavcodec.v
+@@ -4,6 +4,11 @@ LIBAVCODEC_MAJOR {
+         avcodec_*;
+         avpriv_*;
+         avsubtitle_free;
++        ff_dovi_ctx_unref;
++        ff_dovi_get_metadata;
++        ff_dovi_rpu_parse;
++        ff_htmlmarkup_to_ass;
++        ff_parse_a53_cc;
+     local:
+         *;
+ };

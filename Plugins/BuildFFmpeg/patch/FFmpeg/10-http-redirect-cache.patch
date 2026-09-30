@@ -1,0 +1,29 @@
+diff --git forkSrcPrefix/libavformat/http.c forkDstPrefix/libavformat/http.c
+index 52073ffcb6babbdb4bb64d56db695fedd8ccf958..38ce351eee1253f0690e02ceb6f183c9ec7f484d 100644
+--- forkSrcPrefix/libavformat/http.c
++++ forkDstPrefix/libavformat/http.c
+@@ -158,6 +158,7 @@ typedef struct HTTPContext {
+     int64_t sum_latency; /* divide by nb_requests */
+     int64_t max_latency;
+     int max_redirects;
++    int redirects_expires;
+ } HTTPContext;
+ 
+ #define OFFSET(x) offsetof(HTTPContext, x)
+@@ -206,6 +207,7 @@ static const AVOption options[] = {
+     { "reply_code", "The http status code to return to a client", OFFSET(reply_code), AV_OPT_TYPE_INT, { .i64 = 200}, INT_MIN, 599, E},
+     { "short_seek_size", "Threshold to favor readahead over seek.", OFFSET(short_seek_size), AV_OPT_TYPE_INT, { .i64 = 0 }, 0, INT_MAX, D },
+     { "max_redirects", "Maximum number of redirects", OFFSET(max_redirects), AV_OPT_TYPE_INT, { .i64 = MAX_REDIRECTS }, 0, INT_MAX, D },
++    { "redirects_expires", "redirects expires second", OFFSET(redirects_expires), AV_OPT_TYPE_INT, { .i64 = -1 }, -1, INT_MAX, D },
+     { NULL }
+ };
+ 
+@@ -491,7 +493,7 @@ redo:
+             return AVERROR(EIO);
+ 
+         if (!s->expires) {
+-            s->expires = (s->http_code == 301 || s->http_code == 308) ? INT64_MAX : -1;
++            s->expires = (s->http_code == 301 || s->http_code == 308) ? INT64_MAX : (time(NULL) + s->redirects_expires);
+         }
+ 
+         if (s->expires > time(NULL) && av_dict_count(s->redirect_cache) < MAX_CACHED_REDIRECTS) {

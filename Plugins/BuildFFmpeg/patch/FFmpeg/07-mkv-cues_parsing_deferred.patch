@@ -1,0 +1,76 @@
+diff --git forkSrcPrefix/libavformat/matroskadec.c forkDstPrefix/libavformat/matroskadec.c
+index 18849af6899cbb13f6d5e3cfaa4ff3547c576f43..73d5a9e20297947dcb295171f85851f9b383f01e 100644
+--- forkSrcPrefix/libavformat/matroskadec.c
++++ forkDstPrefix/libavformat/matroskadec.c
+@@ -3431,7 +3431,6 @@ static int matroska_read_header(AVFormatContext *s)
+     int i, j, res;
+ 
+     matroska->ctx = s;
+-    matroska->cues_parsing_deferred = 1;
+ 
+     /* First read the EBML header. */
+     if (ebml_parse(matroska, ebml_syntax, &ebml) || !ebml.doctype) {
+@@ -3570,6 +3569,12 @@ static int matroska_read_header(AVFormatContext *s)
+     if (res < 0)
+         return res;
+ 
++    /* Parse the CUES now since we need the index data for seek. */
++    if (matroska->cues_parsing_deferred == 0) {
++        matroska->cues_parsing_deferred = 0;
++        matroska_parse_cues(matroska);
++    }
++
+     return 0;
+ }
+ 
+@@ -4580,6 +4585,21 @@ static int matroska_read_close(AVFormatContext *s)
+     return 0;
+ }
+ 
++#define OFFSET(x) offsetof(MatroskaDemuxContext, x)
++static const AVOption options[] = {
++    { "cues_parsing_deferred", "File has a CUES element, but we defer parsing until it is needed.", OFFSET(cues_parsing_deferred), AV_OPT_TYPE_BOOL, {.i64 = 1}, 0, 1, AV_OPT_FLAG_DECODING_PARAM },
++    { "live", "flag indicating that the input is a live file that only has the headers.", OFFSET(is_live), AV_OPT_TYPE_BOOL, {.i64 = 0}, 0, 1, AV_OPT_FLAG_DECODING_PARAM },
++    { "bandwidth", "bandwidth of this stream to be specified in the DASH manifest.", OFFSET(bandwidth), AV_OPT_TYPE_INT, {.i64 = 0}, 0, INT_MAX, AV_OPT_FLAG_DECODING_PARAM },
++    { NULL },
++};
++
++static const AVClass webm_dash_class = {
++    .class_name = "WebM DASH Manifest demuxer",
++    .item_name  = av_default_item_name,
++    .option     = options,
++    .version    = LIBAVUTIL_VERSION_INT,
++};
++
+ #if CONFIG_WEBM_DASH_MANIFEST_DEMUXER
+ typedef struct {
+     int64_t start_time_ns;
+@@ -5007,20 +5027,6 @@ static int webm_dash_manifest_read_packet(AVFormatContext *s, AVPacket *pkt)
+     return AVERROR_EOF;
+ }
+ 
+-#define OFFSET(x) offsetof(MatroskaDemuxContext, x)
+-static const AVOption options[] = {
+-    { "live", "flag indicating that the input is a live file that only has the headers.", OFFSET(is_live), AV_OPT_TYPE_BOOL, {.i64 = 0}, 0, 1, AV_OPT_FLAG_DECODING_PARAM },
+-    { "bandwidth", "bandwidth of this stream to be specified in the DASH manifest.", OFFSET(bandwidth), AV_OPT_TYPE_INT, {.i64 = 0}, 0, INT_MAX, AV_OPT_FLAG_DECODING_PARAM },
+-    { NULL },
+-};
+-
+-static const AVClass webm_dash_class = {
+-    .class_name = "WebM DASH Manifest demuxer",
+-    .item_name  = av_default_item_name,
+-    .option     = options,
+-    .version    = LIBAVUTIL_VERSION_INT,
+-};
+-
+ const FFInputFormat ff_webm_dash_manifest_demuxer = {
+     .p.name         = "webm_dash_manifest",
+     .p.long_name    = NULL_IF_CONFIG_SMALL("WebM DASH Manifest"),
+@@ -5037,6 +5043,7 @@ const FFInputFormat ff_matroska_demuxer = {
+     .p.name         = "matroska,webm",
+     .p.long_name    = NULL_IF_CONFIG_SMALL("Matroska / WebM"),
+     .p.extensions   = "mkv,mk3d,mka,mks,webm",
++    .p.priv_class   = &webm_dash_class,
+     .p.mime_type    = "audio/webm,audio/x-matroska,video/webm,video/x-matroska",
+     .priv_data_size = sizeof(MatroskaDemuxContext),
+     .flags_internal = FF_INFMT_FLAG_INIT_CLEANUP,

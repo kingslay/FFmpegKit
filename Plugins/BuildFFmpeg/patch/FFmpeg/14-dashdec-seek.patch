@@ -1,0 +1,38 @@
+diff --git forkSrcPrefix/libavformat/dashdec.c forkDstPrefix/libavformat/dashdec.c
+index 3dad770d54d34c1c66f82234ef2fc68d36815bc7..598123e7948b7ad4138abe45c8c851cce55cdd4b 100644
+--- forkSrcPrefix/libavformat/dashdec.c
++++ forkDstPrefix/libavformat/dashdec.c
+@@ -2453,13 +2453,13 @@ static int dash_seek(AVFormatContext *s, struct representation *pls, int64_t see
+                 duration = pls->timelines[i]->starttime;
+             }
+             duration += pls->timelines[i]->duration;
+-            if (seek_pos_msec < ((duration * 1000) /  pls->fragment_timescale)) {
++            if (seek_pos_msec < av_rescale(duration, 1000, pls->fragment_timescale)) {
+                 goto set_seq_num;
+             }
+             for (j = 0; j < pls->timelines[i]->repeat; j++) {
+                 duration += pls->timelines[i]->duration;
+                 num++;
+-                if (seek_pos_msec < ((duration * 1000) /  pls->fragment_timescale)) {
++                if (seek_pos_msec < av_rescale(duration, 1000, pls->fragment_timescale)) {
+                     goto set_seq_num;
+                 }
+             }
+@@ -2471,7 +2471,7 @@ set_seq_num:
+         av_log(pls->parent, AV_LOG_VERBOSE, "dash_seek with SegmentTimeline end cur_seq_no[%"PRId64"].\n",
+                (int64_t)pls->cur_seq_no);
+     } else if (pls->fragment_duration > 0) {
+-        pls->cur_seq_no = pls->first_seq_no + ((seek_pos_msec * pls->fragment_timescale) / pls->fragment_duration) / 1000;
++        pls->cur_seq_no = pls->first_seq_no + av_rescale(seek_pos_msec, pls->fragment_timescale, pls->fragment_duration * 1000LL);
+     } else {
+         av_log(pls->parent, AV_LOG_ERROR, "dash_seek missing timeline or fragment_duration\n");
+         pls->cur_seq_no = pls->first_seq_no;
+@@ -2492,7 +2492,7 @@ static int dash_read_seek(AVFormatContext *s, int stream_index, int64_t timestam
+                                            s->streams[stream_index]->time_base.den,
+                                            flags & AVSEEK_FLAG_BACKWARD ?
+                                            AV_ROUND_DOWN : AV_ROUND_UP);
+-    if ((flags & AVSEEK_FLAG_BYTE) || c->is_live)
++    if ((flags & AVSEEK_FLAG_BYTE))
+         return AVERROR(ENOSYS);
+ 
+     /* Seek in discarded streams with dry_run=1 to avoid reopening them */

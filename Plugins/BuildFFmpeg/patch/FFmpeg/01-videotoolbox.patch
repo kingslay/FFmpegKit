@@ -1,0 +1,25 @@
+diff --git forkSrcPrefix/libavcodec/videotoolbox.c forkDstPrefix/libavcodec/videotoolbox.c
+index 2cd22cba1abc318db0aa823aab1c8d381557280b..201fbfc413b0e650f0982f9cdec05423c4d72c9b 100644
+--- forkSrcPrefix/libavcodec/videotoolbox.c
++++ forkDstPrefix/libavcodec/videotoolbox.c
+@@ -729,7 +729,7 @@ static void videotoolbox_decoder_callback(void *opaque,
+ 
+     if (!image_buffer) {
+         // kVTVideoDecoderReferenceMissingErr, defined since the macOS 12 SDKs
+-        if (status != -17694)
++        if (status == kVTVideoDecoderMalfunctionErr || status == kVTInvalidSessionErr)
+             vtctx->reconfig_needed = true;
+ 
+         av_log(vtctx->logctx, status ? AV_LOG_WARNING : AV_LOG_DEBUG,
+@@ -818,9 +818,9 @@ static CFDictionaryRef videotoolbox_buffer_attributes_create(int width,
+     CFDictionarySetValue(buffer_attributes, kCVPixelBufferWidthKey, w);
+     CFDictionarySetValue(buffer_attributes, kCVPixelBufferHeightKey, h);
+ #if TARGET_OS_IPHONE
+-    CFDictionarySetValue(buffer_attributes, kCVPixelBufferOpenGLESCompatibilityKey, kCFBooleanTrue);
++    CFDictionarySetValue(buffer_attributes, kCVPixelBufferMetalCompatibilityKey, kCFBooleanTrue);
+ #else
+-    CFDictionarySetValue(buffer_attributes, kCVPixelBufferIOSurfaceOpenGLTextureCompatibilityKey, kCFBooleanTrue);
++    CFDictionarySetValue(buffer_attributes, kCVPixelBufferMetalCompatibilityKey, kCFBooleanTrue);
+ #endif
+ 
+     CFRelease(io_surface_properties);

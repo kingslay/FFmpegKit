@@ -1,0 +1,13 @@
+diff --git forkSrcPrefix/libavformat/hlsenc.c forkDstPrefix/libavformat/hlsenc.c
+index 50f19f9694d68d96493f69cbdb222b0f26d18289..c0fff8a892880f728cebade295503c595c4ae9ed 100644
+--- forkSrcPrefix/libavformat/hlsenc.c
++++ forkDstPrefix/libavformat/hlsenc.c
+@@ -874,7 +874,7 @@ static int hls_mux_init(AVFormatContext *s, VariantStream *vs)
+     av_dict_copy(&options, hls->format_options, 0);
+     if (hls->segment_type == SEGMENT_TYPE_FMP4) {
+         av_dict_set(&options, "fflags", "-autobsf", 0);
+-        av_dict_set(&options, "movflags", "+frag_custom+dash+delay_moov", AV_DICT_APPEND);
++        av_dict_set(&options, "movflags", "+frag_custom+delay_moov", AV_DICT_APPEND);
+     } else {
+         /* We only require one PAT/PMT per segment. */
+         char period[21];
