@@ -106,10 +106,7 @@ struct pl_deband_params {
 PL_API extern const struct pl_deband_params pl_deband_default_params;
 
 // Debands a given texture and returns the sampled color in `vec4 color`. If
-// `params` is left as NULL, it defaults to &pl_deband_default_params. Note
-// that `tex->params.format` must have PL_FMT_CAP_LINEAR. When the given
-// `pl_sample_src` implies scaling, this effectively performs bilinear
-// sampling on the input (but not the output).
+// `params` is left as NULL, it defaults to &pl_deband_default_params.
 //
 // Note: This can also be used as a pure grain function, by setting the number
 // of iterations to 0.
@@ -176,8 +173,8 @@ struct pl_sample_filter_params {
     pl_shader_obj *lut;
 
     // Deprecated / removed fields
-    int lut_entries PL_DEPRECATED; // hard-coded as 256
-    float cutoff PL_DEPRECATED; // hard-coded as 1e-3
+    PL_DEPRECATED_IN(v6.335) int lut_entries; // hard-coded as 256
+    PL_DEPRECATED_IN(v6.335) float cutoff; // hard-coded as 1e-3
 };
 
 #define pl_sample_filter_params(...) (&(struct pl_sample_filter_params) { __VA_ARGS__ })
@@ -245,12 +242,6 @@ PL_API extern const struct pl_distort_params pl_distort_default_params;
 // be implicitly cut off.
 PL_API void pl_shader_distort(pl_shader sh, pl_tex tex, int out_w, int out_h,
                               const struct pl_distort_params *params);
-
-enum PL_DEPRECATED { // for `int pass`
-    PL_SEP_VERT = 0,
-    PL_SEP_HORIZ,
-    PL_SEP_PASSES
-};
 
 PL_API_END
 

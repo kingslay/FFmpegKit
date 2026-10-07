@@ -40,8 +40,8 @@
 #include <stdio.h>
 #include "config.h"
 #include "attributes.h"
+#include "libm.h"
 #include "macros.h"
-#include "pixfmt.h"
 
 #ifndef attribute_align_arg
 #if ARCH_X86_32 && AV_GCC_VERSION_AT_LEAST(4,2)
@@ -49,12 +49,6 @@
 #else
 #    define attribute_align_arg
 #endif
-#endif
-
-#if defined(_WIN32) && CONFIG_SHARED && !defined(BUILDING_avutil)
-#    define av_export_avutil __declspec(dllimport)
-#else
-#    define av_export_avutil
 #endif
 
 #if HAVE_PRAGMA_DEPRECATED
@@ -74,16 +68,6 @@
 #endif
 
 
-#define FF_MEMORY_POISON 0x2a
-
-/* Check if the hard coded offset of a struct member still matches reality.
- * Induce a compilation failure if not.
- */
-#define AV_CHECK_OFFSET(s, m, o) struct check_##o {    \
-        int x_##o[offsetof(s, m) == o? 1: -1];         \
-    }
-
-
 #define FF_ALLOC_TYPED_ARRAY(p, nelem)  (p = av_malloc_array(nelem, sizeof(*p)))
 #define FF_ALLOCZ_TYPED_ARRAY(p, nelem) (p = av_calloc(nelem, sizeof(*p)))
 
@@ -93,8 +77,6 @@
  * Access a field in a structure by its offset.
  */
 #define FF_FIELD_AT(type, off, obj) (*(type *)((char *)&(obj) + (off)))
-
-#include "libm.h"
 
 /**
  * Return NULL if CONFIG_SMALL is true, otherwise the argument
@@ -127,20 +109,6 @@ void avpriv_report_missing_feature(void *avc,
 void avpriv_request_sample(void *avc,
                            const char *msg, ...) av_printf_format(2, 3);
 
-#if HAVE_LIBC_MSVCRT
-#include <crtversion.h>
-#if defined(_VC_CRT_MAJOR_VERSION) && _VC_CRT_MAJOR_VERSION < 14
-#pragma comment(linker, "/include:" EXTERN_PREFIX "avpriv_strtod")
-#pragma comment(linker, "/include:" EXTERN_PREFIX "avpriv_snprintf")
-#endif
-
-#define PTRDIFF_SPECIFIER "Id"
-#define SIZE_SPECIFIER "Iu"
-#else
-#define PTRDIFF_SPECIFIER "td"
-#define SIZE_SPECIFIER "zu"
-#endif
-
 #ifdef DEBUG
 #   define ff_dlog(ctx, ...) av_log(ctx, AV_LOG_DEBUG, __VA_ARGS__)
 #else
@@ -153,7 +121,7 @@ void avpriv_request_sample(void *avc,
 #   define ff_tlog(ctx, ...) do { } while(0)
 #endif
 
-// For debuging we use signed operations so overflows can be detected (by ubsan)
+// For debugging we use signed operations so overflows can be detected (by ubsan)
 // For production we use unsigned so there are no undefined operations
 #ifdef CHECKED
 #define SUINT   int
@@ -162,8 +130,6 @@ void avpriv_request_sample(void *avc,
 #define SUINT   unsigned
 #define SUINT32 uint32_t
 #endif
-
-int avpriv_set_systematic_pal2(uint32_t pal[256], enum AVPixelFormat pix_fmt);
 
 static av_always_inline av_const int avpriv_mirror(int x, int w)
 {

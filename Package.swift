@@ -1,16 +1,23 @@
-// swift-tools-version:5.9
+// swift-tools-version:6.1
 import PackageDescription
 
 let package = Package(
     name: "FFmpegKit",
     defaultLocalization: "en",
-    platforms: [.macOS(.v10_15), .macCatalyst(.v14), .iOS(.v13), .tvOS(.v13),
-                .visionOS(.v1)],
+    platforms: [.iOS(.v13), .macCatalyst(.v14), .macOS(.v10_15), .tvOS(.v13), .visionOS(.v1), .watchOS(.v6)],
     products: [
         .library(
             name: "FFmpegKit",
-//            type: .static,
-            targets: ["FFmpegKit"]
+//            type: .dynamic,
+            targets: [
+                "FFmpegKit",
+                // 支持spm打包成framework
+                "lcms2", "libdav1d", "libsrt", "libfreetype", "libfribidi", "libharfbuzz", "libass", "libfontconfig", "libopus",
+                "libssl", "libcrypto",
+                // 这三个库不支持watchOS
+                //                "libdovi", "libplacebo", "MoltenVK",
+                //                "gmp", "nettle", "hogweed", "gnutls",
+            ]
         ),
         .library(name: "Libavcodec", targets: ["Libavcodec"]),
         .library(name: "Libavfilter", targets: ["Libavfilter"]),
@@ -18,18 +25,9 @@ let package = Package(
         .library(name: "Libavutil", targets: ["Libavutil"]),
         .library(name: "Libswresample", targets: ["Libswresample"]),
         .library(name: "Libswscale", targets: ["Libswscale"]),
-        // Crypto/TLS libraries exposed for consumers that link Libav*
-        // individually without the full FFmpegKit target
-        .library(name: "gmp", targets: ["gmp"]),
-        .library(name: "nettle", targets: ["nettle"]),
-        .library(name: "hogweed", targets: ["hogweed"]),
-        .library(name: "gnutls", targets: ["gnutls"]),
-        .library(name: "libass", targets: ["libfreetype", "libfribidi", "libharfbuzz", "libass"]),
+        .library(name: "libass", targets: ["libfreetype", "libfribidi", "libharfbuzz", "libfontconfig", "libass"]),
         .library(name: "libmpv", targets: ["FFmpegKit", "libass", "libmpv"]),
-        .executable(name: "ffmpeg", targets: ["ffmpeg"]),
-        .executable(name: "ffplay", targets: ["ffplay"]),
-        .executable(name: "ffprobe", targets: ["ffprobe"]),
-        .plugin(name: "BuildFFmpeg", targets: ["BuildFFmpeg"]),
+        .library(name: "libzvbi", targets: ["libzvbi"]),
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -38,22 +36,20 @@ let package = Package(
         .target(
             name: "FFmpegKit",
             dependencies: [
-                "MoltenVK",
-                "libshaderc_combined",
-                "lcms2",
-                "libdav1d",
-                "libplacebo",
-                .target(name: "libzvbi", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS])),
-                "libsrt",
-                "libfreetype", "libfribidi", "libharfbuzz", "libass",
-                "libfontconfig",
-                .target(name: "libbluray", condition: .when(platforms: [.macOS])),
-                "gmp", "nettle", "hogweed", "gnutls",
-                "libsmbclient",
                 "Libavcodec", "Libavdevice", "Libavfilter", "Libavformat", "Libavutil", "Libswresample", "Libswscale",
+                "lcms2", "libass", "libdav1d", "libharfbuzz", "libfontconfig", "libfreetype", "libfribidi", "libopus", "libsrt", "libzvbi",
+                "libcrypto", "libssl",
+//                "gmp", "nettle", "hogweed", "gnutls",
+                .targetItem(name: "libdovi", condition: .when(platforms: [.iOS, .macCatalyst, .macOS, .tvOS, .visionOS])),
+                .targetItem(name: "libplacebo", condition: .when(platforms: [.iOS, .macCatalyst, .macOS, .tvOS, .visionOS])),
+                .targetItem(name: "MoltenVK", condition: .when(platforms: [.iOS, .macCatalyst, .macOS, .tvOS, .visionOS])),
+            ],
+            resources: [.process("Resources")],
+            cSettings: [
+                .headerSearchPath("private"),
             ],
             linkerSettings: [
-                .linkedFramework("AudioToolbox"),
+                .linkedFramework("AudioToolbox", .when(platforms: [.iOS, .macCatalyst, .macOS, .tvOS, .visionOS])),
                 .linkedFramework("AVFAudio"),
                 .linkedFramework("AVFoundation"),
                 .linkedFramework("CoreAudio"),
@@ -64,81 +60,26 @@ let package = Package(
                 .linkedFramework("Cocoa", .when(platforms: [.macOS])),
                 .linkedFramework("DiskArbitration", .when(platforms: [.macOS])),
                 .linkedFramework("Foundation"),
-                .linkedFramework("Metal"),
-                .linkedFramework("IOKit", .when(platforms: [.macOS, .iOS, .visionOS, .macCatalyst])),
-                .linkedFramework("IOSurface"),
+                .linkedFramework("Metal", .when(platforms: [.iOS, .macCatalyst, .macOS, .tvOS, .visionOS])),
+                .linkedFramework("IOKit", .when(platforms: [.iOS, .macCatalyst, .macOS, .visionOS])),
+                .linkedFramework("IOSurface", .when(platforms: [.iOS, .macCatalyst, .macOS, .tvOS, .visionOS])),
                 .linkedFramework("QuartzCore"),
                 .linkedFramework("Security"),
-                .linkedFramework("UIKit", .when(platforms: [.iOS, .tvOS, .visionOS, .macCatalyst])),
-                .linkedFramework("VideoToolbox"),
+                .linkedFramework("UIKit", .when(platforms: [.iOS, .macCatalyst, .tvOS, .visionOS, .watchOS])),
+                .linkedFramework("VideoToolbox", .when(platforms: [.iOS, .macCatalyst, .macOS, .tvOS, .visionOS])),
                 .linkedLibrary("bz2"),
                 .linkedLibrary("c++"),
-                .linkedLibrary("expat", .when(platforms: [.macOS])),
+                // freetype 需要用到expat，所以全平台都要引入expat。iOS13 dyld: Library not loaded: /usr/lib/libexpat.1.dylib。所以计划iOS13就不支持了
+                .linkedLibrary("expat"),
                 .linkedLibrary("iconv"),
                 .linkedLibrary("resolv"),
                 .linkedLibrary("xml2"),
                 .linkedLibrary("z"),
             ]
         ),
-        .executableTarget(
-            name: "ffplay",
-            dependencies: [
-                "fftools",
-                "SDL2",
-            ]
-        ),
-        .executableTarget(
-            name: "ffprobe",
-            dependencies: [
-                "fftools",
-            ]
-        ),
-        .executableTarget(
-            name: "ffmpeg",
-            dependencies: [
-                "fftools",
-            ]
-        ),
-        .target(
-            name: "fftools",
-            dependencies: [
-                "FFmpegKit",
-            ]
-        ),
-        .systemLibrary(
-            name: "SDL2",
-            pkgConfig: "sdl2",
-            providers: [
-                .brew(["sdl2"]),
-            ]
-        ),
-//        .target(
-//            name: "libavutil",
-//            cSettings: [.headerSearchPath("../")]
-//        ),
-//        .executableTarget(
-//            name: "BuildFFmpegPlugin",
-//            path: "Plugins/BuildFFmpeg"
-//        ),
-        .plugin(
-            name: "BuildFFmpeg", capability: .command(
-                intent: .custom(
-                    verb: "BuildFFmpeg",
-                    description: "You can customize FFmpeg and then compile FFmpeg"
-                ),
-                permissions: [
-                    //                    .writeToPackageDirectory(reason: "This command compile FFmpeg and generate xcframework. compile FFmpeg need brew install nasm sdl2 cmake. So you need add --allow-writing-to-directory /usr/local/ --allow-writing-to-directory ~/Library/ or add --disable-sandbox"),
-//                    .allowNetworkConnections(scope: .all(), reason: "The plugin must connect to a remote server to brew install nasm sdl2 cmake"),
-                ]
-            )
-        ),
         .binaryTarget(
             name: "MoltenVK",
             path: "Sources/MoltenVK.xcframework"
-        ),
-        .binaryTarget(
-            name: "libshaderc_combined",
-            path: "Sources/libshaderc_combined.xcframework"
         ),
 
         .binaryTarget(
@@ -152,6 +93,10 @@ let package = Package(
         .binaryTarget(
             name: "libdav1d",
             path: "Sources/libdav1d.xcframework"
+        ),
+        .binaryTarget(
+            name: "libdovi",
+            path: "Sources/libdovi.xcframework"
         ),
         .binaryTarget(
             name: "Libavcodec",
@@ -210,40 +155,25 @@ let package = Package(
             path: "Sources/libmpv.xcframework"
         ),
         .binaryTarget(
-            name: "gmp",
-            path: "Sources/gmp.xcframework"
-        ),
-        .binaryTarget(
-            name: "nettle",
-            path: "Sources/nettle.xcframework"
-        ),
-        .binaryTarget(
-            name: "hogweed",
-            path: "Sources/hogweed.xcframework"
+            name: "libopus",
+            path: "Sources/libopus.xcframework"
         ),
         .binaryTarget(
             name: "libfontconfig",
             path: "Sources/libfontconfig.xcframework"
         ),
         .binaryTarget(
-            name: "libbluray",
-            path: "Sources/libbluray.xcframework"
+            name: "libssl",
+            path: "Sources/libssl.xcframework"
         ),
         .binaryTarget(
-            name: "gnutls",
-            path: "Sources/gnutls.xcframework"
+            name: "libcrypto",
+            path: "Sources/libcrypto.xcframework"
         ),
-        .binaryTarget(
-            name: "libsmbclient",
-            path: "Sources/libsmbclient.xcframework"
-        ),
-//        .binaryTarget(
-//            name: "libssl",
-//            path: "Sources/libssl.xcframework"
-//        ),
-//        .binaryTarget(
-//            name: "libcrypto",
-//            path: "Sources/libcrypto.xcframework"
-//        ),
-    ]
+    ],
+    swiftLanguageModes: [
+        .v5,
+        .v6,
+    ],
+    cLanguageStandard: .c11
 )

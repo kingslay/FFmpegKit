@@ -70,6 +70,11 @@ struct pl_d3d11_params {
     // Also logs IDXGIInfoQueue messages
     bool debug;
 
+    // Disables the use of compute shaders. Some devices/drivers perform better
+    // without them. This may also help prevent image corruption in cases where
+    // the driver is misbehaving. Some features may be disabled if this is set.
+    bool no_compute;
+
     // Extra flags to pass to D3D11CreateDevice (D3D11_CREATE_DEVICE_FLAG).
     // libplacebo should be compatible with any flags passed here.
     UINT flags;
@@ -192,6 +197,18 @@ struct pl_d3d11_swapchain_params {
 
     // Disable using a 10-bit swapchain format for SDR output
     bool disable_10bit_sdr;
+
+    // Minimum number of alpha bits requested in the swapchain format. In
+    // practice, this can be used to prefer formats with higher alpha bit depth
+    // (e.g. rgba8/rgba16 over rgb10a2), potentially trading 2 bits per color
+    // channel for increased alpha precision. This is a hint, if no matching
+    // format is found, lower bit depths will be accepted.
+    uint8_t alpha_bits;
+
+    // Minimum number of color bits requested in the swapchain format. This can
+    // be used to prefer formats with higher color bit depth. This is a hint,
+    // if no matching format is found, lower bit depths will be accepted.
+    uint8_t color_bits;
 };
 
 #define pl_d3d11_swapchain_params(...) (&(struct pl_d3d11_swapchain_params) { __VA_ARGS__ })

@@ -173,6 +173,7 @@ int ff_poll(struct pollfd *fds, nfds_t numfds, int timeout);
 #ifdef _WIN32
 #include <stdio.h>
 #include <windows.h>
+#include "libavutil/mem.h"
 #include "libavutil/wchar_filename.h"
 
 #define DEF_FS_FUNCTION(name, wfunc, afunc)               \
@@ -278,7 +279,7 @@ static inline int win32_rename(const char *src_utf8, const char *dest_utf8)
         goto fallback;
     }
 
-    ret = MoveFileExW(src_w, dest_w, MOVEFILE_REPLACE_EXISTING);
+    ret = (MoveFileExW(src_w, dest_w, MOVEFILE_REPLACE_EXISTING) == 0) ? -1 : 0;
     av_free(src_w);
     av_free(dest_w);
     // Lacking proper mapping from GetLastError() error codes to errno codes
@@ -289,7 +290,7 @@ static inline int win32_rename(const char *src_utf8, const char *dest_utf8)
 fallback:
     /* filename may be be in CP_ACP */
 #if !HAVE_UWP
-    ret = MoveFileExA(src_utf8, dest_utf8, MOVEFILE_REPLACE_EXISTING);
+    ret = (MoveFileExA(src_utf8, dest_utf8, MOVEFILE_REPLACE_EXISTING) == 0) ? -1 : 0;
     if (ret)
         errno = EPERM;
 #else

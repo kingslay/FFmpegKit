@@ -1,4 +1,8 @@
 framework module libplacebo [system] {
     umbrella "."
+    exclude header "d3d11.h"
+    exclude header "utils/dav1d.h"
+    exclude header "utils/dav1d_internal.h"
+    exclude header "utils/libav_internal.h"
     export *
 }

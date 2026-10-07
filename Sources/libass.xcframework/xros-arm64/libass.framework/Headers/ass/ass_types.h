@@ -38,6 +38,11 @@
  * By nature of direct struct modifications working closer to library internals,
  * workflows that make use of this possibility are also more likely to be
  * affected by future API breaks than those which do not.
+ * If modifying a libass struct to contain a pointer to a user-allocated buffer,
+ * the buffer should be allocated using ass_malloc(). Failing to do so may result
+ * in undefined behavior if the buffer is later freed within libass, and the caller
+ * is linked against a different libc instance than libass itself. Similarly, any
+ * existing buffer being replaced or removed should be released using ass_free().
  *
  * To avoid desynchronisation with internal states, there are some restrictions
  * on when and how direct struct modification can be performed.
@@ -46,7 +51,7 @@
  *  - Manual struct edits and track-modifying (including modification to the
  *    event and style elements of the track) API calls cannot be freely mixed:
  *    - Before manual changes are performed, it is allowed to call any such API,
- *      unless the documentation of the funtion says otherwise.
+ *      unless the documentation of the function says otherwise.
  *    - After manual changes have been performed, no track-modifying API may be
  *      invoked, except for ass_track_set_feature and ass_flush_events.
  *  - After the first call to ass_render_frame, existing array members
@@ -174,7 +179,7 @@ typedef struct ass_event {
  * for backwards compatibility with existing files, the classic mangling
  * must be preserved for existing files to not break the display of
  * color-matched typesets created with older VSFilter versions. Thus,
- * on iniative of xy-VSFilter/XYSubFilter a new explicit "YCbCr Matrix"
+ * on initiative of xy-VSFilter/XYSubFilter a new explicit "YCbCr Matrix"
  * header was introduced to allow new files to avoid this color mangling.
  * However due to a limitation of VSFilter API, VSFilters don't actually
  * know the real colorspace of the video they're rendering to, so the
@@ -223,12 +228,23 @@ typedef struct ass_event {
  * It is recommended to stick to XySubFilter-like behaviour described above.
  * A highly motivated application may also expose options to users to  emulate
  * xy-VSFilter's resolution-depended guess or other (historic) mangling modes.
- * Completly ignoring the color mangling is likely to give bad results.
+ * Completely ignoring the color mangling is likely to give bad results.
  *
  * Note that libass doesn't change colors based on this header. It
  * absolutely can't do that, because the video colorspace is required
  * in order to handle this as intended. API users must use the exposed
  * information to perform color mangling as described above.
+ *
+ * Further note all of the above only concerns the RGB values.
+ * Color primaries and transfer characteristics of ASS subtitles
+ * must always match their associated video when placed on top of SDR video.
+ *
+ * Subs on HDR video need additional consideration to yield satisfactory results,
+ * but unfortunately no mechanisms for this are standardized yet.
+ * Until such mechanisms are introduced and sub files start to enable them,
+ * all subtitles are to be considered SDR. When placed on top of HDR video
+ * exact color matching is not relevant and the choice of SDR colorspace
+ * to render subs in is left to the presenter.
  */
 typedef enum ASS_YCbCrMatrix {
     YCBCR_DEFAULT = 0,  // Header missing
@@ -284,7 +300,7 @@ typedef struct ass_track {
     ASS_ParserPriv *parser_priv;
 
     int LayoutResX;  // overrides values from ass_set_storage_size and
-    int LayoutResY;  // also takes precendence over ass_set_pixel_aspect
+    int LayoutResY;  // also takes precedence over ass_set_pixel_aspect
 
     // New fields can be added here in new ABI-compatible library releases.
 } ASS_Track;

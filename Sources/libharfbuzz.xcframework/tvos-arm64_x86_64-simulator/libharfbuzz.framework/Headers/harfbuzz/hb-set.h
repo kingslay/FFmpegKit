@@ -43,7 +43,7 @@ HB_BEGIN_DECLS
  *
  * Since: 0.9.21
  */
-#define HB_SET_VALUE_INVALID ((hb_codepoint_t) -1)
+#define HB_SET_VALUE_INVALID HB_CODEPOINT_INVALID
 
 /**
  * hb_set_t:
@@ -98,6 +98,9 @@ HB_EXTERN void
 hb_set_invert (hb_set_t *set);
 
 HB_EXTERN hb_bool_t
+hb_set_is_inverted (const hb_set_t *set);
+
+HB_EXTERN hb_bool_t
 hb_set_has (const hb_set_t *set,
 	    hb_codepoint_t  codepoint);
 
@@ -127,6 +130,10 @@ hb_set_del_range (hb_set_t       *set,
 HB_EXTERN hb_bool_t
 hb_set_is_equal (const hb_set_t *set,
 		 const hb_set_t *other);
+
+HB_EXTERN hb_bool_t
+hb_set_intersects (const hb_set_t *set,
+		   const hb_set_t *other);
 
 HB_EXTERN unsigned int
 hb_set_hash (const hb_set_t *set);

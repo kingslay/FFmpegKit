@@ -120,9 +120,23 @@ PL_LIBAV_API void pl_map_dovi_metadata(struct pl_dovi_metadata *out,
 // Note: The `pl_dovi_metadata` must be allocated externally.
 // Also, currently the metadata is only used if the `AVDOVIRpuDataHeader`
 // `disable_residual_flag` field is not zero and can be checked before allocating.
-PL_LIBAV_API void pl_frame_map_avdovi_metadata(struct pl_frame *out_frame,
+PL_DEPRECATED_IN(v7.343) PL_LIBAV_API void pl_frame_map_avdovi_metadata(
+                                               struct pl_frame *out_frame,
                                                struct pl_dovi_metadata *dovi,
                                                const AVDOVIMetadata *metadata);
+
+// Helper function to map Dolby Vision metadata from the FFmpeg format
+// to `pl_dovi_metadata`, and adds it to the `pl_color_repr`.
+// The `pl_color_space` fields and HDR struct are also updated with
+// values from the `AVDOVIMetadata`.
+//
+// Note: The `pl_dovi_metadata` must be allocated externally.
+// Also, currently the metadata is only used if the `AVDOVIRpuDataHeader`
+// `disable_residual_flag` field is not zero and can be checked before allocating.
+PL_LIBAV_API void pl_map_avdovi_metadata(struct pl_color_space *color,
+                                         struct pl_color_repr *repr,
+                                         struct pl_dovi_metadata *dovi,
+                                         const AVDOVIMetadata *metadata);
 #endif
 
 // Helper function to test if a pixfmt would be supported by the GPU.
@@ -253,6 +267,10 @@ PL_LIBAV_API enum pl_color_transfer pl_transfer_from_av(enum AVColorTransferChar
 PL_LIBAV_API enum AVColorTransferCharacteristic pl_transfer_to_av(enum pl_color_transfer trc);
 PL_LIBAV_API enum pl_chroma_location pl_chroma_from_av(enum AVChromaLocation loc);
 PL_LIBAV_API enum AVChromaLocation pl_chroma_to_av(enum pl_chroma_location loc);
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(60, 11, 100)
+PL_LIBAV_API enum pl_alpha_mode pl_alpha_from_av(enum AVAlphaMode mode);
+PL_LIBAV_API enum AVAlphaMode pl_alpha_to_av(enum pl_alpha_mode mode);
+#endif
 
 // Helper function to generate a `pl_color_space` struct from an AVFrame.
 PL_LIBAV_API void pl_color_space_from_avframe(struct pl_color_space *out_csp,

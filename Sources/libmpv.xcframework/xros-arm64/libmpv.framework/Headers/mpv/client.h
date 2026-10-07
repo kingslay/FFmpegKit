@@ -181,7 +181,7 @@ extern "C" {
  * filenames in the local 8 bit encoding. It does not use fopen() either;
  * it uses _wfopen().
  *
- * On OS X, filenames and other strings taken/returned by libmpv can have
+ * On macOS, filenames and other strings taken/returned by libmpv can have
  * inconsistent unicode normalization. This can sometimes lead to problems.
  * You have to hope for the best.
  *
@@ -197,7 +197,7 @@ extern "C" {
  *
  * There is an older way to embed the native mpv window into your own. You have
  * to get the raw window handle, and set it as "wid" option. This works on X11,
- * win32, and OSX only. It's much easier to use than the render API, but
+ * win32, and macOS only. It's much easier to use than the render API, but
  * also has various problems.
  *
  * Also see client API examples and the mpv manpage. There is an extensive
@@ -248,7 +248,7 @@ extern "C" {
  * relational operators (<, >, <=, >=).
  */
 #define MPV_MAKE_VERSION(major, minor) (((major) << 16) | (minor) | 0UL)
-#define MPV_CLIENT_API_VERSION MPV_MAKE_VERSION(2, 2)
+#define MPV_CLIENT_API_VERSION MPV_MAKE_VERSION(2, 5)
 
 /**
  * The API user is allowed to "#define MPV_ENABLE_DEPRECATED 0" before
@@ -495,7 +495,7 @@ MPV_EXPORT mpv_handle *mpv_create(void);
  *        - load-scripts
  *        - script
  *        - player-operation-mode
- *        - input-app-events (OSX)
+ *        - input-app-events (macOS)
  *      - all encoding mode options
  *
  * @return error code

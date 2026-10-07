@@ -1,4 +1,0 @@
-framework module libshaderc_combined [system] {
-    umbrella "."
-    export *
-}

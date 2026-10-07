@@ -26,8 +26,23 @@
 
 #include "pixfmt.h"
 #include "frame.h"
+#include "hwcontext.h"
 
 typedef struct AVVkFrame AVVkFrame;
+
+typedef struct AVVulkanDeviceQueueFamily {
+    /* Queue family index */
+    int idx;
+    /* Number of queues in the queue family in use */
+    int num;
+    /* Queue family capabilities. Must be non-zero.
+     * Flags may be removed to indicate the queue family may not be used
+     * for a given purpose. */
+    VkQueueFlagBits flags;
+    /* Vulkan implementations are allowed to list multiple video queues
+     * which differ in what they can encode or decode. */
+    VkVideoCodecOperationFlagBitsKHR video_caps;
+} AVVulkanDeviceQueueFamily;
 
 /**
  * @file
@@ -48,9 +63,8 @@ typedef struct AVVulkanDeviceContext {
     const VkAllocationCallbacks *alloc;
 
     /**
-     * Pointer to the instance-provided vkGetInstanceProcAddr loading function.
-     * If NULL, will pick either libvulkan or libvolk, depending on libavutil's
-     * compilation settings, and set this field.
+     * Pointer to a vkGetInstanceProcAddr loading function.
+     * If unset, will dynamically load and use libvulkan.
      */
     PFN_vkGetInstanceProcAddr get_proc_addr;
 
@@ -83,6 +97,8 @@ typedef struct AVVulkanDeviceContext {
      * each entry containing the specified Vulkan extension string to enable.
      * Duplicates are possible and accepted.
      * If no extensions are enabled, set these fields to NULL, and 0 respectively.
+     * av_vk_get_optional_instance_extensions() can be used to enumerate extensions
+     * that FFmpeg may use if enabled.
      */
     const char * const *enabled_inst_extensions;
     int nb_enabled_inst_extensions;
@@ -94,62 +110,46 @@ typedef struct AVVulkanDeviceContext {
      * If supplying your own device context, these fields takes the same format as
      * the above fields, with the same conditions that duplicates are possible
      * and accepted, and that NULL and 0 respectively means no extensions are enabled.
+     * av_vk_get_optional_device_extensions() can be used to enumerate extensions
+     * that FFmpeg may use if enabled.
      */
     const char * const *enabled_dev_extensions;
     int nb_enabled_dev_extensions;
 
-    /**
-     * Queue family index for graphics operations, and the number of queues
-     * enabled for it. If unavaiable, will be set to -1. Not required.
-     * av_hwdevice_create() will attempt to find a dedicated queue for each
-     * queue family, or pick the one with the least unrelated flags set.
-     * Queue indices here may overlap if a queue has to share capabilities.
-     */
-    int queue_family_index;
-    int nb_graphics_queues;
-
-    /**
-     * Queue family index for transfer operations and the number of queues
-     * enabled. Required.
-     */
-    int queue_family_tx_index;
-    int nb_tx_queues;
-
-    /**
-     * Queue family index for compute operations and the number of queues
-     * enabled. Required.
-     */
-    int queue_family_comp_index;
-    int nb_comp_queues;
-
-    /**
-     * Queue family index for video encode ops, and the amount of queues enabled.
-     * If the device doesn't support such, queue_family_encode_index will be -1.
-     * Not required.
-     */
-    int queue_family_encode_index;
-    int nb_encode_queues;
-
-    /**
-     * Queue family index for video decode ops, and the amount of queues enabled.
-     * If the device doesn't support such, queue_family_decode_index will be -1.
-     * Not required.
-     */
-    int queue_family_decode_index;
-    int nb_decode_queues;
-
+#if FF_API_VULKAN_SYNC_QUEUES
     /**
      * Locks a queue, preventing other threads from submitting any command
      * buffers to this queue.
      * If set to NULL, will be set to lavu-internal functions that utilize a
      * mutex.
+     *
+     * Deprecated: use VK_KHR_internally_synchronized_queues.
      */
+    attribute_deprecated
     void (*lock_queue)(struct AVHWDeviceContext *ctx, uint32_t queue_family, uint32_t index);
 
     /**
      * Similar to lock_queue(), unlocks a queue. Must only be called after locking.
+     *
+     * Deprecated: use VK_KHR_internally_synchronized_queues.
      */
+    attribute_deprecated
     void (*unlock_queue)(struct AVHWDeviceContext *ctx, uint32_t queue_family, uint32_t index);
+#endif
+
+    /**
+     * Queue families used. Must be preferentially ordered. List may contain
+     * duplicates.
+     *
+     * For compatibility reasons, all the enabled queue families listed above
+     * (queue_family_(tx/comp/encode/decode)_index) must also be included in
+     * this list until they're removed after deprecation.
+     */
+    AVVulkanDeviceQueueFamily qf[64];
+    int nb_qf;
+
+    /* Queue creation flags, for vkGetDeviceQueue2. */
+    VkDeviceQueueCreateFlags queue_flags;
 } AVVulkanDeviceContext;
 
 /**
@@ -159,11 +159,6 @@ typedef enum AVVkFrameFlags {
     /* Unless this flag is set, autodetected flags will be OR'd based on the
      * device and tiling during av_hwframe_ctx_init(). */
     AV_VK_FRAME_FLAG_NONE              = (1ULL << 0),
-
-#if FF_API_VULKAN_CONTIGUOUS_MEMORY
-    /* DEPRECATED: does nothing. Replaced by multiplane images. */
-    AV_VK_FRAME_FLAG_CONTIGUOUS_MEMORY = (1ULL << 1),
-#endif
 
     /* Disables multiplane images.
      * This is required to export/import images from CUDA. */
@@ -186,7 +181,8 @@ typedef struct AVVulkanFramesContext {
 
     /**
      * Defines extra usage of output frames. If non-zero, all flags MUST be
-     * supported by the VkFormat. Otherwise, will use supported flags amongst:
+     * supported by the VkFormat. Regardless, frames will always have the
+     * following usage flags enabled, if supported by the format:
      * - VK_IMAGE_USAGE_SAMPLED_BIT
      * - VK_IMAGE_USAGE_STORAGE_BIT
      * - VK_IMAGE_USAGE_TRANSFER_SRC_BIT
@@ -291,7 +287,7 @@ struct AVVkFrame {
     /**
      * Updated after every barrier. One per VkImage.
      */
-    VkAccessFlagBits access[AV_NUM_DATA_POINTERS];
+    VkAccessFlagBits2 access[AV_NUM_DATA_POINTERS];
     VkImageLayout layout[AV_NUM_DATA_POINTERS];
 
     /**
@@ -311,11 +307,6 @@ struct AVVkFrame {
     uint64_t sem_value[AV_NUM_DATA_POINTERS];
 
     /**
-     * Internal data.
-     */
-    struct AVVkFrameInternal *internal;
-
-    /**
      * Describes the binding offset of each image to the VkDeviceMemory.
      * One per VkImage.
      */
@@ -327,6 +318,11 @@ struct AVVkFrame {
      * One per VkImage.
      */
     uint32_t queue_family[AV_NUM_DATA_POINTERS];
+
+    /**
+     * Internal data. Not to be accessed by users in any way.
+     */
+    struct AVVkFrameInternal *internal;
 };
 
 /**
@@ -341,5 +337,19 @@ AVVkFrame *av_vk_frame_alloc(void);
  * Returns NULL on unsupported formats.
  */
 const VkFormat *av_vkfmt_from_pixfmt(enum AVPixelFormat p);
+
+/**
+ * Returns an array of optional Vulkan instance extensions that FFmpeg
+ * may use if enabled.
+ * @note Must be freed via av_free()
+ */
+const char **av_vk_get_optional_instance_extensions(int *count);
+
+/**
+ * Returns an array of optional Vulkan device extensions that FFmpeg
+ * may use if enabled.
+ * @note Must be freed via av_free()
+ */
+const char **av_vk_get_optional_device_extensions(int *count);
 
 #endif /* AVUTIL_HWCONTEXT_VULKAN_H */

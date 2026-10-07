@@ -49,7 +49,8 @@ PL_API void pl_shader_dovi_reshape(pl_shader sh, const struct pl_dovi_metadata *
 // Note: This function always returns PC-range RGB with independent alpha.
 // It mutates the pl_color_repr to reflect the change.
 //
-// Note: For DCDM XYZ decoding output is linear
+// Note: For DCDM XYZ decoding input is expected to be linear, use
+// `pl_shader_linearize` before calling this function.
 PL_API void pl_shader_decode_color(pl_shader sh, struct pl_color_repr *repr,
                                    const struct pl_color_adjustment *params);
 
@@ -60,16 +61,12 @@ PL_API void pl_shader_decode_color(pl_shader sh, struct pl_color_repr *repr,
 // Note: For DCDM XYZ encoding input is expected to be linear
 PL_API void pl_shader_encode_color(pl_shader sh, const struct pl_color_repr *repr);
 
-// Linearize (expand) `vec4 color`, given a specified color space. In essence,
-// this corresponds to the ITU-R EOTF.
-//
-// Note: Unlike the ITU-R EOTF, it never includes the OOTF - even for systems
-// where the EOTF includes the OOTF (such as HLG).
+// Linearize (expand) `vec4 color`, given a specified color space. Shader
+// equivalent of `pl_color_linearize`.
 PL_API void pl_shader_linearize(pl_shader sh, const struct pl_color_space *csp);
 
-// Delinearize (compress), given a color space as output. This loosely
-// corresponds to the inverse EOTF (not the OETF) in ITU-R terminology, again
-// assuming a reference monitor.
+// Delinearize (compress), given a color space as output. Shader equivalent
+// of `pl_color_delinearize`.
 PL_API void pl_shader_delinearize(pl_shader sh, const struct pl_color_space *csp);
 
 struct pl_sigmoid_params {
@@ -93,6 +90,9 @@ PL_API extern const struct pl_sigmoid_params pl_sigmoid_default_params;
 // ringing artifacts during upscaling by bringing the color information closer
 // to neutral and away from the extremes. If `params` is NULL, it defaults to
 // &pl_sigmoid_default_params.
+//
+// For more information about sigmoidization, see:
+//   https://imagemagick.org/Usage/resize/#resize_sigmoidal
 //
 // Warning: This function clamps the input to the interval [0,1]; and as such
 // it should *NOT* be used on already-decoded high-dynamic range content.
@@ -133,21 +133,29 @@ struct pl_peak_detect_params {
     // cause no major issues in typical content.
     float percentile;
 
+    // Black cutoff strength. To prevent unnatural pixel shimmer and excessive
+    // darkness in mostly black scenes, as well as avoid black bars from
+    // affecting the content, (smoothly) cut off any value below this (PQ%)
+    // threshold. Defaults to 1.0, or 1% PQ.
+    //
+    // Setting this to 0.0 (or a negative value) disables this functionality.
+    float black_cutoff;
+
     // Allows the peak detection result to be delayed by up to a single frame,
     // which can sometimes improve thoughput, at the cost of introducing the
     // possibility of 1-frame flickers on transitions. Disabled by default.
     bool allow_delayed;
 
     // --- Deprecated / removed fields
-    float overshoot_margin PL_DEPRECATED;
-    float minimum_peak PL_DEPRECATED;
+    PL_DEPRECATED_IN(v6.313) float minimum_peak;
 };
 
 #define PL_PEAK_DETECT_DEFAULTS         \
     .smoothing_period       = 20.0f,    \
     .scene_threshold_low    = 1.0f,     \
     .scene_threshold_high   = 3.0f,     \
-    .percentile             = 100.0f,
+    .percentile             = 100.0f,   \
+    .black_cutoff           = 1.0f,
 
 #define PL_PEAK_DETECT_HQ_DEFAULTS      \
     PL_PEAK_DETECT_DEFAULTS             \
@@ -185,15 +193,6 @@ PL_API bool pl_shader_detect_peak(pl_shader sh, struct pl_color_space csp,
 PL_API bool pl_get_detected_hdr_metadata(const pl_shader_obj state,
                                          struct pl_hdr_metadata *metadata);
 
-// After dispatching the above shader, this function *may* be used to read out
-// the detected CLL and FALL directly (in PL_HDR_NORM units). If the shader
-// has never been dispatched yet, i.e. no information is available, this will
-// return false.
-//
-// Deprecated in favor of `pl_get_detected_hdr_metadata`
-PL_DEPRECATED PL_API bool pl_get_detected_peak(const pl_shader_obj state,
-                                               float *out_cll, float *out_fall);
-
 // Resets the peak detection state in a given tone mapping state object. This
 // is not equal to `pl_shader_obj_destroy`, because it does not destroy any
 // state used by `pl_shader_tone_map`.
@@ -208,20 +207,20 @@ PL_API void pl_shader_extract_features(pl_shader sh, struct pl_color_space csp);
 // hybrid tone-mapping, mixing together the intensity (I) and per-channel (LMS)
 // results.
 enum pl_tone_map_mode {
-    PL_TONE_MAP_AUTO    PL_DEPRECATED_ENUMERATOR,
-    PL_TONE_MAP_RGB     PL_DEPRECATED_ENUMERATOR,
-    PL_TONE_MAP_MAX     PL_DEPRECATED_ENUMERATOR,
-    PL_TONE_MAP_HYBRID  PL_DEPRECATED_ENUMERATOR,
-    PL_TONE_MAP_LUMA    PL_DEPRECATED_ENUMERATOR,
+    PL_TONE_MAP_AUTO    PL_DEPRECATED_ENUM_IN(v6.269),
+    PL_TONE_MAP_RGB     PL_DEPRECATED_ENUM_IN(v6.269),
+    PL_TONE_MAP_MAX     PL_DEPRECATED_ENUM_IN(v6.269),
+    PL_TONE_MAP_HYBRID  PL_DEPRECATED_ENUM_IN(v6.269),
+    PL_TONE_MAP_LUMA    PL_DEPRECATED_ENUM_IN(v6.269),
     PL_TONE_MAP_MODE_COUNT,
 };
 
 // Deprecated by <libplacebo/gamut_mapping.h>
 enum pl_gamut_mode {
-    PL_GAMUT_CLIP       PL_DEPRECATED_ENUMERATOR, // pl_gamut_map_clip
-    PL_GAMUT_WARN       PL_DEPRECATED_ENUMERATOR, // pl_gamut_map_highlight
-    PL_GAMUT_DARKEN     PL_DEPRECATED_ENUMERATOR, // pl_gamut_map_darken
-    PL_GAMUT_DESATURATE PL_DEPRECATED_ENUMERATOR, // pl_gamut_map_desaturate
+    PL_GAMUT_CLIP       PL_DEPRECATED_ENUM_IN(v6.269), // pl_gamut_map_clip
+    PL_GAMUT_WARN       PL_DEPRECATED_ENUM_IN(v6.269), // pl_gamut_map_highlight
+    PL_GAMUT_DARKEN     PL_DEPRECATED_ENUM_IN(v6.269), // pl_gamut_map_darken
+    PL_GAMUT_DESATURATE PL_DEPRECATED_ENUM_IN(v6.269), // pl_gamut_map_desaturate
     PL_GAMUT_MODE_COUNT,
 };
 
@@ -304,12 +303,12 @@ struct pl_color_map_params {
     bool show_clipping;
 
     // --- Deprecated fields
-    enum pl_tone_map_mode tone_mapping_mode PL_DEPRECATED; // removed
-    float tone_mapping_param PL_DEPRECATED;         // see `tone_constants`
-    float tone_mapping_crosstalk PL_DEPRECATED;     // now hard-coded as 0.04
-    enum pl_rendering_intent intent PL_DEPRECATED;  // see `gamut_mapping`
-    enum pl_gamut_mode gamut_mode PL_DEPRECATED;    // see `gamut_mapping`
-    float hybrid_mix PL_DEPRECATED;                 // removed
+    PL_DEPRECATED_IN(v6.269) enum pl_tone_map_mode tone_mapping_mode; // removed
+    PL_DEPRECATED_IN(v6.311) float tone_mapping_param;        // see `tone_constants`
+    PL_DEPRECATED_IN(v6.269) float tone_mapping_crosstalk;    // now hard-coded as 0.04
+    PL_DEPRECATED_IN(v6.269) enum pl_rendering_intent intent; // see `gamut_mapping`
+    PL_DEPRECATED_IN(v6.269) enum pl_gamut_mode gamut_mode;   // see `gamut_mapping`
+    PL_DEPRECATED_IN(v6.290) float hybrid_mix;                // removed
 };
 
 #define PL_COLOR_MAP_DEFAULTS                                   \

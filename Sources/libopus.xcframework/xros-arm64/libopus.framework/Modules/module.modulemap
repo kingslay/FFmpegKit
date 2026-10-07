@@ -1,0 +1,4 @@
+framework module libopus [system] {
+    umbrella "."
+    export *
+}

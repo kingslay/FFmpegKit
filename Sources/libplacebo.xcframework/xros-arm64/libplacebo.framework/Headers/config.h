@@ -19,11 +19,11 @@
 #define LIBPLACEBO_CONFIG_H_
 
 // Increased any time the library changes in a fundamental/major way.
-#define PL_MAJOR_VER 6
+#define PL_MAJOR_VER 7
 
 // Increased any time the API changes. (Note: Does not reset when PL_MAJOR_VER
 // is increased)
-#define PL_API_VER 338
+#define PL_API_VER 360
 
 // Increased any time a fix is made to a given API version.
 #define PL_FIX_VER (pl_fix_ver())
@@ -39,7 +39,7 @@
 #define PL_HAVE_GL_PROC_ADDR 1
 #undef PL_HAVE_GLSLANG
 #define PL_HAVE_LCMS 1
-#undef PL_HAVE_LIBDOVI
+#define PL_HAVE_LIBDOVI 1
 #undef PL_HAVE_OPENGL
 #define PL_HAVE_SHADERC 1
 #define PL_HAVE_VK_PROC_ADDR 1
@@ -48,11 +48,11 @@
 
 
 // Extra compiler-specific stuff
-#ifndef PL_DEPRECATED
+#ifndef PL_DEPRECATED_IN
 # if defined(_MSC_VER)
-# define PL_DEPRECATED
+# define PL_DEPRECATED_IN(VER)
 # else
-# define PL_DEPRECATED __attribute__((deprecated))
+# define PL_DEPRECATED_IN(VER) __attribute__((deprecated))
 # endif
 #endif
 
@@ -60,11 +60,11 @@
 #define __has_feature(x) 0
 #endif
 
-#ifndef PL_DEPRECATED_ENUMERATOR
+#ifndef PL_DEPRECATED_ENUM_IN
 # if (defined(__GNUC__) && (__GNUC__ >= 6)) || __has_feature(enumerator_attributes)
-# define PL_DEPRECATED_ENUMERATOR PL_DEPRECATED
+# define PL_DEPRECATED_ENUM_IN(VER) PL_DEPRECATED_IN(VER)
 # else
-# define PL_DEPRECATED_ENUMERATOR
+# define PL_DEPRECATED_ENUM_IN(VER)
 # endif
 #endif
 

@@ -1,0 +1,40 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/kintan/Documents/Github/TracyPlayer/Modules/FFmpegKit/.Script/FFmpeg/ios/Libavdevice.framework/Libavdevice'
+relocations:
+  - { offset: 0x26, size: 0x8, addend: 0x0, symName: _avdevice_register_all, symObjAddr: 0x0, symBinAddr: 0x48AC, symSize: 0x14 }
+  - { offset: 0x33, size: 0x8, addend: 0x0, symName: _avdevice_register_all, symObjAddr: 0x0, symBinAddr: 0x48AC, symSize: 0x14 }
+  - { offset: 0x5F, size: 0x8, addend: 0x0, symName: _av_input_audio_device_next, symObjAddr: 0x14, symBinAddr: 0x48C0, symSize: 0x48 }
+  - { offset: 0x85, size: 0x8, addend: 0x0, symName: _av_input_video_device_next, symObjAddr: 0x5C, symBinAddr: 0x4908, symSize: 0x44 }
+  - { offset: 0xAB, size: 0x8, addend: 0x0, symName: _av_output_audio_device_next, symObjAddr: 0xA0, symBinAddr: 0x494C, symSize: 0x8 }
+  - { offset: 0xBC, size: 0x8, addend: 0x0, symName: _av_output_video_device_next, symObjAddr: 0xA8, symBinAddr: 0x4954, symSize: 0x8 }
+  - { offset: 0xF3, size: 0x8, addend: 0x0, symName: _avdevice_app_to_dev_control_message, symObjAddr: 0x0, symBinAddr: 0x4000, symSize: 0x1C }
+  - { offset: 0x100, size: 0x8, addend: 0x0, symName: _avdevice_app_to_dev_control_message, symObjAddr: 0x0, symBinAddr: 0x4000, symSize: 0x1C }
+  - { offset: 0x11D, size: 0x8, addend: 0x0, symName: _avdevice_dev_to_app_control_message, symObjAddr: 0x1C, symBinAddr: 0x401C, symSize: 0x14 }
+  - { offset: 0x13A, size: 0x8, addend: 0x0, symName: _avdevice_list_devices, symObjAddr: 0x30, symBinAddr: 0x4030, symSize: 0x10C }
+  - { offset: 0x199, size: 0x8, addend: 0x0, symName: _avdevice_free_list_devices, symObjAddr: 0x13C, symBinAddr: 0x413C, symSize: 0xA0 }
+  - { offset: 0x1AA, size: 0x8, addend: 0x0, symName: _avdevice_free_list_devices, symObjAddr: 0x13C, symBinAddr: 0x413C, symSize: 0xA0 }
+  - { offset: 0x20D, size: 0x8, addend: 0x0, symName: _avdevice_list_input_sources, symObjAddr: 0x1DC, symBinAddr: 0x41DC, symSize: 0x94 }
+  - { offset: 0x217, size: 0x8, addend: 0x0, symName: _avdevice_list_devices.cold.3, symObjAddr: 0x358, symBinAddr: 0x49AC, symSize: 0x28 }
+  - { offset: 0x228, size: 0x8, addend: 0x0, symName: _avdevice_list_devices.cold.2, symObjAddr: 0x330, symBinAddr: 0x4984, symSize: 0x28 }
+  - { offset: 0x239, size: 0x8, addend: 0x0, symName: _avdevice_list_devices.cold.1, symObjAddr: 0x308, symBinAddr: 0x495C, symSize: 0x28 }
+  - { offset: 0x25A, size: 0x8, addend: 0x0, symName: _avdevice_free_list_devices.cold.1, symObjAddr: 0x380, symBinAddr: 0x49D4, symSize: 0x28 }
+  - { offset: 0x271, size: 0x8, addend: 0x0, symName: _avdevice_list_input_sources, symObjAddr: 0x1DC, symBinAddr: 0x41DC, symSize: 0x94 }
+  - { offset: 0x30A, size: 0x8, addend: 0x0, symName: _avdevice_list_output_sinks, symObjAddr: 0x270, symBinAddr: 0x4270, symSize: 0x98 }
+  - { offset: 0x386, size: 0x8, addend: 0x0, symName: _OUTLINED_FUNCTION_0, symObjAddr: 0x3A8, symBinAddr: 0x4308, symSize: 0x18 }
+  - { offset: 0x3BD, size: 0x8, addend: 0x0, symName: _lavfi_read_header, symObjAddr: 0x0, symBinAddr: 0x49FC, symSize: 0x61C }
+  - { offset: 0x3CA, size: 0x8, addend: 0x0, symName: _lavfi_read_header, symObjAddr: 0x0, symBinAddr: 0x49FC, symSize: 0x61C }
+  - { offset: 0x67B, size: 0x8, addend: 0x0, symName: _OUTLINED_FUNCTION_0, symObjAddr: 0xA80, symBinAddr: 0x4738, symSize: 0xC }
+  - { offset: 0x6D8, size: 0x8, addend: 0x0, symName: _OUTLINED_FUNCTION_1, symObjAddr: 0xA8C, symBinAddr: 0x4744, symSize: 0x8 }
+  - { offset: 0x7C1, size: 0x8, addend: 0x0, symName: _create_subcc_streams, symObjAddr: 0x910, symBinAddr: 0x45C8, symSize: 0xCC }
+  - { offset: 0x7E8, size: 0x8, addend: 0x0, symName: _lavfi_read_packet, symObjAddr: 0x61C, symBinAddr: 0x4320, symSize: 0x2A8 }
+  - { offset: 0x91E, size: 0x8, addend: 0x0, symName: _create_subcc_packet, symObjAddr: 0x9FC, symBinAddr: 0x46B4, symSize: 0x84 }
+  - { offset: 0x952, size: 0x8, addend: 0x0, symName: _lavfi_read_close, symObjAddr: 0x8C4, symBinAddr: 0x5018, symSize: 0x4C }
+  - { offset: 0x9BA, size: 0x8, addend: 0x0, symName: _lavfi_free_frame, symObjAddr: 0x9DC, symBinAddr: 0x4694, symSize: 0x20 }
+  - { offset: 0xA07, size: 0x8, addend: 0x0, symName: _ff_alloc_input_device_context, symObjAddr: 0x0, symBinAddr: 0x474C, symSize: 0x13C }
+  - { offset: 0xA14, size: 0x8, addend: 0x0, symName: _ff_alloc_input_device_context, symObjAddr: 0x0, symBinAddr: 0x474C, symSize: 0x13C }
+  - { offset: 0xAC1, size: 0x8, addend: 0x0, symName: _avdevice_version, symObjAddr: 0x0, symBinAddr: 0x4888, symSize: 0xC }
+  - { offset: 0xACE, size: 0x8, addend: 0x0, symName: _avdevice_version, symObjAddr: 0x0, symBinAddr: 0x4888, symSize: 0xC }
+  - { offset: 0xADF, size: 0x8, addend: 0x0, symName: _avdevice_configuration, symObjAddr: 0xC, symBinAddr: 0x4894, symSize: 0xC }
+  - { offset: 0xAF0, size: 0x8, addend: 0x0, symName: _avdevice_license, symObjAddr: 0x18, symBinAddr: 0x48A0, symSize: 0xC }
+...
