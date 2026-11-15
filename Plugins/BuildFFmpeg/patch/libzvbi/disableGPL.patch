@@ -1,0 +1,31 @@
+diff --git forkSrcPrefix/src/Makefile.am forkDstPrefix/src/Makefile.am
+index 738bd386d8c51d7dcea58f4da977cd3f202fdeb0..00cd536eb66a58549f6c7707c4a2c2abb14e65d9 100644
+--- forkSrcPrefix/src/Makefile.am
++++ forkDstPrefix/src/Makefile.am
+@@ -98,9 +98,7 @@ libzvbi_la_SOURCES = \
+ 	misc.c misc.h \
+ 	network.h \
+ 	packet.c teletext.c teletext_decoder.h vt.h \
+-	packet-830.c packet-830.h \
+ 	page_table.c page_table.h \
+-	pdc.c pdc.h \
+ 	pfc_demux.c pfc_demux.h \
+ 	proxy-client.c proxy-client.h \
+ 	raw_decoder.c raw_decoder.h \
+diff --git forkSrcPrefix/configure.ac forkDstPrefix/configure.ac
+index 7ca51b38af797743a4486037c18a1084aa91eaae..d421e15a5883edb7dd170d954226062ee6920fa4 100644
+--- forkSrcPrefix/configure.ac
++++ forkDstPrefix/configure.ac
+@@ -100,10 +100,10 @@ AC_FUNC_ERROR_AT_LINE
+ AC_FUNC_FORK
+ AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
+ AC_HEADER_MAJOR
+-AC_FUNC_MALLOC
++
+ AC_FUNC_MKTIME
+ AC_FUNC_MMAP
+-AC_FUNC_REALLOC
++
+ AC_FUNC_STRTOD
+ 
+ AC_SYS_LARGEFILE
